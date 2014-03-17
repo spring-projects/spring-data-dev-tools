@@ -1,0 +1,147 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.springframework.data.build</groupId>
+	<artifactId>spring-data-release-cli</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.0.0.RC4</version>
+	</parent>
+
+	<properties>
+		<jar.mainclass>org.springframework.shell.Bootstrap</jar.mainclass>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-logging</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.shell</groupId>
+			<artifactId>spring-shell</artifactId>
+			<version>1.1.0.BUILD-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.xmlbeam</groupId>
+		    <artifactId>xmlprojector</artifactId>
+		    <version>1.1.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-exec</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.12.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<!-- Shell packaging -->
+
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<version>1.7</version>
+				<configuration>
+					<programs>
+						<program>
+							<mainClass>org.springframework.shell.Bootstrap</mainClass>
+							<id>spring-data-release-shell</id>
+						</program>
+					</programs>
+				</configuration>
+			</plugin>
+
+
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-dependency-plugin</artifactId> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<id>copy-dependencies</id> -->
+<!-- 						<phase>prepare-package</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>copy-dependencies</goal> -->
+<!-- 						</goals> -->
+<!-- 						<configuration> -->
+<!-- 							<outputDirectory>${project.build.directory}/lib</outputDirectory> -->
+<!-- 							<overWriteReleases>true</overWriteReleases> -->
+<!-- 							<overWriteSnapshots>true</overWriteSnapshots> -->
+<!-- 							<overWriteIfNewer>true</overWriteIfNewer> -->
+<!-- 						</configuration> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 			</plugin> -->
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.maven.plugins</groupId> -->
+<!-- 				<artifactId>maven-jar-plugin</artifactId> -->
+<!-- 				<configuration> -->
+<!-- 					<archive> -->
+<!-- 						<manifest> -->
+<!-- 							<addClasspath>true</addClasspath> -->
+<!-- 							<useUniqueVersions>false</useUniqueVersions> -->
+<!-- 							<classpathPrefix>lib/</classpathPrefix> -->
+<!-- 							<mainClass>${jar.mainclass}</mainClass> -->
+<!-- 						</manifest> -->
+<!-- 						<manifestEntries> -->
+<!-- 							<version>${project.version}</version> -->
+<!-- 						</manifestEntries> -->
+<!-- 					</archive> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>http://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+</project>

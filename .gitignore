@@ -1,0 +1,7 @@
+target/
+.settings/
+.project
+.classpath
+.springBeans
+jira.properties
+spring-shell.log
