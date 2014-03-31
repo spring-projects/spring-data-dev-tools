@@ -32,10 +32,20 @@ public class GitProject {
 	private final Project project;
 	private final GitServer server;
 
+	/**
+	 * Returns the name of the repository the project is using.
+	 * 
+	 * @return
+	 */
 	public String getRepositoryName() {
 		return String.format("%s-%s", PROJECT_PREFIX, project.getName().toLowerCase());
 	}
 
+	/**
+	 * Returns the URI of the {@link Project}'s repository.
+	 * 
+	 * @return
+	 */
 	public String getProjectUri() {
 		return server.getUri() + getRepositoryName();
 	}

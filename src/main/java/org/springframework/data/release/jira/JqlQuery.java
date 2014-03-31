@@ -22,6 +22,7 @@ import lombok.Value;
 
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.util.StringUtils;
 
@@ -48,6 +49,10 @@ class JqlQuery {
 		List<String> parts = new ArrayList<>();
 
 		for (Module module : train) {
+
+			if (ReleaseTrains.BUILD.equals(module.getProject())) {
+				continue;
+			}
 
 			JiraVersion version = new JiraVersion(module, train, iteration);
 			parts.add(String.format(PROJECT_VERSION_TEMPLATE, module.getProject().getKey(), version));

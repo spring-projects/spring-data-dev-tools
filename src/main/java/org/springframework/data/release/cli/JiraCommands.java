@@ -58,7 +58,6 @@ public class JiraCommands implements CommandMarker {
 
 	@CliCommand(value = "jira tickets")
 	public String jira(
-			//
 			@CliOption(key = { "", "train" }, mandatory = true, help = "The name of the release train.") String trainName, //
 			@CliOption(key = "iteration", mandatory = true, help = "An iteration key (one of M1, RC1, GA).") String iterationName, //
 			@CliOption(key = "for-current-user", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean forCurrentUser) {
@@ -71,5 +70,14 @@ public class JiraCommands implements CommandMarker {
 		Iteration iteration = train.getIterations().getIterationByName(iterationName);
 
 		return connector.getTicketsFor(train, iteration, forCurrentUser ? credentials : null).toString();
+	}
+
+	@CliCommand("changelog")
+	public String changelog(@CliOption(key = { "", "module" }, mandatory = true) String moduleName, @CliOption(
+			key = { "iteration" }, mandatory = true) String iterationName) {
+
+		Train dijkstra = ReleaseTrains.DIJKSTRA;
+		return connector.getChangelogFor(dijkstra, dijkstra.getModule(moduleName),
+				dijkstra.getIterations().getIterationByName(iterationName)).toString();
 	}
 }

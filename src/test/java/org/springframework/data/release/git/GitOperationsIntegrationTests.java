@@ -15,9 +15,6 @@
  */
 package org.springframework.data.release.git;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -32,14 +29,14 @@ public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 	@Autowired GitOperations gitOperations;
 
 	@Test
-	public void testname() throws IOException, InterruptedException {
+	public void testname() throws Exception {
 		gitOperations.update(ReleaseTrains.CODD);
 	}
 
 	@Test
-	public void showTags() throws IOException {
+	public void showTags() throws Exception {
 
-		List<Tag> tags = gitOperations.getTags(ReleaseTrains.COMMONS);
-		System.out.println(StringUtils.collectionToDelimitedString(tags, "\n"));
+		Tags tags = gitOperations.getTags(ReleaseTrains.COMMONS);
+		System.out.println(StringUtils.collectionToDelimitedString(tags.asList(), "\n"));
 	}
 }

@@ -15,6 +15,9 @@
  */
 package org.springframework.data.release.model;
 
+import java.util.Arrays;
+import java.util.List;
+
 import lombok.Value;
 
 /**
@@ -25,10 +28,16 @@ public class Project {
 
 	private final ProjectKey key;
 	private final String name;
+	private final List<Project> dependencies;
 
-	public Project(String key, String name) {
+	public Project(String key, String name, Project... dependencies) {
 
 		this.key = new ProjectKey(key);
 		this.name = name;
+		this.dependencies = Arrays.asList(dependencies);
+	}
+
+	public String getFullName() {
+		return "Spring Data ".concat(name);
 	}
 }

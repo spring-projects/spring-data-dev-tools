@@ -92,6 +92,37 @@ public class Train implements Iterable<Module> {
 		return new Train(name, nextModules);
 	}
 
+	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration) {
+		return getModuleIterations(iteration, new Project[0]);
+	}
+
+	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration, Project... exclusions) {
+
+		List<ModuleIteration> iterations = new ArrayList<>(modules.size());
+		List<Project> exclusionList = Arrays.asList(exclusions);
+
+		for (Module module : this) {
+
+			if (exclusionList.contains(module.getProject())) {
+				continue;
+			}
+
+			iterations.add(new ModuleIteration(module, iteration, this));
+		}
+
+		return iterations;
+	}
+
+	public Iteration getIteration(String name) {
+		return iterations.getIterationByName(name);
+	}
+
+	public ArtifactVersion getModuleVersion(Project project, Iteration iteration) {
+
+		Module module = getModule(project);
+		return ArtifactVersion.from(new ModuleIteration(module, iteration, this));
+	}
+
 	@Override
 	public String toString() {
 

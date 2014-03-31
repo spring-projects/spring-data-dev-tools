@@ -15,13 +15,15 @@
  */
 package org.springframework.data.release.model;
 
-import lombok.Value;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Oliver Gierke
  */
-@Value
-public class ModuleIteration {
+@RequiredArgsConstructor
+@EqualsAndHashCode
+public class ModuleIteration implements IterationVersion {
 
 	private final Module module;
 	private final Iteration iteration;
@@ -29,6 +31,23 @@ public class ModuleIteration {
 
 	public ProjectKey getProjectKey() {
 		return module.getProject().getKey();
+	}
+
+	public Project getProject() {
+		return module.getProject();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.model.IterationVersion#getVersion()
+	 */
+	@Override
+	public Version getVersion() {
+		return module.getVersion();
+	}
+
+	public Iteration getIteration() {
+		return module.hasCustomFirstIteration() ? module.getCustomFirstIteration() : this.iteration;
 	}
 
 	public String getJiraVersionName() {

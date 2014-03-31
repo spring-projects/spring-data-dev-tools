@@ -15,7 +15,9 @@
  */
 package org.springframework.data.release.maven;
 
+import org.springframework.data.release.model.ArtifactVersion;
 import org.xmlbeam.annotation.XBRead;
+import org.xmlbeam.annotation.XBValue;
 import org.xmlbeam.annotation.XBWrite;
 
 /**
@@ -27,13 +29,25 @@ public interface Pom {
 	Artifact getArtifactId();
 
 	@XBRead("/project/version")
-	String getVersion();
+	ArtifactVersion getVersion();
 
 	@XBWrite("/project/version")
 	void setVersion(String version);
 
 	@XBRead("/project/repositories/repository[id=\"spring-libs-snapshot\"]")
 	Repository getSpringRepository();
+
+	@XBWrite("/project/parent/version")
+	void setParentVersion(ArtifactVersion version);
+
+	@XBWrite("/project/properties/{0}")
+	void setProperty(String property, @XBValue ArtifactVersion value);
+
+	@XBWrite("/project/repositories/repository[id={0}]/id")
+	void setRepositoryId(String oldId, @XBValue String newId);
+
+	@XBWrite("/project/repositories/repository[id={0}]/url")
+	void setRepositoryUrl(String id, @XBValue String url);
 
 	public interface Repository {
 

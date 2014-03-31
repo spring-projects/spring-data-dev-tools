@@ -15,13 +15,13 @@
  */
 package org.springframework.data.release.git;
 
-import java.io.IOException;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Train;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -35,20 +35,30 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class GiCommands implements CommandMarker {
 
-	private final GitOperations gitOperations;
+	private final GitOperations git;
+
+	@CliCommand("git checkout")
+	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
+			key = "iteration", mandatory = true) String iterationName) throws Exception {
+
+		Train train = ReleaseTrains.getTrainByName(trainName);
+		Iteration iteration = train.getIteration(iterationName);
+
+		git.checkout(train, iteration);
+	}
 
 	@CliCommand("git update")
-	public void checkout(@CliOption(key = { "train" }, mandatory = true) String trainName) throws IOException,
+	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName) throws Exception,
 			InterruptedException {
 
-		gitOperations.update(ReleaseTrains.getProjectByName(trainName));
+		git.update(ReleaseTrains.getTrainByName(trainName));
 	}
 
 	@CliCommand("git tags")
-	public String tags(@CliOption(key = { "project" }, mandatory = true) String projectName) throws IOException {
+	public String tags(@CliOption(key = { "project" }, mandatory = true) String projectName) throws Exception {
 
 		Project project = ReleaseTrains.getProjectByName(projectName);
 
-		return StringUtils.collectionToDelimitedString(gitOperations.getTags(project), "\n");
+		return StringUtils.collectionToDelimitedString(git.getTags(project).asList(), "\n");
 	}
 }

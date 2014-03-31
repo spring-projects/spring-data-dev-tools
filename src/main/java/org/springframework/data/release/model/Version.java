@@ -117,6 +117,14 @@ public class Version implements Comparable<Version> {
 		return new Version(this.major, this.minor + 1);
 	}
 
+	public Version nextBugfix() {
+		return new Version(this.major, this.minor, this.bugfix + 1);
+	}
+
+	public Version withBugfix(int bugfix) {
+		return new Version(this.major, this.minor, bugfix);
+	}
+
 	public String toMajorMinorBugfix() {
 		return String.format("%s.%s.%s", major, minor, bugfix);
 	}

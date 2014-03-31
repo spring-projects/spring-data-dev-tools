@@ -15,28 +15,36 @@
  */
 package org.springframework.data.release.maven;
 
-import lombok.Value;
-
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.Iteration;
 
 /**
  * @author Oliver Gierke
  */
-@Value
-public class MavenProject {
+public class Repository {
 
-	private final Module module;
+	private static final String BASE = "http://repo.spring.io/libs-";
 
-	public String getGroupId() {
-		return "org.springframework.data";
+	private final String id;
+	private final String url;
+
+	public Repository(Iteration iteration) {
+		this.id = iteration.isPublicVersion() ? "spring-libs-release" : "spring-libs-milestone";
+		this.url = iteration.isPublicVersion() ? BASE.concat("release") : BASE.concat("milestone");
 	}
 
-	public String getArtifactId() {
-		return String.format("spring-data-%s", module.getProject().getName().toLowerCase());
+	public String getId() {
+		return id;
 	}
 
-	public ArtifactVersion getReleaseVersion() {
-		return new ArtifactVersion(module.getVersion());
+	public String getSnapshotId() {
+		return "spring-libs-snapshot";
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public String getSnapshotUrl() {
+		return BASE.concat("snapshot");
 	}
 }

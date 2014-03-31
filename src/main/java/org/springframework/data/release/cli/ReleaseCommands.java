@@ -15,19 +15,22 @@
  */
 package org.springframework.data.release.cli;
 
-import java.io.IOException;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.git.GitOperations;
+import org.springframework.data.release.git.Tags;
 import org.springframework.data.release.maven.MavenOperations;
 import org.springframework.data.release.maven.Pom;
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
+import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,19 +40,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ReleaseCommands implements CommandMarker {
 
-	private final MavenOperations mavenOperations;
+	private final MavenOperations maven;
+	private final GitOperations git;
 
 	@CliCommand("release predict")
-	public String predictTrainAndIteration() throws IOException {
+	public String predictTrainAndIteration() throws Exception {
 
 		Project commons = ReleaseTrains.COMMONS;
-		Pom pom = mavenOperations.getMavenProject(commons);
+		Pom pom = maven.getMavenProject(commons);
+
+		Tags tags = git.getTags(commons);
+
+		ArtifactVersion version = tags.getLatest().toArtifactVersion();
+		System.out.println(version);
 
 		for (Train train : ReleaseTrains.TRAINS) {
 
 			Module module = train.getModule(commons);
 
-			if (!pom.getVersion().startsWith(module.getVersion().toMajorMinorBugfix())) {
+			if (!pom.getVersion().toString().startsWith(module.getVersion().toMajorMinorBugfix())) {
 				continue;
 			}
 
@@ -57,5 +66,37 @@ public class ReleaseCommands implements CommandMarker {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Triggers the distribution of release artifacts for all projects.
+	 * 
+	 * @param trainName
+	 * @param iterationName
+	 * @throws Exception
+	 */
+	@CliCommand("release distribute")
+	public void distribute(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
+			key = "iteration", mandatory = true) String iterationName) throws Exception {
+
+		Train train = ReleaseTrains.getTrainByName(trainName);
+		Iteration iteration = train.getIteration(iterationName);
+
+		git.checkout(train, iteration);
+		maven.triggerDistributionBuild(train, iteration);
+	}
+
+	@CliCommand("release prepare")
+	public void prepare(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
+			key = "iteration", mandatory = true) String iterationName) throws Exception {
+
+		Train train = ReleaseTrains.getTrainByName(trainName);
+		Iteration iteration = train.getIteration(iterationName);
+
+		git.prepare(train, iteration);
+
+		for (Module module : train) {
+			maven.prepareProject(train, iteration, module.getProject());
+		}
 	}
 }

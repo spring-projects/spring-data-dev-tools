@@ -17,21 +17,17 @@ package org.springframework.data.release.maven;
 
 import lombok.Value;
 
-import org.springframework.data.release.model.Version;
-
 /**
+ * Value object to represent an artifacts group identifier.
+ * 
  * @author Oliver Gierke
  */
 @Value
-public class MavenVersion {
+class GroupId {
 
-	private final Version version;
+	private final String value;
 
-	public String getReleaseVersion() {
-		return String.format("%s.RELEASE", version.toMajorMinorBugfix());
-	}
-
-	public String getSnapshotVersion() {
-		return String.format("%s.BUILD-SNAPSHOT", version.toMajorMinorBugfix());
+	public String asPath() {
+		return value.replace('.', '/');
 	}
 }

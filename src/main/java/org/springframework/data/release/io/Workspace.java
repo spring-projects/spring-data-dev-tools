@@ -28,8 +28,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.release.model.Project;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
+ * Abstraction of the workspace that is used to work with the {@link Project}'s repositories, execute builds, etc.
+ * 
  * @author Oliver Gierke
  */
 @Component
@@ -40,28 +43,61 @@ public class Workspace {
 
 	private final Environment environment;
 
+	/**
+	 * Returns the current working directory.
+	 * 
+	 * @return
+	 */
 	public File getWorkingDirectory() {
 
 		String workDir = environment.getProperty("io.workDir");
 		return new File(workDir.replace("~", System.getProperty("user.home")));
 	}
 
+	/**
+	 * Returns the directory for the given {@link Project}.
+	 * 
+	 * @param project must not be {@literal null}.
+	 * @return
+	 */
 	public File getProjectDirectory(Project project) {
+
+		Assert.notNull(project, "Project must not be null!");
 		return new File(getWorkingDirectory(), project.getName());
 	}
 
+	/**
+	 * Returns whether the project directory for the given project already exists.
+	 * 
+	 * @param project must not be {@literal null}.
+	 * @return
+	 */
 	public boolean hasProjectDirectory(Project project) {
+
+		Assert.notNull(project, "Project must not be null!");
 		return getProjectDirectory(project).exists();
 	}
 
+	/**
+	 * Returns a file with the given name relative to the working directory for the given {@link Project}.
+	 * 
+	 * @param name must not be {@literal null} or empty.
+	 * @param project must not be {@literal null}.
+	 * @return
+	 */
 	public File getFile(String name, Project project) {
-		return new File(new File(getWorkingDirectory(), project.getName()), name);
+
+		Assert.hasText(name, "Filename must not be null or empty!");
+		Assert.notNull(project, "Project must not be null!");
+
+		return new File(getProjectDirectory(project), name);
 	}
 
-	public boolean exists(String subfolder) {
-		return new File(getWorkingDirectory(), subfolder).exists();
-	}
-
+	/**
+	 * Initializes the working directory and creates the folders if necessary.
+	 * 
+	 * @throws IOException
+	 */
 	@PostConstruct
 	public void setUp() throws IOException {
 

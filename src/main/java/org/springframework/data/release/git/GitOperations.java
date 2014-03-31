@@ -19,21 +19,28 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.io.CommandExecution;
+import org.springframework.data.release.io.CommandResult;
 import org.springframework.data.release.io.OsCommandOperations;
 import org.springframework.data.release.io.Workspace;
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
+ * Component to execut Git related operations.
+ * 
  * @author Oliver Gierke
  */
 @Component
@@ -50,20 +57,66 @@ public class GitOperations {
 		return new GitProject(project, server);
 	}
 
-	public void update(Train train) throws IOException, InterruptedException {
+	/**
+	 * Checks out all projects of the given {@link Train} at the tags for the given {@link Iteration}.
+	 * 
+	 * @param train
+	 * @param iteration
+	 * @throws Exception
+	 */
+	public void checkout(Train train, Iteration iteration) throws Exception {
 
-		List<CommandExecution> executions = new ArrayList<>();
+		update(train);
+
+		for (ModuleIteration module : train.getModuleIterations(iteration)) {
+
+			Project project = module.getProject();
+			ArtifactVersion artifactVersion = ArtifactVersion.from(module);
+
+			Tag tag = findTagFor(project, artifactVersion);
+
+			if (tag == null) {
+				throw new IllegalStateException(String.format("No tag found for version %s of project %s, aborting.",
+						artifactVersion, project));
+			}
+
+			osCommandOperations.executeCommand(String.format("git checkout %s", tag), project).get();
+		}
+
+		LOGGER.info(String.format("Successfully checked out iteration %s for release train %s.", iteration.getName(),
+				train.getName()));
+	}
+
+	public void prepare(Train train, Iteration iteration) throws Exception {
+
+		for (ModuleIteration module : train.getModuleIterations(iteration)) {
+
+			Branch branch = Branch.from(module);
+
+			update(module.getProject());
+
+			String checkoutCommand = String.format("git checkout %s", branch);
+			osCommandOperations.executeCommand(checkoutCommand, module.getProject()).get();
+
+			String updateCommand = String.format("git pull origin %s", branch);
+			osCommandOperations.executeCommand(updateCommand, module.getProject()).get();
+		}
+	}
+
+	public void update(Train train) throws Exception {
+
+		List<Future<CommandResult>> executions = new ArrayList<>();
 
 		for (Module module : train) {
 			executions.add(update(module.getProject()));
 		}
 
-		for (CommandExecution execution : executions) {
-			execution.waitForResult();
+		for (Future<CommandResult> execution : executions) {
+			execution.get();
 		}
 	}
 
-	public CommandExecution update(Project project) throws IOException {
+	public Future<CommandResult> update(Project project) throws Exception {
 
 		GitProject gitProject = new GitProject(project, server);
 		String repositoryName = gitProject.getRepositoryName();
@@ -71,28 +124,54 @@ public class GitOperations {
 		if (workspace.hasProjectDirectory(project)) {
 
 			LOGGER.info(String.format("Found existing repository %s. Obtaining latest changes…", repositoryName));
-			return osCommandOperations.executeCommand("git pull origin master", project);
+
+			return osCommandOperations.executeCommand("git checkout master && git fetch --tags && git pull origin master",
+					project);
 
 		} else {
 
-			File projectDirectory = workspace.getProjectDirectory(project);
-
 			LOGGER.info(String.format("No repository found for project %s. Cloning repository from %s…", repositoryName,
 					gitProject.getProjectUri()));
-			return osCommandOperations.executeCommand(String.format("git clone %s %s", gitProject.getProjectUri(),
-					projectDirectory.getName()));
+
+			File projectDirectory = workspace.getProjectDirectory(project);
+			String command = String.format("git clone %s %s", gitProject.getProjectUri(), projectDirectory.getName());
+
+			return osCommandOperations.executeCommand(command);
 		}
 	}
 
-	public List<Tag> getTags(Project project) throws IOException {
+	public Tags getTags(Project project) throws Exception {
 
-		CommandExecution command = osCommandOperations.executeCommand("git tag -l", project);
+		String result = osCommandOperations.executeForResult("git tag -l", project);
 		List<Tag> tags = new ArrayList<>();
 
-		for (String line : command.waitAndGetOutput().split("\n")) {
-			tags.add(new Tag(line));
+		for (String line : result.split("\n")) {
+
+			if (!StringUtils.isEmpty(line)) {
+				tags.add(new Tag(line));
+			}
 		}
 
-		return tags;
+		return new Tags(tags);
+	}
+
+	/**
+	 * Returns the {@link Tag} that represents the {@link ArtifactVersion} of the given {@link Project}.
+	 * 
+	 * @param project
+	 * @param version
+	 * @return
+	 * @throws IOException
+	 */
+	private Tag findTagFor(Project project, ArtifactVersion version) throws Exception {
+
+		for (Tag tag : getTags(project)) {
+
+			if (tag.toArtifactVersion().equals(version)) {
+				return tag;
+			}
+		}
+
+		return null;
 	}
 }

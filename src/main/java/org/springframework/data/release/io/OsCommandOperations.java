@@ -16,6 +16,7 @@
 package org.springframework.data.release.io;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 import org.springframework.data.release.model.Project;
 
@@ -33,9 +34,11 @@ public interface OsCommandOperations {
 	 * @param command the command to execute
 	 * @throws IOException if an error occurs
 	 */
-	CommandExecution executeCommand(String command) throws IOException;
+	Future<CommandResult> executeCommand(String command) throws IOException;
 
-	CommandExecution executeCommand(String command, Project project) throws IOException;
+	Future<CommandResult> executeCommand(String command, Project project) throws IOException;
 
-	CommandExecution executeCommand(String command, String subfolder) throws IOException;
+	Future<CommandResult> executeWithOutput(String command, Project project) throws IOException;
+
+	String executeForResult(String command, Project project) throws Exception;
 }

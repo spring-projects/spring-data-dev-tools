@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.release.model.Iteration;
+import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -144,5 +146,17 @@ class RestJiraConnector implements JiraConnector {
 
 		// - mark version as releases
 		// - if no next version exists, create
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.JiraConnector#getChangelogFor(org.springframework.data.release.model.Module, org.springframework.data.release.model.Iteration)
+	 */
+	@Override
+	public Changelog getChangelogFor(Train train, Module module, Iteration iteration) {
+
+		Tickets tickets = getTicketsFor(ReleaseTrains.DIJKSTRA, iteration, null);
+
+		return new Changelog(module, iteration, tickets);
 	}
 }

@@ -13,30 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.io;
 
 import lombok.Value;
-
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Module;
 
 /**
  * @author Oliver Gierke
  */
 @Value
-public class MavenProject {
+public class CommandResult {
 
-	private final Module module;
+	private final int status;
+	private final String output;
+	private final Exception exception;
 
-	public String getGroupId() {
-		return "org.springframework.data";
-	}
-
-	public String getArtifactId() {
-		return String.format("spring-data-%s", module.getProject().getName().toLowerCase());
-	}
-
-	public ArtifactVersion getReleaseVersion() {
-		return new ArtifactVersion(module.getVersion());
+	public boolean hasError() {
+		return status != 0;
 	}
 }

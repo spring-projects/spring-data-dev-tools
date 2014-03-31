@@ -13,24 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.io;
+package org.springframework.data.release.model;
 
-import java.io.File;
+import lombok.Value;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+@Value
+public class SimpleIterationVersion implements IterationVersion {
 
-/**
- * @author Oliver Gierke
- */
-public class OsConfigurationIntegrationTests {
-
-	@Test
-	@Ignore
-	public void testname() {
-
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(OsConfiguration.class);
-		File file = new File(context.getEnvironment().getProperty("io.workDir"));
-	}
+	private final Version version;
+	private final Iteration iteration;
 }

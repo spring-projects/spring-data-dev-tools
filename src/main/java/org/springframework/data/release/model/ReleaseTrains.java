@@ -26,28 +26,29 @@ public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
 	public static final Train CODD, DIJKSTRA, EVANS, FOWLER;
-	public static final Project COMMONS;
+	public static final Project COMMONS, BUILD, REST;
 
-	private static final Project JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS, GEMFIRE, REST;
+	private static final Project JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS, GEMFIRE;
 	private static final List<Project> PROJECTS;
 
 	static {
 
-		COMMONS = new Project("DATACMNS", "Commons");
-		JPA = new Project("DATAJPA", "JPA");
-		MONGO_DB = new Project("DATAMONGO", "MongoDB");
-		NEO4J = new Project("DATAGRAPH", "Neo4j");
-		SOLR = new Project("DATASOLR", "Solr");
-		COUCHBASE = new Project("DATACOUCH", "Couchbase");
-		CASSANDRA = new Project("DATACASS", "Cassandra");
-		ELASTICSEARCH = new Project("DATAES", "Elasticsearch");
+		BUILD = new Project("DATABUILD", "Build");
+		COMMONS = new Project("DATACMNS", "Commons", BUILD);
+		JPA = new Project("DATAJPA", "JPA", COMMONS);
+		MONGO_DB = new Project("DATAMONGO", "MongoDB", COMMONS);
+		NEO4J = new Project("DATAGRAPH", "Neo4j", COMMONS);
+		SOLR = new Project("DATASOLR", "Solr", COMMONS);
+		COUCHBASE = new Project("DATACOUCH", "Couchbase", COMMONS);
+		CASSANDRA = new Project("DATACASS", "Cassandra", COMMONS);
+		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", COMMONS);
 		REDIS = new Project("DATAREDIS", "Redis");
-		GEMFIRE = new Project("SGF", "Gemfire");
+		GEMFIRE = new Project("SGF", "Gemfire", COMMONS);
 
-		REST = new Project("DATAREST", "REST");
+		REST = new Project("DATAREST", "REST", COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE);
 
-		PROJECTS = Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS, GEMFIRE,
-				REST);
+		PROJECTS = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS,
+				GEMFIRE, REST);
 
 		CODD = codd();
 		DIJKSTRA = dijkstra();
@@ -69,19 +70,21 @@ public class ReleaseTrains {
 
 	private static Train codd() {
 
+		Module build = new Module(BUILD, "1.3");
 		Module commons = new Module(COMMONS, "1.7");
 		Module jpa = new Module(JPA, "1.5");
 		Module mongoDb = new Module(MONGO_DB, "1.4");
 		Module neo4j = new Module(NEO4J, "3.0");
 		Module solr = new Module(SOLR, "1.1");
 
-		Module rest = new Module(REST, "2.1");
+		Module rest = new Module(REST, "2.0");
 
-		return new Train("Codd", commons, jpa, mongoDb, neo4j, solr, rest);
+		return new Train("Codd", build, commons, jpa, mongoDb, neo4j, solr, rest);
 	}
 
 	private static Train dijkstra() {
 
+		Module build = new Module(BUILD, "1.4");
 		Module commons = new Module(COMMONS, "1.8");
 		Module jpa = new Module(JPA, "1.6");
 		Module mongoDb = new Module(MONGO_DB, "1.5");
@@ -95,8 +98,8 @@ public class ReleaseTrains {
 
 		Module rest = new Module(REST, "2.1");
 
-		return new Train("Dijkstra", commons, jpa, mongoDb, neo4j, solr, couchbase, cassandra, elasticsearch, gemfire,
-				redis, rest);
+		return new Train("Dijkstra", build, commons, jpa, mongoDb, neo4j, solr, couchbase, cassandra, elasticsearch,
+				gemfire, redis, rest);
 	}
 
 	public static Train getTrainByName(String name) {

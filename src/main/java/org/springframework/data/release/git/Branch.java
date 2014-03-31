@@ -18,31 +18,40 @@ package org.springframework.data.release.git;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.IterationVersion;
+import org.springframework.data.release.model.Version;
+import org.springframework.util.Assert;
 
 /**
- * Value object to represent an SCM tag.
+ * Value type to represent an SCM branch.
  * 
  * @author Oliver Gierke
  */
 @RequiredArgsConstructor
 @EqualsAndHashCode
-public class Tag implements Comparable<Tag> {
+public class Branch {
+
+	private static final Branch MASTER = new Branch("master");
 
 	private final String name;
 
 	/**
-	 * Returns the part of the name of the tag that is suitable to derive a version from the tag. Will transparently strip
-	 * a {@code v} prefix from the name.
+	 * Creates a new {@link Branch} from the given {@link IterationVersion}.
 	 * 
+	 * @param iterationVersion must not be {@literal null}.
 	 * @return
 	 */
-	private String getVersionSource() {
-		return name.startsWith("v") ? name.substring(1) : name;
-	}
+	public static Branch from(IterationVersion iterationVersion) {
 
-	public ArtifactVersion toArtifactVersion() {
-		return ArtifactVersion.parse(getVersionSource());
+		Assert.notNull(iterationVersion, "Iteration versoin must not be null!");
+
+		Version version = iterationVersion.getVersion();
+
+		if (iterationVersion.getIteration().isServiceIteration()) {
+			return new Branch(version.toString().concat(".x"));
+		}
+
+		return MASTER;
 	}
 
 	/* 
@@ -52,14 +61,5 @@ public class Tag implements Comparable<Tag> {
 	@Override
 	public String toString() {
 		return name;
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(Tag that) {
-		return that.name.compareTo(this.name);
 	}
 }

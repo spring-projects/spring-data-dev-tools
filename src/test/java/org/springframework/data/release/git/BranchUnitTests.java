@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.cli;
+package org.springframework.data.release.git;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.AbstractIntegrationTests;
-import org.springframework.data.release.git.GitOperations;
-import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Iteration;
+import org.springframework.data.release.model.IterationVersion;
+import org.springframework.data.release.model.SimpleIterationVersion;
+import org.springframework.data.release.model.Version;
 
 /**
  * @author Oliver Gierke
  */
-public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
-
-	@Autowired ReleaseCommands releaseCommands;
-	@Autowired GitOperations git;
+public class BranchUnitTests {
 
 	@Test
-	public void predictsReleasTrainCorrectly() throws Exception {
+	public void testname() {
 
-		git.update(ReleaseTrains.DIJKSTRA);
+		IterationVersion iterationVersion = new SimpleIterationVersion(new Version(1, 4), Iteration.RC1);
+		assertThat(Branch.from(iterationVersion).toString(), is("master"));
+	}
 
-		assertThat(releaseCommands.predictTrainAndIteration(), is("Dijkstra"));
+	@Test
+	public void createsBugfixBranchForServiceRelease() {
+
+		IterationVersion iterationVersion = new SimpleIterationVersion(new Version(1, 4), Iteration.SR1);
+		assertThat(Branch.from(iterationVersion).toString(), is("1.4.x"));
 	}
 }
