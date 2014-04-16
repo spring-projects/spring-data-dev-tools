@@ -16,7 +16,6 @@
 package org.springframework.data.release.jira;
 
 import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 
@@ -26,8 +25,6 @@ import org.springframework.data.release.model.TrainIteration;
 public interface JiraConnector extends IssueTracker {
 
 	void reset();
-
-	Ticket getReleaseTicketFor(ModuleIteration iteration);
 
 	/**
 	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.

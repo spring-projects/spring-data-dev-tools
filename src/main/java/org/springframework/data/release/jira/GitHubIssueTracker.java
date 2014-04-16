@@ -25,6 +25,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
@@ -33,6 +34,7 @@ import org.springframework.data.release.git.GitServer;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
@@ -60,25 +62,34 @@ class GitHubIssueTracker implements IssueTracker {
 
 	/* 
 	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.IssueTracker#getReleaseTicketFor(org.springframework.data.release.model.ModuleIteration)
+	 */
+	@Override
+	@Cacheable("release-tickets")
+	public Ticket getReleaseTicketFor(ModuleIteration module) {
+
+		for (GitHubIssue issue : getIssuesFor(module)) {
+			if (issue.isReleaseTicket(module)) {
+				return new Ticket(issue.getId(), issue.getTitle());
+			}
+		}
+
+		throw new IllegalArgumentException(String.format("Could not find a release ticket for %s!", module));
+	}
+
+	/* 
+	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.IssueTracker#getChangelogFor(org.springframework.data.release.model.ModuleIteration)
 	 */
 	@Override
+	@Cacheable("changelogs")
 	public Changelog getChangelogFor(ModuleIteration module) {
 
-		String repositoryName = new GitProject(module.getProject(), new GitServer()).getRepositoryName();
-
-		GitHubMilestone milestone = findMilestone(module, repositoryName);
-
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("repoName", repositoryName);
-		parameters.put("id", milestone.getNumber());
-
-		List<GitHubIssue> issues = operations.exchange(URI_TEMPLATE, HttpMethod.GET, null, ISSUES_TYPE, parameters)
-				.getBody();
+		List<GitHubIssue> issues = getIssuesFor(module);
 		List<Ticket> tickets = new ArrayList<>(issues.size());
 
 		for (GitHubIssue issue : issues) {
-			tickets.add(new Ticket("#" + issue.getNumber(), issue.getTitle()));
+			tickets.add(new Ticket(issue.getId(), issue.getTitle()));
 		}
 
 		logger.log(module, "Created changelog with %s entries.", tickets.size());
@@ -93,6 +104,19 @@ class GitHubIssueTracker implements IssueTracker {
 	@Override
 	public boolean supports(Project project) {
 		return project.uses(Tracker.GITHUB);
+	}
+
+	private List<GitHubIssue> getIssuesFor(ModuleIteration module) {
+
+		String repositoryName = new GitProject(module.getProject(), new GitServer()).getRepositoryName();
+
+		GitHubMilestone milestone = findMilestone(module, repositoryName);
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("repoName", repositoryName);
+		parameters.put("id", milestone.getNumber());
+
+		return operations.exchange(URI_TEMPLATE, HttpMethod.GET, null, ISSUES_TYPE, parameters).getBody();
 	}
 
 	private GitHubMilestone findMilestone(ModuleIteration module, String repositoryName) {
@@ -132,12 +156,15 @@ class GitHubIssueTracker implements IssueTracker {
 		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"META-INF/spring/spring-shell-plugin.xml")) {
 
-			GitHubIssueTracker tracker = context.getBean(GitHubIssueTracker.class);
+			IssueTracker tracker = context.getBean("gitHubIssueTracker", IssueTracker.class);
 
 			TrainIteration iteration = new TrainIteration(ReleaseTrains.CODD, Iteration.SR2);
-			Changelog changelog = tracker.getChangelogFor(iteration.getModule("Build"));
+			ModuleIteration module = iteration.getModule(Projects.BUILD);
 
+			Changelog changelog = tracker.getChangelogFor(module);
 			System.out.println(changelog);
+
+			System.out.println(tracker.getReleaseTicketFor(module));
 		}
 	}
 }

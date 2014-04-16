@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  */
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-class GiCommands implements CommandMarker {
+public class GitCommands implements CommandMarker {
 
 	private final GitOperations git;
 

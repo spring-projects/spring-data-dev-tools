@@ -17,6 +17,8 @@ package org.springframework.data.release.jira;
 
 import lombok.Data;
 
+import org.springframework.data.release.model.ModuleIteration;
+
 /**
  * @author Oliver Gierke
  */
@@ -25,4 +27,12 @@ class GitHubIssue {
 
 	private String number;
 	private String title;
+
+	public String getId() {
+		return "#".concat(number);
+	}
+
+	public boolean isReleaseTicket(ModuleIteration module) {
+		return title.contains("Release") && title.contains(module.getVersionString());
+	}
 }

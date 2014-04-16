@@ -175,6 +175,7 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#getChangelogFor(org.springframework.data.release.model.Module, org.springframework.data.release.model.Iteration)
 	 */
 	@Override
+	@Cacheable("changelogs")
 	public Changelog getChangelogFor(ModuleIteration module) {
 
 		Map<String, Object> parameters = new HashMap<>();

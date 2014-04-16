@@ -24,5 +24,13 @@ import org.springframework.plugin.core.Plugin;
  */
 public interface IssueTracker extends Plugin<Project> {
 
+	/**
+	 * Returns the {@link Ticket} that tracks modifications in the context of a release.
+	 * 
+	 * @param module the module to lookup the {@link Ticket} for.
+	 * @return
+	 */
+	Ticket getReleaseTicketFor(ModuleIteration module);
+
 	Changelog getChangelogFor(ModuleIteration iteration);
 }
