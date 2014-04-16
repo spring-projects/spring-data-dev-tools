@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.git;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -29,11 +30,13 @@ public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 	@Autowired GitOperations gitOperations;
 
 	@Test
+	@Ignore
 	public void testname() throws Exception {
 		gitOperations.update(ReleaseTrains.CODD);
 	}
 
 	@Test
+	@Ignore
 	public void showTags() throws Exception {
 
 		Tags tags = gitOperations.getTags(ReleaseTrains.COMMONS);

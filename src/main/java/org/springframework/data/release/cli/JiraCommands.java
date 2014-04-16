@@ -73,11 +73,17 @@ public class JiraCommands implements CommandMarker {
 	}
 
 	@CliCommand("changelog")
-	public String changelog(@CliOption(key = { "", "module" }, mandatory = true) String moduleName, @CliOption(
-			key = { "iteration" }, mandatory = true) String iterationName) {
+	public String changelog(@CliOption(key = { "", "train" }, mandatory = true) String trainName, //
+			@CliOption(key = { "iteration" }, mandatory = true) String iterationName, //
+			@CliOption(key = "module") String moduleName) {
 
-		Train dijkstra = ReleaseTrains.DIJKSTRA;
-		return connector.getChangelogFor(dijkstra, dijkstra.getModule(moduleName),
-				dijkstra.getIterations().getIterationByName(iterationName)).toString();
+		Train train = ReleaseTrains.getTrainByName(trainName);
+		Iteration iteration = train.getIteration(iterationName);
+
+		if (StringUtils.hasText(moduleName)) {
+			return connector.getChangelogFor(train.getModuleIteration(iteration, moduleName)).toString();
+		}
+
+		return "";
 	}
 }

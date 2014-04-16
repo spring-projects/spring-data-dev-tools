@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.model;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -22,13 +22,12 @@ import org.junit.Test;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.IterationVersion;
-import org.springframework.data.release.model.SimpleIterationVersion;
 import org.springframework.data.release.model.Version;
 
 /**
  * @author Oliver Gierke
  */
-public class MavenVersionUnitTests {
+public class ArtifactVersionUnitTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsInvalidVersionSuffix() {

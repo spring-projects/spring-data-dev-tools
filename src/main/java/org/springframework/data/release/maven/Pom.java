@@ -34,20 +34,29 @@ public interface Pom {
 	@XBWrite("/project/version")
 	void setVersion(String version);
 
-	@XBRead("/project/repositories/repository[id=\"spring-libs-snapshot\"]")
-	Repository getSpringRepository();
-
 	@XBWrite("/project/parent/version")
 	void setParentVersion(ArtifactVersion version);
+
+	@XBRead("/project/properties/{0}")
+	String getProperty(String property);
 
 	@XBWrite("/project/properties/{0}")
 	void setProperty(String property, @XBValue ArtifactVersion value);
 
-	@XBWrite("/project/repositories/repository[id={0}]/id")
+	@XBWrite("/project/repositories/repository[id=''{0}'']/id")
 	void setRepositoryId(String oldId, @XBValue String newId);
 
-	@XBWrite("/project/repositories/repository[id={0}]/url")
+	@XBWrite("/project/repositories/repository[id=''{0}'']/url")
 	void setRepositoryUrl(String id, @XBValue String url);
+
+	/**
+	 * Sets the version of the dependency with the given artifact identifier to the given {@link ArtifactVersion}.
+	 * 
+	 * @param artifactId
+	 * @param version
+	 */
+	@XBWrite("/project/dependencies/dependency[artifactId=''{0}'']/version")
+	Pom setDependencyVersion(String artifactId, @XBValue ArtifactVersion version);
 
 	public interface Repository {
 

@@ -21,7 +21,7 @@ import java.util.List;
 import lombok.Value;
 
 import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.util.StringUtils;
@@ -44,18 +44,25 @@ class JqlQuery {
 		return new JqlQuery(String.format("%s ORDER BY %s", query, orderBy));
 	}
 
+	public static JqlQuery from(ModuleIteration iteration) {
+
+		JiraVersion version = new JiraVersion(iteration);
+
+		return new JqlQuery(String.format(PROJECT_VERSION_TEMPLATE, iteration.getProjectKey(), version));
+	}
+
 	public static JqlQuery from(Train train, Iteration iteration) {
 
 		List<String> parts = new ArrayList<>();
 
-		for (Module module : train) {
+		for (ModuleIteration module : train.getModuleIterations(iteration)) {
 
 			if (ReleaseTrains.BUILD.equals(module.getProject())) {
 				continue;
 			}
 
-			JiraVersion version = new JiraVersion(module, train, iteration);
-			parts.add(String.format(PROJECT_VERSION_TEMPLATE, module.getProject().getKey(), version));
+			JiraVersion version = new JiraVersion(module);
+			parts.add(String.format(PROJECT_VERSION_TEMPLATE, module.getProjectKey(), version));
 		}
 
 		return new JqlQuery(StringUtils.collectionToDelimitedString(parts, " OR "));

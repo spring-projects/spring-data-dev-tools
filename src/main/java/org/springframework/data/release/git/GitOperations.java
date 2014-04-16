@@ -36,6 +36,7 @@ import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -55,6 +56,21 @@ public class GitOperations {
 
 	public GitProject getGitProject(Project project) {
 		return new GitProject(project, server);
+	}
+
+	/**
+	 * Resets the repositories for all modules of the given {@link Train}.
+	 * 
+	 * @param train must not be {@literal null}.
+	 * @throws Exception
+	 */
+	public void reset(Train train) throws Exception {
+
+		Assert.notNull(train, "Train must not be null!");
+
+		for (Module module : train) {
+			osCommandOperations.executeCommand("git reset --hard", module.getProject()).get();
+		}
 	}
 
 	/**
@@ -93,7 +109,7 @@ public class GitOperations {
 
 			Branch branch = Branch.from(module);
 
-			update(module.getProject());
+			update(module.getProject()).get();
 
 			String checkoutCommand = String.format("git checkout %s", branch);
 			osCommandOperations.executeCommand(checkoutCommand, module.getProject()).get();

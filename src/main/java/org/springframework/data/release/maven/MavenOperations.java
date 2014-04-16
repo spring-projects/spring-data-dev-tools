@@ -43,6 +43,7 @@ import org.xmlbeam.io.XBFileIO;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MavenOperations {
 
+	private static final String COMMONS_VERSION_PROPERTY = "springdata.commons";
 	private static final Logger LOGGER = HandlerUtils.getLogger(MavenOperations.class);
 	private static final String POM_XML = "pom.xml";
 
@@ -56,29 +57,38 @@ public class MavenOperations {
 		return projectionFactory.io().file(file).read(Pom.class);
 	}
 
-	public void prepareProject(Train train, Iteration iteration, Project project) throws IOException {
+	public void prepareProject(Train train, Iteration iteration, final Project project) throws Exception {
+
+		updateBomPom(train, iteration);
 
 		if (ReleaseTrains.BUILD.equals(project)) {
 			return;
 		}
 
-		ArtifactVersion commonsVersion = train.getModuleVersion(ReleaseTrains.COMMONS, iteration);
-		ArtifactVersion buildVersion = train.getModuleVersion(ReleaseTrains.BUILD, iteration);
-		Repository repository = new Repository(iteration);
+		final ArtifactVersion commonsVersion = train.getModuleVersion(ReleaseTrains.COMMONS, iteration);
+		final ArtifactVersion buildVersion = train.getModuleVersion(ReleaseTrains.BUILD, iteration);
+		final Repository repository = new Repository(iteration);
 
 		File file = workspace.getFile(POM_XML, project);
-		XBFileIO io = projectionFactory.io().file(file);
-		Pom pom = io.read(Pom.class);
 
-		if (!project.equals(ReleaseTrains.COMMONS)) {
-			pom.setProperty("spring.data.commons", commonsVersion);
-		}
+		execute(file, new PomCallback() {
 
-		pom.setParentVersion(buildVersion);
-		pom.setRepositoryId(repository.getSnapshotId(), repository.getId());
-		pom.setRepositoryUrl(repository.getId(), repository.getUrl());
+			@Override
+			public Pom doWith(Pom pom) {
 
-		io.write(pom);
+				if (!project.equals(ReleaseTrains.COMMONS)) {
+
+					System.out.println(pom.getProperty(COMMONS_VERSION_PROPERTY));
+					pom.setProperty(COMMONS_VERSION_PROPERTY, commonsVersion);
+				}
+
+				pom.setParentVersion(buildVersion);
+				pom.setRepositoryId("spring-libs-snapshot", "spring-libs-release");
+				pom.setRepositoryUrl(repository.getId(), repository.getUrl());
+
+				return pom;
+			}
+		});
 	}
 
 	/**
@@ -129,5 +139,40 @@ public class MavenOperations {
 
 	private boolean isMavenProject(Project project) {
 		return workspace.getFile(POM_XML, project).exists();
+	}
+
+	private void updateBomPom(final Train train, final Iteration iteration) throws Exception {
+
+		File bomPomFile = workspace.getFile("bom/pom.xml", ReleaseTrains.BUILD);
+
+		execute(bomPomFile, new PomCallback() {
+
+			@Override
+			public Pom doWith(Pom pom) {
+
+				for (ModuleIteration module : train.getModuleIterations(iteration, ReleaseTrains.BUILD)) {
+
+					Artifact artifact = new Artifact(module);
+					pom.setDependencyVersion(artifact.getArtifactId(), artifact.getVersion());
+				}
+
+				return pom;
+			}
+		});
+	}
+
+	private void execute(File file, PomCallback callback) throws Exception {
+
+		XBFileIO io = projectionFactory.io().file(file);
+		Pom pom = io.read(Pom.class);
+
+		pom = callback.doWith(pom);
+
+		io.write(pom);
+	}
+
+	private interface PomCallback {
+
+		public Pom doWith(Pom pom);
 	}
 }

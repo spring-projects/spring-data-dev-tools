@@ -98,7 +98,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	}
 
 	/**
-	 * Returns the release version for the current a
+	 * Returns the release version for the current one.
 	 * 
 	 * @return
 	 */
@@ -106,14 +106,29 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return new ArtifactVersion(version, RELEASE_SUFFIX);
 	}
 
+	/**
+	 * Returns the snapshot version of the current one.
+	 * 
+	 * @return
+	 */
 	public ArtifactVersion getSnapshotVersion() {
 		return new ArtifactVersion(version, SNAPSHOT_SUFFIX);
 	}
 
+	/**
+	 * Returns whether the version is a release version.
+	 * 
+	 * @return
+	 */
 	public boolean isReleaseVersion() {
 		return suffix.equals(RELEASE_SUFFIX);
 	}
 
+	/**
+	 * Returns whether the version is a milestone version.
+	 * 
+	 * @return
+	 */
 	public boolean isMilestoneVersion() {
 		return suffix.matches(MILESTONE_SUFFIX);
 	}
@@ -147,5 +162,14 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	@Override
 	public String toString() {
 		return String.format("%s.%s", version.toMajorMinorBugfix(), suffix);
+	}
+
+	/**
+	 * Returns the {@link String} of the plain version (read: x.y.z, ommitting trailing bugfix zeros).
+	 * 
+	 * @return
+	 */
+	public String toShortString() {
+		return version.toString();
 	}
 }

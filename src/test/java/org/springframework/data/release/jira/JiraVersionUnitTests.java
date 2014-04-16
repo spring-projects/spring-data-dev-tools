@@ -20,10 +20,12 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.ReleaseTrains;
 
 /**
+ * Unit tests for {@link JiraVersion}.
+ * 
  * @author Oliver Gierke
  */
 public class JiraVersionUnitTests {
@@ -44,17 +46,17 @@ public class JiraVersionUnitTests {
 	@Test
 	public void usesCustomModuleIterationStartVersion() {
 
-		Module commons = ReleaseTrains.DIJKSTRA.getModule("Elasticsearch");
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
 
-		JiraVersion version = new JiraVersion(commons, ReleaseTrains.DIJKSTRA, Iteration.M1);
+		JiraVersion version = new JiraVersion(module);
 		assertThat(version.toString(), is("1.0 M2 (Dijkstra)"));
 	}
 
 	private void assertIterationVersion(Iteration iteration, String expected) {
 
-		Module commons = ReleaseTrains.DIJKSTRA.getModule("Commons");
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(iteration, "Commons");
 
-		JiraVersion version = new JiraVersion(commons, ReleaseTrains.DIJKSTRA, iteration);
+		JiraVersion version = new JiraVersion(module);
 		assertThat(version.toString(), is(expected));
 	}
 }

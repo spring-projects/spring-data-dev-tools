@@ -17,6 +17,7 @@ package org.springframework.data.release.announcement;
 
 import org.springframework.data.release.cli.StaticResources;
 import org.springframework.data.release.maven.Artifact;
+import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -50,7 +51,12 @@ public class AnnouncementOperations {
 
 			builder.append("* ");
 			builder.append(project.getFullName()).append(" ");
-			builder.append(module.getVersion()).append(" ").append(module.getIteration().getName());
+			builder.append(ArtifactVersion.from(module).toShortString());
+
+			if (!iteration.isServiceIteration()) {
+				builder.append(" ").append(module.getIteration().getName());
+			}
+
 			builder.append(" - ");
 
 			Artifact artifact = new Artifact(module);
@@ -77,6 +83,6 @@ public class AnnouncementOperations {
 	public static void main(String[] args) {
 
 		AnnouncementOperations operations = new AnnouncementOperations();
-		System.out.println(operations.getProjectBulletpoints(ReleaseTrains.DIJKSTRA, Iteration.M1));
+		System.out.println(operations.getProjectBulletpoints(ReleaseTrains.CODD, Iteration.SR2));
 	}
 }

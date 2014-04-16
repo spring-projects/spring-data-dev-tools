@@ -22,8 +22,8 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.shell.support.util.OsUtils;
 
@@ -34,8 +34,7 @@ import org.springframework.shell.support.util.OsUtils;
 @EqualsAndHashCode
 public class Changelog {
 
-	private final Module module;
-	private final Iteration iteration;
+	private final ModuleIteration module;
 	private final Tickets tickets;
 
 	/* 
@@ -45,7 +44,9 @@ public class Changelog {
 	@Override
 	public String toString() {
 
-		String headline = String.format("Changes in version %s (%s)", module.getVersion(),
+		ArtifactVersion version = ArtifactVersion.from(module);
+
+		String headline = String.format("Changes in version %s (%s)", version,
 				new DateFormatter("YYYY-MM-dd").print(new Date(), Locale.US));
 
 		StringBuilder builder = new StringBuilder(headline).append(OsUtils.LINE_SEPARATOR);

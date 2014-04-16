@@ -61,4 +61,18 @@ public class GiCommands implements CommandMarker {
 
 		return StringUtils.collectionToDelimitedString(git.getTags(project).asList(), "\n");
 	}
+
+	@CliCommand("git reset")
+	public void reset(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(key = "iteration",
+			mandatory = true) String iterationName) throws Exception {
+		git.reset(ReleaseTrains.getTrainByName(trainName));
+	}
+
+	@CliCommand("git prepare")
+	public void prepare(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
+			key = "iteration", mandatory = true) String iterationName) throws Exception {
+
+		Train train = ReleaseTrains.getTrainByName(trainName);
+		git.prepare(train, train.getIteration(iterationName));
+	}
 }

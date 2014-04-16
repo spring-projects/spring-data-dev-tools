@@ -19,6 +19,7 @@ import lombok.Value;
 
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Train;
 
 /**
@@ -30,6 +31,13 @@ class JiraVersion {
 	private final Module module;
 	private final Train train;
 	private final Iteration iteration;
+
+	public JiraVersion(ModuleIteration moduleIteration) {
+
+		this.module = moduleIteration.getModule();
+		this.iteration = moduleIteration.getIteration();
+		this.train = moduleIteration.getTrain();
+	}
 
 	/*
 	 * (non-Javadoc)

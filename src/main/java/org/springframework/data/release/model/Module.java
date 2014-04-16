@@ -43,6 +43,10 @@ public class Module {
 				: new Iteration(customFirstIteration, Iteration.RC1);
 	}
 
+	public boolean hasName(String name) {
+		return project.getName().equalsIgnoreCase(name);
+	}
+
 	public boolean hasCustomFirstIteration() {
 		return customFirstIteration != null;
 	}

@@ -16,6 +16,7 @@
 package org.springframework.data.release.model;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -25,9 +26,9 @@ import lombok.RequiredArgsConstructor;
 @EqualsAndHashCode
 public class ModuleIteration implements IterationVersion {
 
-	private final Module module;
+	private final @Getter Module module;
 	private final Iteration iteration;
-	private final Train train;
+	private final @Getter Train train;
 
 	public ProjectKey getProjectKey() {
 		return module.getProject().getKey();
@@ -46,6 +47,10 @@ public class ModuleIteration implements IterationVersion {
 		return module.getVersion();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.model.IterationVersion#getIteration()
+	 */
 	public Iteration getIteration() {
 		return module.hasCustomFirstIteration() ? module.getCustomFirstIteration() : this.iteration;
 	}

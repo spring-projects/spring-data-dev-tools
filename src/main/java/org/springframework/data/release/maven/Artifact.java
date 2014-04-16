@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.maven;
 
+import lombok.Getter;
+
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.ReleaseTrains;
@@ -31,7 +33,7 @@ public class Artifact {
 
 	private final ModuleIteration module;
 	private final Repository repository;
-	private final ArtifactVersion version;
+	private final @Getter ArtifactVersion version;
 
 	/**
 	 * Creates a new {@link Artifact} for the given {@link ModuleIteration}.

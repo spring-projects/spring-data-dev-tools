@@ -28,8 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Module;
-import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Train;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -153,10 +152,20 @@ class RestJiraConnector implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#getChangelogFor(org.springframework.data.release.model.Module, org.springframework.data.release.model.Iteration)
 	 */
 	@Override
-	public Changelog getChangelogFor(Train train, Module module, Iteration iteration) {
+	public Changelog getChangelogFor(ModuleIteration module) {
 
-		Tickets tickets = getTicketsFor(ReleaseTrains.DIJKSTRA, iteration, null);
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("jql", JqlQuery.from(module));
+		parameters.put("fields", "summary,fixVersions");
+		parameters.put("startAt", 0);
 
-		return new Changelog(module, iteration, tickets);
+		JiraIssues issues = operations.getForObject(SEARCH_TEMPLATE, JiraIssues.class, parameters);
+		List<Ticket> tickets = new ArrayList<>();
+
+		for (JiraIssue issue : issues) {
+			tickets.add(new Ticket(issue.getKey(), issue.getFields().getSummary()));
+		}
+
+		return new Changelog(module, new Tickets(tickets, tickets.size()));
 	}
 }

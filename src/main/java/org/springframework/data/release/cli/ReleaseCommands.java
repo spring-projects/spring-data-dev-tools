@@ -22,6 +22,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.git.Tags;
 import org.springframework.data.release.maven.MavenOperations;
 import org.springframework.data.release.maven.Pom;
+import org.springframework.data.release.misc.ReleaseOperations;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
@@ -42,6 +43,7 @@ public class ReleaseCommands implements CommandMarker {
 
 	private final MavenOperations maven;
 	private final GitOperations git;
+	private final ReleaseOperations misc;
 
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() throws Exception {
@@ -86,7 +88,14 @@ public class ReleaseCommands implements CommandMarker {
 		maven.triggerDistributionBuild(train, iteration);
 	}
 
-	@CliCommand("release prepare")
+	/**
+	 * Prepares the release of the given iteration of the given train.
+	 * 
+	 * @param trainName the name of the release train (ignoring case).
+	 * @param iterationName the name of the iteration.
+	 * @throws Exception
+	 */
+	@CliCommand(value = "release prepare", help = "Prepares the release of the iteration of the given train.")
 	public void prepare(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
 			key = "iteration", mandatory = true) String iterationName) throws Exception {
 
@@ -94,6 +103,7 @@ public class ReleaseCommands implements CommandMarker {
 		Iteration iteration = train.getIteration(iterationName);
 
 		git.prepare(train, iteration);
+		misc.prepareChangelogs(train, iteration);
 
 		for (Module module : train) {
 			maven.prepareProject(train, iteration, module.getProject());

@@ -17,14 +17,11 @@ package org.springframework.data.release.maven;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.release.model.ArtifactVersion;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.XBProjector;
 import org.xmlbeam.XBProjector.Flags;
 import org.xmlbeam.config.DefaultXMLFactoriesConfig;
 import org.xmlbeam.config.DefaultXMLFactoriesConfig.NamespacePhilosophy;
-import org.xmlbeam.types.DefaultTypeConverter;
-import org.xmlbeam.types.TypeConverter;
 
 /**
  * @author Oliver Gierke
@@ -35,38 +32,12 @@ class MavenConfig {
 	@Bean
 	public ProjectionFactory projectionFactory() {
 
-		TypeConverter converter = new DefaultTypeConverter().setConversionForType(ArtifactVersion.class,
-				new ArtifactVersionConverter());
-
 		DefaultXMLFactoriesConfig config = new DefaultXMLFactoriesConfig();
 		config.setNamespacePhilosophy(NamespacePhilosophy.AGNOSTIC);
+		config.setOmitXMLDeclaration(false);
 
 		XBProjector projector = new XBProjector(config, Flags.TO_STRING_RENDERS_XML);
-		projector.config().setTypeConverter(converter);
 
 		return projector;
-	}
-
-	/**
-	 * Custom converter to be able to use {@link ArtifactVersion} directly from within an XmlBeam projection.
-	 * 
-	 * @author Oliver Gierke
-	 */
-	private static class ArtifactVersionConverter extends DefaultTypeConverter.Conversion<ArtifactVersion> {
-
-		private static final long serialVersionUID = 1L;
-
-		public ArtifactVersionConverter() {
-			super(null);
-		}
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.xmlbeam.types.DefaultTypeConverter.Conversion#convert(java.lang.String)
-		 */
-		@Override
-		public ArtifactVersion convert(String data) {
-			return ArtifactVersion.parse(data);
-		}
 	}
 }

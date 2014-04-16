@@ -92,6 +92,17 @@ public class Train implements Iterable<Module> {
 		return new Train(name, nextModules);
 	}
 
+	public ModuleIteration getModuleIteration(Iteration iteration, String moduleName) {
+
+		for (Module module : this) {
+			if (module.hasName(moduleName)) {
+				return new ModuleIteration(module, iteration, this);
+			}
+		}
+
+		return null;
+	}
+
 	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration) {
 		return getModuleIterations(iteration, new Project[0]);
 	}

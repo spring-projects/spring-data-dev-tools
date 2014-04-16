@@ -18,6 +18,7 @@ package org.springframework.data.release.cli;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -33,6 +34,7 @@ public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
 	@Autowired GitOperations git;
 
 	@Test
+	@Ignore
 	public void predictsReleasTrainCorrectly() throws Exception {
 
 		git.update(ReleaseTrains.DIJKSTRA);
