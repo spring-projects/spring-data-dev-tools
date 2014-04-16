@@ -61,7 +61,7 @@ public class Changelog {
 
 			String summary = ticket.getSummary();
 
-			builder.append("* ").append(ticket.getId()).append(" - ").append(summary);
+			builder.append("* ").append(ticket.getId()).append(" - ").append(summary.trim());
 
 			if (!summary.endsWith(".")) {
 				builder.append(".");

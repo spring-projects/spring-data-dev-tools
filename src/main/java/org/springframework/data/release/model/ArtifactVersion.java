@@ -83,18 +83,18 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		Assert.notNull(iterationVersion, "IterationVersion must not be null!");
 
 		Version version = iterationVersion.getVersion();
-		String iterationName = iterationVersion.getIteration().getName();
+		Iteration iteration = iterationVersion.getIteration();
 
-		if (iterationName.equals("GA")) {
+		if (iteration.isGAVersion()) {
 			return new ArtifactVersion(version, RELEASE_SUFFIX);
 		}
 
-		if (iterationName.startsWith("SR")) {
-			int bugfixDigits = Integer.parseInt(iterationName.substring(2, iterationName.length()));
-			return new ArtifactVersion(version.withBugfix(bugfixDigits), RELEASE_SUFFIX);
+		if (iteration.isServiceIteration()) {
+			Version bugfixVersion = version.withBugfix(iteration.getBugfixValue());
+			return new ArtifactVersion(bugfixVersion, RELEASE_SUFFIX);
 		}
 
-		return new ArtifactVersion(version, iterationName);
+		return new ArtifactVersion(version, iteration.getName());
 	}
 
 	/**

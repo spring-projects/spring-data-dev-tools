@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.model;
+package org.springframework.data.release.jira;
+
+import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Project;
+import org.springframework.plugin.core.Plugin;
 
 /**
- * A {@link Version} tied to an {@link Iteration}.
- * 
  * @author Oliver Gierke
  */
-public interface IterationVersion {
+public interface IssueTracker extends Plugin<Project> {
 
-	Version getVersion();
-
-	Iteration getIteration();
+	Changelog getChangelogFor(ModuleIteration iteration);
 }

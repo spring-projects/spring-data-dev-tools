@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.plugin.core.config.EnablePluginRegistries;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 @EnableCaching
 @PropertySource(value = "file:jira.properties", ignoreResourceNotFound = true)
+@EnablePluginRegistries({ IssueTracker.class })
 class JiraConfiguration {
 
 	@Bean

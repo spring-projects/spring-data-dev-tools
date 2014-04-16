@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.cli;
 
+import static org.springframework.data.release.model.Projects.*;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,11 @@ import org.springframework.data.release.maven.MavenOperations;
 import org.springframework.data.release.maven.Pom;
 import org.springframework.data.release.misc.ReleaseOperations;
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
-import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -48,17 +49,16 @@ public class ReleaseCommands implements CommandMarker {
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() throws Exception {
 
-		Project commons = ReleaseTrains.COMMONS;
-		Pom pom = maven.getMavenProject(commons);
+		Pom pom = maven.getMavenProject(COMMONS);
 
-		Tags tags = git.getTags(commons);
+		Tags tags = git.getTags(COMMONS);
 
 		ArtifactVersion version = tags.getLatest().toArtifactVersion();
 		System.out.println(version);
 
 		for (Train train : ReleaseTrains.TRAINS) {
 
-			Module module = train.getModule(commons);
+			Module module = train.getModule(COMMONS);
 
 			if (!pom.getVersion().toString().startsWith(module.getVersion().toMajorMinorBugfix())) {
 				continue;
@@ -78,14 +78,10 @@ public class ReleaseCommands implements CommandMarker {
 	 * @throws Exception
 	 */
 	@CliCommand("release distribute")
-	public void distribute(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
-			key = "iteration", mandatory = true) String iterationName) throws Exception {
+	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 
-		Train train = ReleaseTrains.getTrainByName(trainName);
-		Iteration iteration = train.getIteration(iterationName);
-
-		git.checkout(train, iteration);
-		maven.triggerDistributionBuild(train, iteration);
+		git.checkout(iteration);
+		maven.triggerDistributionBuild(iteration);
 	}
 
 	/**
@@ -96,17 +92,22 @@ public class ReleaseCommands implements CommandMarker {
 	 * @throws Exception
 	 */
 	@CliCommand(value = "release prepare", help = "Prepares the release of the iteration of the given train.")
-	public void prepare(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
-			key = "iteration", mandatory = true) String iterationName) throws Exception {
+	public void prepare(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 
-		Train train = ReleaseTrains.getTrainByName(trainName);
-		Iteration iteration = train.getIteration(iterationName);
+		git.prepare(iteration);
+		misc.prepareChangelogs(iteration);
+		maven.updatePom(iteration, Phase.PREPARE);
+	}
 
-		git.prepare(train, iteration);
-		misc.prepareChangelogs(train, iteration);
+	@CliCommand(value = "release conclude")
+	public void conclude(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 
-		for (Module module : train) {
-			maven.prepareProject(train, iteration, module.getProject());
-		}
+		// - pull updates
+		// - tag release
+		// - post release pom updates
+
+		maven.updatePom(iteration, Phase.CLEANUP);
+
+		// - push
 	}
 }

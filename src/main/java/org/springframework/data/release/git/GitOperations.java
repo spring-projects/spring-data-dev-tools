@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.logging.Logger;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +33,8 @@ import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
-import org.springframework.shell.support.logging.HandlerUtils;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -48,11 +48,10 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class GitOperations {
 
-	private static final Logger LOGGER = HandlerUtils.getLogger(GitOperations.class);
-
 	private final GitServer server = new GitServer();
 	private final OsCommandOperations osCommandOperations;
 	private final Workspace workspace;
+	private final Logger logger;
 
 	public GitProject getGitProject(Project project) {
 		return new GitProject(project, server);
@@ -80,11 +79,11 @@ public class GitOperations {
 	 * @param iteration
 	 * @throws Exception
 	 */
-	public void checkout(Train train, Iteration iteration) throws Exception {
+	public void checkout(TrainIteration iteration) throws Exception {
 
-		update(train);
+		update(iteration.getTrain());
 
-		for (ModuleIteration module : train.getModuleIterations(iteration)) {
+		for (ModuleIteration module : iteration) {
 
 			Project project = module.getProject();
 			ArtifactVersion artifactVersion = ArtifactVersion.from(module);
@@ -99,13 +98,12 @@ public class GitOperations {
 			osCommandOperations.executeCommand(String.format("git checkout %s", tag), project).get();
 		}
 
-		LOGGER.info(String.format("Successfully checked out iteration %s for release train %s.", iteration.getName(),
-				train.getName()));
+		logger.log(iteration, "Successfully checked out projects.");
 	}
 
-	public void prepare(Train train, Iteration iteration) throws Exception {
+	public void prepare(TrainIteration iteration) throws Exception {
 
-		for (ModuleIteration module : train.getModuleIterations(iteration)) {
+		for (ModuleIteration module : iteration) {
 
 			Branch branch = Branch.from(module);
 
@@ -139,15 +137,14 @@ public class GitOperations {
 
 		if (workspace.hasProjectDirectory(project)) {
 
-			LOGGER.info(String.format("Found existing repository %s. Obtaining latest changes…", repositoryName));
+			logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
 
 			return osCommandOperations.executeCommand("git checkout master && git fetch --tags && git pull origin master",
 					project);
 
 		} else {
 
-			LOGGER.info(String.format("No repository found for project %s. Cloning repository from %s…", repositoryName,
-					gitProject.getProjectUri()));
+			logger.log(project, "No repository found! Cloning from %s…", gitProject.getProjectUri());
 
 			File projectDirectory = workspace.getProjectDirectory(project);
 			String command = String.format("git clone %s %s", gitProject.getProjectUri(), projectDirectory.getName());

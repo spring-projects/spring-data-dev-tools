@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.model;
+package org.springframework.data.release.jira;
+
+import lombok.Data;
 
 /**
- * A {@link Version} tied to an {@link Iteration}.
- * 
  * @author Oliver Gierke
  */
-public interface IterationVersion {
+@Data
+class GitHubIssue {
 
-	Version getVersion();
-
-	Iteration getIteration();
+	private String number;
+	private String title;
 }

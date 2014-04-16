@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.model;
 
+import static org.springframework.data.release.model.Projects.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,29 +28,8 @@ public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
 	public static final Train CODD, DIJKSTRA, EVANS, FOWLER;
-	public static final Project COMMONS, BUILD, REST;
-
-	private static final Project JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS, GEMFIRE;
-	private static final List<Project> PROJECTS;
 
 	static {
-
-		BUILD = new Project("DATABUILD", "Build");
-		COMMONS = new Project("DATACMNS", "Commons", BUILD);
-		JPA = new Project("DATAJPA", "JPA", COMMONS);
-		MONGO_DB = new Project("DATAMONGO", "MongoDB", COMMONS);
-		NEO4J = new Project("DATAGRAPH", "Neo4j", COMMONS);
-		SOLR = new Project("DATASOLR", "Solr", COMMONS);
-		COUCHBASE = new Project("DATACOUCH", "Couchbase", COMMONS);
-		CASSANDRA = new Project("DATACASS", "Cassandra", COMMONS);
-		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", COMMONS);
-		REDIS = new Project("DATAREDIS", "Redis");
-		GEMFIRE = new Project("SGF", "Gemfire", COMMONS);
-
-		REST = new Project("DATAREST", "REST", COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE);
-
-		PROJECTS = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS,
-				GEMFIRE, REST);
 
 		CODD = codd();
 		DIJKSTRA = dijkstra();

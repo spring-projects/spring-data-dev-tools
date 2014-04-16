@@ -29,11 +29,11 @@ public class Module {
 	private final Version version;
 	private final Iteration customFirstIteration;
 
-	public Module(Project project, String version) {
+	Module(Project project, String version) {
 		this(project, version, null);
 	}
 
-	public Module(Project project, String version, String customFirstIteration) {
+	Module(Project project, String version, String customFirstIteration) {
 
 		Assert.notNull(project, "Project must not be null!");
 

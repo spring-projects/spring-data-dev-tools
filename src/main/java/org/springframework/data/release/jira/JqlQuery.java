@@ -15,15 +15,15 @@
  */
 package org.springframework.data.release.jira;
 
+import static org.springframework.data.release.model.Projects.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Value;
 
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.util.StringUtils;
 
 /**
@@ -51,15 +51,11 @@ class JqlQuery {
 		return new JqlQuery(String.format(PROJECT_VERSION_TEMPLATE, iteration.getProjectKey(), version));
 	}
 
-	public static JqlQuery from(Train train, Iteration iteration) {
+	public static JqlQuery from(TrainIteration iteration) {
 
 		List<String> parts = new ArrayList<>();
 
-		for (ModuleIteration module : train.getModuleIterations(iteration)) {
-
-			if (ReleaseTrains.BUILD.equals(module.getProject())) {
-				continue;
-			}
+		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
 			JiraVersion version = new JiraVersion(module);
 			parts.add(String.format(PROJECT_VERSION_TEMPLATE, module.getProjectKey(), version));

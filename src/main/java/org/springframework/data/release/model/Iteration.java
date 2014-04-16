@@ -18,6 +18,8 @@ package org.springframework.data.release.model;
 import lombok.NonNull;
 import lombok.Value;
 
+import org.springframework.util.Assert;
+
 /**
  * Value object to represent an individual release train iteration.
  * 
@@ -39,6 +41,18 @@ public class Iteration {
 	 */
 	private final @NonNull String name;
 	private final Iteration next;
+
+	Iteration(String name, Iteration next) {
+
+		Assert.hasText(name, "Name must not be null or empty!");
+
+		this.name = name;
+		this.next = next;
+	}
+
+	public boolean isGAVersion() {
+		return this.equals(GA);
+	}
 
 	public boolean isPublicVersion() {
 		return isServiceIteration() || this.equals(GA);

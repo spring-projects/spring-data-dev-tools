@@ -33,16 +33,16 @@ import org.springframework.util.StringUtils;
 public class ModelCommands implements CommandMarker {
 
 	@CliCommand("trains")
-	public String train(@CliOption(key = { "", "train" }) String trainName) {
+	public String train(@CliOption(key = { "", "train" }) Train train) {
 
-		if (StringUtils.hasText(trainName)) {
-			return ReleaseTrains.getTrainByName(trainName).toString();
+		if (train != null) {
+			return train.toString();
 		}
 
 		List<String> names = new ArrayList<>();
 
-		for (Train train : ReleaseTrains.TRAINS) {
-			names.add(train.getName());
+		for (Train releaseTrain : ReleaseTrains.TRAINS) {
+			names.add(releaseTrain.getName());
 		}
 
 		return StringUtils.collectionToDelimitedString(names, ", ");

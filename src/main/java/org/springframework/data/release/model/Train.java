@@ -15,15 +15,20 @@
  */
 package org.springframework.data.release.model;
 
+import static org.springframework.data.release.model.Iteration.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 
 import org.springframework.shell.support.util.OsUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -107,7 +112,7 @@ public class Train implements Iterable<Module> {
 		return getModuleIterations(iteration, new Project[0]);
 	}
 
-	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration, Project... exclusions) {
+	List<ModuleIteration> getModuleIterations(Iteration iteration, Project... exclusions) {
 
 		List<ModuleIteration> iterations = new ArrayList<>(modules.size());
 		List<Project> exclusionList = Arrays.asList(exclusions);
@@ -143,5 +148,56 @@ public class Train implements Iterable<Module> {
 		builder.append(StringUtils.collectionToDelimitedString(modules, OsUtils.LINE_SEPARATOR));
 
 		return builder.toString();
+	}
+
+	/**
+	 * Value object to represent a set of {@link Iteration}s.
+	 * 
+	 * @author Oliver Gierke
+	 */
+	@EqualsAndHashCode
+	@ToString
+	private static class Iterations implements Iterable<Iteration> {
+
+		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4);
+
+		private final List<Iteration> iterations;
+
+		/**
+		 * Creates a new {@link Iterations} from the given {@link Iteration}.
+		 * 
+		 * @param iterations
+		 */
+		Iterations(Iteration... iterations) {
+			this.iterations = Arrays.asList(iterations);
+		}
+
+		/**
+		 * Returns the iteration with the given name.
+		 * 
+		 * @param name must not be {@literal null} or empty.
+		 * @return
+		 */
+		Iteration getIterationByName(String name) {
+
+			Assert.hasText(name, "Name must not be null or empty!");
+
+			for (Iteration iteration : this) {
+				if (iteration.getName().equalsIgnoreCase(name)) {
+					return iteration;
+				}
+			}
+
+			return null;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see java.lang.Iterable#iterator()
+		 */
+		@Override
+		public Iterator<Iteration> iterator() {
+			return iterations.iterator();
+		}
 	}
 }

@@ -24,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.jira.Changelog;
-import org.springframework.data.release.jira.JiraConnector;
+import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -41,7 +43,7 @@ import com.google.common.io.Files;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ReleaseOperations {
 
-	private final JiraConnector jira;
+	private final PluginRegistry<IssueTracker, Project> trackers;
 	private final Workspace workspace;
 
 	/**
@@ -51,14 +53,13 @@ public class ReleaseOperations {
 	 * @param iteration must not be {@literal null}.
 	 * @throws Exception
 	 */
-	public void prepareChangelogs(Train train, Iteration iteration) throws Exception {
+	public void prepareChangelogs(TrainIteration iteration) throws Exception {
 
-		Assert.notNull(train, "Release train must not be null!");
 		Assert.notNull(iteration, "Iteration must not be null!");
 
-		for (ModuleIteration module : train.getModuleIterations(iteration, ReleaseTrains.BUILD)) {
+		for (ModuleIteration module : iteration) {
 
-			Changelog changelog = jira.getChangelogFor(module);
+			Changelog changelog = trackers.getPluginFor(module.getProject()).getChangelogFor(module);
 			File file = workspace.getFile("src/main/resources/changelog.txt", module.getProject());
 			StringBuilder builder = new StringBuilder();
 

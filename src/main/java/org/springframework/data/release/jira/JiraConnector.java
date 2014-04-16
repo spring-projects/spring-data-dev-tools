@@ -18,13 +18,16 @@ package org.springframework.data.release.jira;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 
 /**
  * @author Oliver Gierke
  */
-public interface JiraConnector {
+public interface JiraConnector extends IssueTracker {
 
 	void reset();
+
+	Ticket getReleaseTicketFor(ModuleIteration iteration);
 
 	/**
 	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
@@ -33,11 +36,9 @@ public interface JiraConnector {
 	 * @param iteration must not be {@literal null}.
 	 * @return
 	 */
-	Tickets getTicketsFor(Train train, Iteration iteration, Credentials credentials);
+	Tickets getTicketsFor(TrainIteration iteration, Credentials credentials);
 
-	void verifyBeforeRelease(Train train, Iteration iteration);
+	void verifyBeforeRelease(TrainIteration iteration);
 
-	void closeIteration(Train train, Iteration iteration, Credentials credentials);
-
-	Changelog getChangelogFor(ModuleIteration iteration);
+	void closeIteration(TrainIteration iteration, Credentials credentials);
 }

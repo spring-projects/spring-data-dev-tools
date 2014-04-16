@@ -18,10 +18,12 @@ package org.springframework.data.release.cli;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.release.jira.Credentials;
+import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.JiraConnector;
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -32,58 +34,62 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  */
 @Component
-public class JiraCommands implements CommandMarker {
+public class IssueTracerCommands implements CommandMarker {
 
-	private final JiraConnector connector;
+	private final PluginRegistry<IssueTracker, Project> tracker;
+	private final JiraConnector jira;
 	private final Credentials credentials;
 
 	/**
-	 * @param connector
+	 * @param tracker
 	 * @param environment
 	 */
 	@Autowired
-	public JiraCommands(JiraConnector connector, Environment environment) {
+	public IssueTracerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira, Environment environment) {
 
 		String username = environment.getProperty("jira.username", (String) null);
 		String password = environment.getProperty("jira.password", (String) null);
 
-		this.connector = connector;
+		this.tracker = tracker;
+		this.jira = jira;
 		this.credentials = StringUtils.hasText(username) ? new Credentials(username, password) : null;
 	}
 
 	@CliCommand("jira evict")
 	public void jiraEvict() {
-		connector.reset();
+		jira.reset();
 	}
 
 	@CliCommand(value = "jira tickets")
 	public String jira(
-			@CliOption(key = { "", "train" }, mandatory = true, help = "The name of the release train.") String trainName, //
-			@CliOption(key = "iteration", mandatory = true, help = "An iteration key (one of M1, RC1, GA).") String iterationName, //
+			@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "for-current-user", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean forCurrentUser) {
 
 		if (forCurrentUser && credentials == null) {
 			return "No authentication specified! Use 'jira authenticate' first!";
 		}
 
-		Train train = ReleaseTrains.getTrainByName(trainName);
-		Iteration iteration = train.getIterations().getIterationByName(iterationName);
-
-		return connector.getTicketsFor(train, iteration, forCurrentUser ? credentials : null).toString();
+		return jira.getTicketsFor(iteration, forCurrentUser ? credentials : null).toString();
 	}
 
-	@CliCommand("changelog")
-	public String changelog(@CliOption(key = { "", "train" }, mandatory = true) String trainName, //
-			@CliOption(key = { "iteration" }, mandatory = true) String iterationName, //
+	@CliCommand("tracker changelog")
+	public String changelog(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "module") String moduleName) {
 
-		Train train = ReleaseTrains.getTrainByName(trainName);
-		Iteration iteration = train.getIteration(iterationName);
-
 		if (StringUtils.hasText(moduleName)) {
-			return connector.getChangelogFor(train.getModuleIteration(iteration, moduleName)).toString();
+
+			ModuleIteration module = iteration.getModule(moduleName);
+			return tracker.getPluginFor(module.getProject()).getChangelogFor(module).toString();
 		}
 
-		return "";
+		StringBuilder builder = new StringBuilder();
+
+		for (ModuleIteration module : iteration) {
+
+			IssueTracker issues = tracker.getPluginFor(module.getProject());
+			builder.append(issues.getChangelogFor(module)).append("\n");
+		}
+
+		return builder.toString();
 	}
 }

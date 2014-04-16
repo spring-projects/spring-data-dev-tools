@@ -15,9 +15,11 @@
  */
 package org.springframework.data.release.maven;
 
+import static org.springframework.data.release.model.Phase.*;
+import static org.springframework.data.release.model.Projects.*;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,12 +28,12 @@ import org.springframework.data.release.io.CommandResult;
 import org.springframework.data.release.io.OsCommandOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
-import org.springframework.shell.support.logging.HandlerUtils;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.io.XBFileIO;
@@ -44,12 +46,12 @@ import org.xmlbeam.io.XBFileIO;
 public class MavenOperations {
 
 	private static final String COMMONS_VERSION_PROPERTY = "springdata.commons";
-	private static final Logger LOGGER = HandlerUtils.getLogger(MavenOperations.class);
 	private static final String POM_XML = "pom.xml";
 
 	private final Workspace workspace;
 	private final ProjectionFactory projectionFactory;
 	private final OsCommandOperations os;
+	private final Logger logger;
 
 	public Pom getMavenProject(Project project) throws IOException {
 
@@ -57,38 +59,36 @@ public class MavenOperations {
 		return projectionFactory.io().file(file).read(Pom.class);
 	}
 
-	public void prepareProject(Train train, Iteration iteration, final Project project) throws Exception {
+	public void updatePom(TrainIteration iteration, final Phase phase) throws Exception {
 
-		updateBomPom(train, iteration);
+		updateBomPom(iteration, phase);
 
-		if (ReleaseTrains.BUILD.equals(project)) {
-			return;
-		}
+		final Repository repository = new Repository(iteration.getIteration());
+		final ArtifactVersion commonsVersion = iteration.getModuleVersion(COMMONS);
+		final ArtifactVersion buildVersion = iteration.getModuleVersion(BUILD);
 
-		final ArtifactVersion commonsVersion = train.getModuleVersion(ReleaseTrains.COMMONS, iteration);
-		final ArtifactVersion buildVersion = train.getModuleVersion(ReleaseTrains.BUILD, iteration);
-		final Repository repository = new Repository(iteration);
+		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
-		File file = workspace.getFile(POM_XML, project);
+			final Project project = module.getProject();
+			File pomFile = workspace.getFile(POM_XML, project);
 
-		execute(file, new PomCallback() {
+			execute(pomFile, new PomCallback() {
 
-			@Override
-			public Pom doWith(Pom pom) {
+				@Override
+				public Pom doWith(Pom pom) {
 
-				if (!project.equals(ReleaseTrains.COMMONS)) {
+					if (!project.equals(COMMONS)) {
+						pom.setProperty(COMMONS_VERSION_PROPERTY,
+								CLEANUP.equals(phase) ? commonsVersion.getNextDevelopmentVersion() : commonsVersion);
+					}
 
-					System.out.println(pom.getProperty(COMMONS_VERSION_PROPERTY));
-					pom.setProperty(COMMONS_VERSION_PROPERTY, commonsVersion);
+					pom.setParentVersion(CLEANUP.equals(phase) ? buildVersion.getNextDevelopmentVersion() : buildVersion);
+					updateRepository(pom, repository, phase);
+
+					return pom;
 				}
-
-				pom.setParentVersion(buildVersion);
-				pom.setRepositoryId("spring-libs-snapshot", "spring-libs-release");
-				pom.setRepositoryUrl(repository.getId(), repository.getUrl());
-
-				return pom;
-			}
-		});
+			});
+		}
 	}
 
 	/**
@@ -99,23 +99,22 @@ public class MavenOperations {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public void triggerDistributionBuild(Train train, Iteration iteration) throws Exception {
+	public void triggerDistributionBuild(TrainIteration iteration) throws Exception {
 
-		for (ModuleIteration moduleIteration : train.getModuleIterations(iteration)) {
+		for (ModuleIteration moduleIteration : iteration) {
 
 			Project project = moduleIteration.getProject();
 
-			if (ReleaseTrains.BUILD.equals(project)) {
+			if (BUILD.equals(project)) {
 				continue;
 			}
 
 			if (!isMavenProject(project)) {
-				LOGGER.info(String.format("Skipping project %s as no pom.xml could be found in the working directory!",
-						project.getFullName()));
+				logger.log(project, "Skipping project as no pom.xml could be found in the working directory!");
 				continue;
 			}
 
-			LOGGER.info(String.format("Triggering distribution build for %s…", project.getFullName()));
+			logger.log(project, "Triggering distribution build…");
 
 			ArtifactVersion version = ArtifactVersion.from(moduleIteration);
 
@@ -133,7 +132,7 @@ public class MavenOperations {
 				throw result.getException();
 			}
 
-			LOGGER.info(String.format("Successfully finished distribution build for %s!", project));
+			logger.log(project, "Successfully finished distribution build!");
 		}
 	}
 
@@ -141,24 +140,38 @@ public class MavenOperations {
 		return workspace.getFile(POM_XML, project).exists();
 	}
 
-	private void updateBomPom(final Train train, final Iteration iteration) throws Exception {
+	private void updateBomPom(final TrainIteration iteration, final Phase phase) throws Exception {
 
-		File bomPomFile = workspace.getFile("bom/pom.xml", ReleaseTrains.BUILD);
+		File bomPomFile = workspace.getFile("bom/pom.xml", BUILD);
 
 		execute(bomPomFile, new PomCallback() {
 
 			@Override
 			public Pom doWith(Pom pom) {
 
-				for (ModuleIteration module : train.getModuleIterations(iteration, ReleaseTrains.BUILD)) {
+				for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
 					Artifact artifact = new Artifact(module);
-					pom.setDependencyVersion(artifact.getArtifactId(), artifact.getVersion());
+					ArtifactVersion version = artifact.getVersion();
+					version = PREPARE.equals(phase) ? version : version.getNextDevelopmentVersion();
+
+					pom.setDependencyVersion(artifact.getArtifactId(), version);
 				}
 
 				return pom;
 			}
 		});
+	}
+
+	private void updateRepository(Pom pom, Repository repository, Phase phase) {
+
+		if (PREPARE.equals(phase)) {
+			pom.setRepositoryId(repository.getSnapshotId(), repository.getId());
+			pom.setRepositoryUrl(repository.getId(), repository.getUrl());
+		} else {
+			pom.setRepositoryId(repository.getId(), repository.getSnapshotId());
+			pom.setRepositoryUrl(repository.getSnapshotId(), repository.getSnapshotUrl());
+		}
 	}
 
 	private void execute(File file, PomCallback callback) throws Exception {

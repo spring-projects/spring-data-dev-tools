@@ -21,7 +21,6 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
@@ -33,11 +32,10 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,12 +49,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 class CommonsExecOsCommandOperations implements OsCommandOperations {
 
-	private static final Logger LOGGER = HandlerUtils.getLogger(GitOperations.class);
-	private static final String PREFIX_TEMPLATE = "%s > %s";
-
 	private static final Map<String, String> ENVIRONMENT = new HashMap<>();
 
 	private final Workspace workspace;
+	private final Logger logger;
 
 	/*
 	 * (non-Javadoc)
@@ -76,7 +72,7 @@ class CommonsExecOsCommandOperations implements OsCommandOperations {
 	@Override
 	public Future<CommandResult> executeCommand(String command, Project project) throws IOException {
 
-		LOGGER.info(String.format(PREFIX_TEMPLATE, project.getName(), command));
+		logger.log(project, command);
 
 		return executeCommand(command, workspace.getProjectDirectory(project), true);
 	}
@@ -88,7 +84,7 @@ class CommonsExecOsCommandOperations implements OsCommandOperations {
 	@Override
 	public Future<CommandResult> executeWithOutput(String command, Project project) throws IOException {
 
-		LOGGER.info(String.format(PREFIX_TEMPLATE, project.getName(), command));
+		logger.log(project, command);
 
 		return executeCommand(command, workspace.getProjectDirectory(project), false);
 	}

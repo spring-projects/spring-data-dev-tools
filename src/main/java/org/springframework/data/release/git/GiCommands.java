@@ -18,10 +18,9 @@ package org.springframework.data.release.git;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -33,24 +32,18 @@ import org.springframework.util.StringUtils;
  */
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class GiCommands implements CommandMarker {
+class GiCommands implements CommandMarker {
 
 	private final GitOperations git;
 
 	@CliCommand("git checkout")
-	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
-			key = "iteration", mandatory = true) String iterationName) throws Exception {
-
-		Train train = ReleaseTrains.getTrainByName(trainName);
-		Iteration iteration = train.getIteration(iterationName);
-
-		git.checkout(train, iteration);
+	public void checkout(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+		git.checkout(iteration);
 	}
 
 	@CliCommand("git update")
 	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName) throws Exception,
 			InterruptedException {
-
 		git.update(ReleaseTrains.getTrainByName(trainName));
 	}
 
@@ -69,10 +62,7 @@ public class GiCommands implements CommandMarker {
 	}
 
 	@CliCommand("git prepare")
-	public void prepare(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(
-			key = "iteration", mandatory = true) String iterationName) throws Exception {
-
-		Train train = ReleaseTrains.getTrainByName(trainName);
-		git.prepare(train, train.getIteration(iterationName));
+	public void prepare(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+		git.prepare(iteration);
 	}
 }

@@ -15,11 +15,12 @@
  */
 package org.springframework.data.release.maven;
 
+import static org.springframework.data.release.model.Projects.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.util.Assert;
 
 /**
@@ -27,6 +28,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
+@EqualsAndHashCode
 public class Artifact {
 
 	private static final GroupId GROUP_ID = new GroupId("org.springframework.data");
@@ -57,7 +59,11 @@ public class Artifact {
 	public String getArtifactId() {
 
 		String artifactId = String.format("spring-data-%s", module.getProject().getName().toLowerCase());
-		return ReleaseTrains.REST.equals(module.getProject()) ? artifactId.concat("-webmvc") : artifactId;
+		return REST.equals(module.getProject()) ? artifactId.concat("-webmvc") : artifactId;
+	}
+
+	public ArtifactVersion getNextDevelopmentVersion() {
+		return version.getNextDevelopmentVersion();
 	}
 
 	/**

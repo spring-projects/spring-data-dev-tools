@@ -15,14 +15,16 @@
  */
 package org.springframework.data.release.announcement;
 
+import static org.springframework.data.release.model.Projects.*;
+
 import org.springframework.data.release.cli.StaticResources;
 import org.springframework.data.release.maven.Artifact;
-import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.util.Assert;
 
 /**
@@ -38,25 +40,19 @@ public class AnnouncementOperations {
 	 * @param iteration must not be {@literal null}.
 	 * @return
 	 */
-	public String getProjectBulletpoints(Train train, Iteration iteration) {
+	public String getProjectBulletpoints(TrainIteration iteration) {
 
-		Assert.notNull(train, "Train must not be null!");
 		Assert.notNull(iteration, "Iteration must not be null!");
 
 		StringBuilder builder = new StringBuilder();
 
-		for (ModuleIteration module : train.getModuleIterations(iteration, ReleaseTrains.BUILD)) {
+		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
 			Project project = module.getProject();
 
 			builder.append("* ");
 			builder.append(project.getFullName()).append(" ");
-			builder.append(ArtifactVersion.from(module).toShortString());
-
-			if (!iteration.isServiceIteration()) {
-				builder.append(" ").append(module.getIteration().getName());
-			}
-
+			builder.append(module.getVersionString());
 			builder.append(" - ");
 
 			Artifact artifact = new Artifact(module);
@@ -83,6 +79,6 @@ public class AnnouncementOperations {
 	public static void main(String[] args) {
 
 		AnnouncementOperations operations = new AnnouncementOperations();
-		System.out.println(operations.getProjectBulletpoints(ReleaseTrains.CODD, Iteration.SR2));
+		System.out.println(operations.getProjectBulletpoints(new TrainIteration(ReleaseTrains.CODD, Iteration.SR2)));
 	}
 }

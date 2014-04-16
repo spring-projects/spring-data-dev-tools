@@ -16,13 +16,9 @@
 package org.springframework.data.release.model;
 
 /**
- * A {@link Version} tied to an {@link Iteration}.
- * 
  * @author Oliver Gierke
  */
-public interface IterationVersion {
+public enum Phase {
 
-	Version getVersion();
-
-	Iteration getIteration();
+	PREPARE, CLEANUP;
 }

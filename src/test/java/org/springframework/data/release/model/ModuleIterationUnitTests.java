@@ -15,14 +15,31 @@
  */
 package org.springframework.data.release.model;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
 /**
- * A {@link Version} tied to an {@link Iteration}.
- * 
  * @author Oliver Gierke
  */
-public interface IterationVersion {
+public class ModuleIterationUnitTests {
 
-	Version getVersion();
+	@Test
+	public void abbreviatesTrailingZerosForNonServiceReleases() {
 
-	Iteration getIteration();
+		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.M1);
+		ModuleIteration module = iteration.getModule(Projects.JPA);
+
+		assertThat(module.getVersionString(), is("1.6 M1"));
+	}
+
+	@Test
+	public void doesNotListIterationSuffixForServiceReleases() {
+
+		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.SR1);
+		ModuleIteration module = iteration.getModule(Projects.JPA);
+
+		assertThat(module.getVersionString(), is("1.6.1"));
+	}
 }

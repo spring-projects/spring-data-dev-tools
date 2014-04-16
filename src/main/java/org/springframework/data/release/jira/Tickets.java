@@ -18,6 +18,7 @@ package org.springframework.data.release.jira;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import org.springframework.util.StringUtils;
@@ -28,10 +29,15 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  */
 @Value
+@RequiredArgsConstructor
 public class Tickets implements Iterable<Ticket> {
 
 	private final List<Ticket> tickets;
 	private final int overallTotal;
+
+	public Tickets(List<Ticket> tickets) {
+		this(tickets, tickets.size());
+	}
 
 	/* 
 	 * (non-Javadoc)

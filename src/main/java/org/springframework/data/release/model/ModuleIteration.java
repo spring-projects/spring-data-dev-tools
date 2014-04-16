@@ -62,4 +62,29 @@ public class ModuleIteration implements IterationVersion {
 		return String.format("%s %s (%s)", module.getVersion(), iteration.getName(), train.getName());
 	}
 
+	/**
+	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}.
+	 * 
+	 * @return
+	 */
+	public String getVersionString() {
+
+		StringBuilder builder = new StringBuilder();
+		builder.append(ArtifactVersion.from(this).toShortString());
+
+		if (!iteration.isServiceIteration()) {
+			builder.append(" ").append(iteration.getName());
+		}
+
+		return builder.toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return String.format("%s %s", module.getProject().getFullName(), getVersionString());
+	}
 }

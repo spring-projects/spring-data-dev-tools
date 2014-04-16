@@ -18,23 +18,36 @@ package org.springframework.data.release.model;
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.Value;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author Oliver Gierke
  */
-@Value
+@ToString
+@EqualsAndHashCode
 public class Project {
 
-	private final ProjectKey key;
-	private final String name;
+	private final @Getter ProjectKey key;
+	private final @Getter String name;
 	private final List<Project> dependencies;
+	private final Tracker tracker;
 
-	public Project(String key, String name, Project... dependencies) {
+	Project(String key, String name, Project... dependencies) {
+		this(key, name, Tracker.JIRA, dependencies);
+	}
+
+	Project(String key, String name, Tracker tracker, Project... dependencies) {
 
 		this.key = new ProjectKey(key);
 		this.name = name;
 		this.dependencies = Arrays.asList(dependencies);
+		this.tracker = tracker;
+	}
+
+	public boolean uses(Tracker tracker) {
+		return this.tracker.equals(tracker);
 	}
 
 	public String getFullName() {

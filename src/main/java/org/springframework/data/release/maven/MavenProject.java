@@ -24,7 +24,7 @@ import org.springframework.data.release.model.Module;
  * @author Oliver Gierke
  */
 @Value
-public class MavenProject {
+class MavenProject {
 
 	private final Module module;
 

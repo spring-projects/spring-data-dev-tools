@@ -13,35 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.git;
+package org.springframework.data.release;
 
-import static org.springframework.data.release.model.Projects.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.AbstractIntegrationTests;
+import org.springframework.data.release.maven.Artifact;
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
  */
-public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
-
-	@Autowired GitOperations gitOperations;
+public class ArtifactUnitTests {
 
 	@Test
-	@Ignore
-	public void testname() throws Exception {
-		gitOperations.update(ReleaseTrains.CODD);
-	}
+	public void testname() {
 
-	@Test
-	@Ignore
-	public void showTags() throws Exception {
+		Artifact artifact = new Artifact(ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "JPA"));
 
-		Tags tags = gitOperations.getTags(COMMONS);
-		System.out.println(StringUtils.collectionToDelimitedString(tags.asList(), "\n"));
+		assertThat(artifact.getArtifactId(), is("spring-data-jpa"));
+		assertThat(artifact.getVersion(), is(ArtifactVersion.parse("1.6.0.M1")));
+		assertThat(artifact.getNextDevelopmentVersion(), is(ArtifactVersion.parse("1.6.0.BUILD-SNAPSHOT")));
 	}
 }

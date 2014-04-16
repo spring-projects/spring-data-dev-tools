@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  */
 @RequiredArgsConstructor
 @EqualsAndHashCode
-public class Branch {
+class Branch {
 
 	private static final Branch MASTER = new Branch("master");
 

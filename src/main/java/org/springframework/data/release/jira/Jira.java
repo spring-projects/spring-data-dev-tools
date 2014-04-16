@@ -15,35 +15,40 @@
  */
 package org.springframework.data.release.jira;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Tracker;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.util.UriTemplate;
 
 /**
  * @author Oliver Gierke
  */
 @Component
 @RequiredArgsConstructor(onConstructor = @_(@Autowired))
-class RestJiraConnector implements JiraConnector {
-
-	protected final Logger LOGGER = Logger.getLogger(getClass().getName());
+class Jira implements JiraConnector {
 
 	private static final String JIRA_HOST = "https://jira.spring.io";
 	private static final String BASE_URI = "/rest/api/2";
@@ -51,6 +56,7 @@ class RestJiraConnector implements JiraConnector {
 			+ "/search?jql={jql}&fields={fields}&startAt={startAt}";
 
 	private final RestOperations operations;
+	private final Logger logger;
 
 	/* 
 	 * (non-Javadoc)
@@ -62,15 +68,33 @@ class RestJiraConnector implements JiraConnector {
 
 	}
 
+	@Cacheable("release-tickets")
+	public Ticket getReleaseTicketFor(ModuleIteration iteration) {
+
+		JqlQuery query = JqlQuery.from(iteration).and("summary ~ \"Release\"");
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("jql", query);
+		parameters.put("fields", "summary");
+		parameters.put("startAt", 0);
+
+		JiraIssues issues = operations.exchange(SEARCH_TEMPLATE, HttpMethod.GET, null, JiraIssues.class, parameters)
+				.getBody();
+
+		JiraIssue issue = issues.getIssues().get(0);
+
+		return new Ticket(issue.getKey(), issue.getFields().getSummary());
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.JiraConnector#getTicketsFor(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration, org.springframework.data.release.jira.Credentials)
 	 */
 	@Override
 	@Cacheable("tickets")
-	public Tickets getTicketsFor(Train train, Iteration iteration, Credentials credentials) {
+	public Tickets getTicketsFor(TrainIteration iteration, Credentials credentials) {
 
-		JqlQuery query = JqlQuery.from(train, iteration);
+		JqlQuery query = JqlQuery.from(iteration);
 
 		HttpHeaders headers = new HttpHeaders();
 		int startAt = 0;
@@ -83,10 +107,9 @@ class RestJiraConnector implements JiraConnector {
 
 			headers.set("Authorization", String.format("Basic %s", credentials.asBase64()));
 
-			LOGGER.info(String.format("Retrieving tickets for %s %s (for user %s).", train.getName(), iteration.getName(),
-					credentials.getUsername()));
+			logger.log(iteration, "Retrieving tickets (for user %s)…", credentials.getUsername());
 		} else {
-			LOGGER.info(String.format("Retrieving tickets for %s %s.", train.getName(), iteration.getName()));
+			logger.log(iteration, "Retrieving tickets…");
 		}
 
 		query = query.orderBy("updatedDate DESC");
@@ -101,10 +124,10 @@ class RestJiraConnector implements JiraConnector {
 			issues = operations.exchange(SEARCH_TEMPLATE, HttpMethod.GET, new HttpEntity<>(headers), JiraIssues.class,
 					parameters).getBody();
 
-			LOGGER.info(String.format("Got tickets %s to %s of %s.", startAt, issues.getNextStartAt(), issues.getTotal()));
+			logger.log(iteration, "Got tickets %s to %s of %s.", startAt, issues.getNextStartAt(), issues.getTotal());
 
 			for (JiraIssue issue : issues) {
-				if (!issue.wasBackportedFrom(train)) {
+				if (!issue.wasBackportedFrom(iteration.getTrain())) {
 					tickets.add(new Ticket(issue.getKey(), issue.getFields().getSummary()));
 				}
 			}
@@ -121,7 +144,7 @@ class RestJiraConnector implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#verifyBeforeRelease(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration)
 	 */
 	@Override
-	public void verifyBeforeRelease(Train train, Iteration iteration) {
+	public void verifyBeforeRelease(TrainIteration iteration) {
 
 		// for each module
 
@@ -134,7 +157,7 @@ class RestJiraConnector implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#closeIteration(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration, org.springframework.data.release.jira.Credentials)
 	 */
 	@Override
-	public void closeIteration(Train train, Iteration iteration, Credentials credentials) {
+	public void closeIteration(TrainIteration iteration, Credentials credentials) {
 
 		// for each module
 
@@ -159,13 +182,44 @@ class RestJiraConnector implements JiraConnector {
 		parameters.put("fields", "summary,fixVersions");
 		parameters.put("startAt", 0);
 
-		JiraIssues issues = operations.getForObject(SEARCH_TEMPLATE, JiraIssues.class, parameters);
+		URI searchUri = new UriTemplate(SEARCH_TEMPLATE).expand(parameters);
+
+		logger.log(module, "Looking up JIRA issues from %s…", searchUri);
+
+		JiraIssues issues = operations.getForObject(searchUri, JiraIssues.class);
 		List<Ticket> tickets = new ArrayList<>();
 
 		for (JiraIssue issue : issues) {
 			tickets.add(new Ticket(issue.getKey(), issue.getFields().getSummary()));
 		}
 
+		logger.log(module, "Created changelog with %s entries.", tickets.size());
+
 		return new Changelog(module, new Tickets(tickets, tickets.size()));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.plugin.core.Plugin#supports(java.lang.Object)
+	 */
+	@Override
+	public boolean supports(Project project) {
+		return project.uses(Tracker.JIRA);
+	}
+
+	public static void main(String[] args) {
+
+		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"META-INF/spring/spring-shell-plugin.xml")) {
+
+			JiraConnector tracker = context.getBean(JiraConnector.class);
+			TrainIteration iteration = new TrainIteration(ReleaseTrains.CODD, Iteration.SR2);
+			ModuleIteration module = iteration.getModule("JPA");
+
+			// Changelog changelog = tracker.getChangelogFor(module);
+			// System.out.println(changelog);
+
+			System.out.println(tracker.getReleaseTicketFor(module));
+		}
 	}
 }
