@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.CommandResult;
 import org.springframework.data.release.io.OsCommandOperations;
 import org.springframework.data.release.io.Workspace;
+import org.springframework.data.release.jira.IssueTracker;
+import org.springframework.data.release.jira.Ticket;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Module;
@@ -35,6 +37,7 @@ import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -52,6 +55,7 @@ public class GitOperations {
 	private final OsCommandOperations osCommandOperations;
 	private final Workspace workspace;
 	private final Logger logger;
+	private final PluginRegistry<IssueTracker, Project> issueTracker;
 
 	public GitProject getGitProject(Project project) {
 		return new GitProject(project, server);
@@ -166,6 +170,49 @@ public class GitOperations {
 		}
 
 		return new Tags(tags);
+	}
+
+	public void tagRelease(TrainIteration iteration) throws Exception {
+
+		for (ModuleIteration module : iteration) {
+
+			Branch branch = Branch.from(module);
+			Project project = module.getProject();
+
+			String checkoutCommand = String.format("git checkout %s", branch);
+			osCommandOperations.executeCommand(checkoutCommand, project).get();
+
+			String updateCommand = String.format("git pull origin %s", branch);
+			osCommandOperations.executeCommand(updateCommand, project).get();
+
+			String hash = getReleaseHash(module);
+			Tag tag = getTags(project).createTag(module);
+			String tagCommand = String.format("git tag %s %s", tag, hash);
+			osCommandOperations.executeCommand(tagCommand, project).get();
+		}
+	}
+
+	private String getReleaseHash(ModuleIteration module) throws Exception {
+
+		Project project = module.getProject();
+
+		String result = osCommandOperations.executeForResult("git log --pretty=format:'%h %s'", project);
+		Ticket releaseTicket = issueTracker.getPluginFor(project).getReleaseTicketFor(module);
+		String trigger = String.format("%s - Release", releaseTicket.getId());
+
+		logger.log(project, "Looking up release commit (ticket id %s)", releaseTicket.getId());
+
+		for (String line : result.split("\n")) {
+
+			int summaryStart = line.indexOf(" ");
+
+			if (line.substring(summaryStart + 1).startsWith(trigger)) {
+				return line.substring(0, summaryStart);
+			}
+		}
+
+		throw new IllegalStateException(String.format("Did not find a release commit for project %s (ticket id %s)",
+				project, releaseTicket.getId()));
 	}
 
 	/**

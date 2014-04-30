@@ -45,6 +45,16 @@ public class Tag implements Comparable<Tag> {
 		return ArtifactVersion.parse(getVersionSource());
 	}
 
+	/**
+	 * Creates a new {@link Tag} for the given {@link ArtifactVersion} based on the format of the current one.
+	 * 
+	 * @param version
+	 * @return
+	 */
+	public Tag createNew(ArtifactVersion version) {
+		return new Tag(name.startsWith("v") ? "v".concat(version.toString()) : version.toString());
+	}
+
 	/* 
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()

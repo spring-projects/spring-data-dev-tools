@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -55,9 +56,14 @@ public class GitCommands implements CommandMarker {
 		return StringUtils.collectionToDelimitedString(git.getTags(project).asList(), "\n");
 	}
 
+	/**
+	 * Resets all projects contained in the given {@link Train}.
+	 * 
+	 * @param trainName
+	 * @throws Exception
+	 */
 	@CliCommand("git reset")
-	public void reset(@CliOption(key = { "", "train" }, mandatory = true) String trainName, @CliOption(key = "iteration",
-			mandatory = true) String iterationName) throws Exception {
+	public void reset(@CliOption(key = { "", "train" }, mandatory = true) String trainName) throws Exception {
 		git.reset(ReleaseTrains.getTrainByName(trainName));
 	}
 

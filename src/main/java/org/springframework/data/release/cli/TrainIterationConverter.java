@@ -65,11 +65,6 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 
 		for (Train train : ReleaseTrains.TRAINS) {
 
-			// if (!StringUtils.hasText(existingData) &&
-			// !train.getName().toLowerCase().startsWith(existingData.toLowerCase())) {
-			// continue;
-			// }
-
 			for (Iteration iteration : train.getIterations()) {
 				completions.add(new Completion(new TrainIteration(train, iteration).toString()));
 			}

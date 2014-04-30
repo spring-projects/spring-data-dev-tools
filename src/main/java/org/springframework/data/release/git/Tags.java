@@ -22,6 +22,8 @@ import java.util.List;
 
 import lombok.EqualsAndHashCode;
 
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
 
 /**
@@ -56,6 +58,10 @@ public class Tags implements Iterable<Tag> {
 	 */
 	public Tag getLatest() {
 		return tags.get(0);
+	}
+
+	public Tag createTag(ModuleIteration iteration) {
+		return getLatest().createNew(ArtifactVersion.from(iteration));
 	}
 
 	/**

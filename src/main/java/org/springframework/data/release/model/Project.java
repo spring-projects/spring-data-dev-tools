@@ -22,6 +22,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import org.springframework.util.Assert;
+
 /**
  * @author Oliver Gierke
  */
@@ -52,5 +54,17 @@ public class Project {
 
 	public String getFullName() {
 		return "Spring Data ".concat(name);
+	}
+
+	/**
+	 * Returns whether the current project depends on the given one.
+	 * 
+	 * @param project must not be {@literal null}.
+	 * @return
+	 */
+	public boolean dependsOn(Project project) {
+
+		Assert.notNull(project, "Project must not be null!");
+		return dependencies.contains(project);
 	}
 }

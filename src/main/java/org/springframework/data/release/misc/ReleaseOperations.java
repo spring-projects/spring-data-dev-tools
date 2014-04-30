@@ -15,14 +15,15 @@
  */
 package org.springframework.data.release.misc;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.Scanner;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.Workspace;
+import org.springframework.data.release.io.Workspace.LineCallback;
 import org.springframework.data.release.jira.Changelog;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.model.Iteration;
@@ -30,11 +31,10 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import com.google.common.io.Files;
 
 /**
  * @author Oliver Gierke
@@ -43,8 +43,20 @@ import com.google.common.io.Files;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ReleaseOperations {
 
+	private static final Set<String> CHANGELOG_LOCATIONS;
+
+	static {
+
+		Set<String> locations = new HashSet<>();
+		locations.add("src/main/resources/changelog.txt"); // for Maven projects
+		locations.add("docs/src/info/changelog.txt"); // for Gradle projects
+
+		CHANGELOG_LOCATIONS = Collections.unmodifiableSet(locations);
+	}
+
 	private final PluginRegistry<IssueTracker, Project> trackers;
 	private final Workspace workspace;
+	private final Logger logger;
 
 	/**
 	 * Creates {@link Changelog} instances for all modules of the given {@link Train} and {@link Iteration}.
@@ -59,26 +71,53 @@ public class ReleaseOperations {
 
 		for (ModuleIteration module : iteration) {
 
-			Changelog changelog = trackers.getPluginFor(module.getProject()).getChangelogFor(module);
-			File file = workspace.getFile("src/main/resources/changelog.txt", module.getProject());
-			StringBuilder builder = new StringBuilder();
+			final Changelog changelog = trackers.getPluginFor(module.getProject()).getChangelogFor(module);
 
-			try (Scanner scanner = new Scanner(file)) {
+			for (String location : CHANGELOG_LOCATIONS) {
 
-				// Copy headline
-				builder.append(scanner.nextLine()).append("\n");
-				builder.append(scanner.nextLine()).append("\n");
+				boolean processed = workspace.processFile(location, module.getProject(), new LineCallback() {
 
-				// Add new changelog
-				builder.append(changelog.toString());
+					@Override
+					public String doWith(String line, long number) {
 
-				// Append existing
-				while (scanner.hasNextLine()) {
-					builder.append(scanner.nextLine()).append("\n");
+						if (line.startsWith("=")) {
+
+							StringBuilder builder = new StringBuilder();
+							builder.append(line).append("\n\n");
+							builder.append(changelog.toString());
+
+							return builder.toString();
+						} else {
+							return line;
+						}
+					}
+				});
+
+				if (processed) {
+					logger.log(module.getProject(), "Updated changelog %s.", location);
 				}
 			}
+		}
+	}
 
-			Files.write(builder, file, Charset.forName("UTF-8"));
+	public void updateResources(TrainIteration iteration) throws Exception {
+
+		for (final ModuleIteration module : iteration) {
+
+			workspace.processFile("src/main/resources/notice.txt", module.getProject(), new LineCallback() {
+
+				@Override
+				public String doWith(String line, long number) {
+
+					if (number != 0) {
+						return line;
+					}
+
+					return module.toString();
+				}
+			});
+
+			logger.log(module, "Updated notice.txt.");
 		}
 	}
 }

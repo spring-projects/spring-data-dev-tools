@@ -139,6 +139,10 @@ public class Train implements Iterable<Module> {
 		return ArtifactVersion.from(new ModuleIteration(module, iteration, this));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 
@@ -157,7 +161,7 @@ public class Train implements Iterable<Module> {
 	 */
 	@EqualsAndHashCode
 	@ToString
-	private static class Iterations implements Iterable<Iteration> {
+	public static class Iterations implements Iterable<Iteration> {
 
 		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4);
 
@@ -189,6 +193,17 @@ public class Train implements Iterable<Module> {
 			}
 
 			return null;
+		}
+
+		Iteration getPreviousIteration(Iteration iteration) {
+
+			for (Iteration candidate : iterations) {
+				if (candidate.isNext(iteration)) {
+					return candidate;
+				}
+			}
+
+			throw new IllegalArgumentException(String.format("Could not find previous iteration for %s!", iteration));
 		}
 
 		/* 

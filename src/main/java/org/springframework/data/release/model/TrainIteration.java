@@ -53,6 +53,12 @@ public class TrainIteration implements Iterable<ModuleIteration> {
 		return train.getModuleIterations(iteration, exclusions);
 	}
 
+	public ModuleIteration getPreviousIteration(ModuleIteration module) {
+
+		Iteration previousIteration = train.getIterations().getPreviousIteration(iteration);
+		return train.getModuleIteration(previousIteration, module.getProject().getName());
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()

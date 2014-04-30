@@ -31,10 +31,12 @@ import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.io.XBFileIO;
 
@@ -59,7 +61,24 @@ public class MavenOperations {
 		return projectionFactory.io().file(file).read(Pom.class);
 	}
 
+	/**
+	 * Updates the POM files for all Maven projects contained in the iteration:
+	 * <ol>
+	 * <li>Updates the BOM POM.</li>
+	 * <li>Updates the dependency version to Spring Data Commons to the current release version for all projects depending
+	 * on it.</li>
+	 * <li>Switches to the Spring release Maven repository.</li>
+	 * </ol>
+	 * If {@link Phase} is {@link Phase#CLEANUP} the changes will be rolled back.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param phase must not be {@literal null}.
+	 * @throws Exception
+	 */
 	public void updatePom(TrainIteration iteration, final Phase phase) throws Exception {
+
+		Assert.notNull(iteration, "Train iteration must not be null!");
+		Assert.notNull(phase, "Phase must not be null!");
 
 		updateBomPom(iteration, phase);
 
@@ -70,20 +89,31 @@ public class MavenOperations {
 		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
 			final Project project = module.getProject();
-			File pomFile = workspace.getFile(POM_XML, project);
 
-			execute(pomFile, new PomCallback() {
+			if (!isMavenProject(project)) {
+				logger.log(module, "No pom.xml file found, skipping project.");
+				continue;
+			}
+
+			execute(workspace.getFile(POM_XML, project), new PomCallback() {
 
 				@Override
 				public Pom doWith(Pom pom) {
 
-					if (!project.equals(COMMONS)) {
-						pom.setProperty(COMMONS_VERSION_PROPERTY,
-								CLEANUP.equals(phase) ? commonsVersion.getNextDevelopmentVersion() : commonsVersion);
+					if (project.dependsOn(Projects.COMMONS)) {
+
+						ArtifactVersion version = CLEANUP.equals(phase) ? commonsVersion.getNextDevelopmentVersion()
+								: commonsVersion;
+						logger.log(project, "Updating Spring Data Commons version dependecy to %s (setting property %s).", version,
+								COMMONS_VERSION_PROPERTY);
+						pom.setProperty(COMMONS_VERSION_PROPERTY, version);
 					}
 
-					pom.setParentVersion(CLEANUP.equals(phase) ? buildVersion.getNextDevelopmentVersion() : buildVersion);
-					updateRepository(pom, repository, phase);
+					ArtifactVersion version = CLEANUP.equals(phase) ? buildVersion.getNextDevelopmentVersion() : buildVersion;
+					logger.log(project, "Updating Spring Data Build Parent version to %s.", version);
+					pom.setParentVersion(version);
+
+					updateRepository(project, pom, repository, phase);
 
 					return pom;
 				}
@@ -144,6 +174,8 @@ public class MavenOperations {
 
 		File bomPomFile = workspace.getFile("bom/pom.xml", BUILD);
 
+		logger.log(BUILD, "Updating BOM pom.xml…");
+
 		execute(bomPomFile, new PomCallback() {
 
 			@Override
@@ -155,6 +187,8 @@ public class MavenOperations {
 					ArtifactVersion version = artifact.getVersion();
 					version = PREPARE.equals(phase) ? version : version.getNextDevelopmentVersion();
 
+					logger.log(BUILD, "%s", module);
+
 					pom.setDependencyVersion(artifact.getArtifactId(), version);
 				}
 
@@ -163,12 +197,21 @@ public class MavenOperations {
 		});
 	}
 
-	private void updateRepository(Pom pom, Repository repository, Phase phase) {
+	private void updateRepository(Project project, Pom pom, Repository repository, Phase phase) {
+
+		String message = "Switching to Spring repository %s (%s).";
 
 		if (PREPARE.equals(phase)) {
+
+			logger.log(project, message, repository.getId(), repository.getUrl());
+
 			pom.setRepositoryId(repository.getSnapshotId(), repository.getId());
 			pom.setRepositoryUrl(repository.getId(), repository.getUrl());
+
 		} else {
+
+			logger.log(project, message, repository.getSnapshotId(), repository.getSnapshotUrl());
+
 			pom.setRepositoryId(repository.getId(), repository.getSnapshotId());
 			pom.setRepositoryUrl(repository.getSnapshotId(), repository.getSnapshotUrl());
 		}

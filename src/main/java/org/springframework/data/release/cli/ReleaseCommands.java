@@ -19,8 +19,10 @@ import static org.springframework.data.release.model.Projects.*;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.docs.DocumentationOperations;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.git.Tags;
+import org.springframework.data.release.gradle.GradleOperations;
 import org.springframework.data.release.maven.MavenOperations;
 import org.springframework.data.release.maven.Pom;
 import org.springframework.data.release.misc.ReleaseOperations;
@@ -43,8 +45,10 @@ import org.springframework.stereotype.Component;
 public class ReleaseCommands implements CommandMarker {
 
 	private final MavenOperations maven;
+	private final GradleOperations gradle;
 	private final GitOperations git;
 	private final ReleaseOperations misc;
+	private final DocumentationOperations docs;
 
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() throws Exception {
@@ -95,18 +99,24 @@ public class ReleaseCommands implements CommandMarker {
 	public void prepare(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 
 		git.prepare(iteration);
+
 		misc.prepareChangelogs(iteration);
+		misc.updateResources(iteration);
+		docs.updateDockbookIncludes(iteration);
+
 		maven.updatePom(iteration, Phase.PREPARE);
+		gradle.updateProject(iteration, Phase.PREPARE);
 	}
 
 	@CliCommand(value = "release conclude")
 	public void conclude(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 
-		// - pull updates
-		// - tag release
+		git.tagRelease(iteration);
+
 		// - post release pom updates
 
 		maven.updatePom(iteration, Phase.CLEANUP);
+		gradle.updateProject(iteration, Phase.CLEANUP);
 
 		// - push
 	}

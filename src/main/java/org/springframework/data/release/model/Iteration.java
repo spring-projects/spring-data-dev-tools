@@ -62,6 +62,10 @@ public class Iteration {
 		return name.startsWith("SR");
 	}
 
+	public boolean isNext(Iteration iteration) {
+		return next.equals(iteration);
+	}
+
 	public int getBugfixValue() {
 		return name.startsWith("SR") ? Integer.parseInt(name.substring(2)) : 0;
 	}
