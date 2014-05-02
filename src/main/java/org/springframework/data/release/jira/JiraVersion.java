@@ -46,7 +46,8 @@ class JiraVersion {
 	@Override
 	public String toString() {
 
-		Iteration iteration = module.hasCustomFirstIteration() ? module.getCustomFirstIteration() : this.iteration;
+		Iteration iteration = this.iteration.isInitialIteration() && module.hasCustomFirstIteration() ? module
+				.getCustomFirstIteration() : this.iteration;
 
 		if (iteration.isServiceIteration()) {
 			return String.format("%s.%s (%s %s)", module.getVersion(), iteration.getBugfixValue(), train.getName(),

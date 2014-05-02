@@ -56,13 +56,6 @@ public class ModuleIteration implements IterationVersion {
 				.getCustomFirstIteration() : this.iteration;
 	}
 
-	public String getJiraVersionName() {
-
-		Iteration iteration = module.hasCustomFirstIteration() ? module.getCustomFirstIteration() : this.iteration;
-
-		return String.format("%s %s (%s)", module.getVersion(), iteration.getName(), train.getName());
-	}
-
 	/**
 	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}.
 	 * 

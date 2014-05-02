@@ -52,6 +52,15 @@ public class JiraVersionUnitTests {
 		assertThat(version.toString(), is("1.0 M2 (Dijkstra)"));
 	}
 
+	@Test
+	public void doesNotUseCustomIterationOnNonFirstiterations() {
+
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.RC1, "Elasticsearch");
+
+		JiraVersion version = new JiraVersion(module);
+		assertThat(version.toString(), is("1.0 RC1 (Dijkstra)"));
+	}
+
 	private void assertIterationVersion(Iteration iteration, String expected) {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(iteration, "Commons");
