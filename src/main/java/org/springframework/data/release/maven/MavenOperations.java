@@ -24,6 +24,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.release.io.CommandResult;
 import org.springframework.data.release.io.OsCommandOperations;
 import org.springframework.data.release.io.Workspace;
@@ -84,7 +85,19 @@ public class MavenOperations {
 
 		final Repository repository = new Repository(iteration.getIteration());
 		final ArtifactVersion commonsVersion = iteration.getModuleVersion(COMMONS);
+		final ArtifactVersion nextCommonsVersion = commonsVersion.getNextDevelopmentVersion();
 		final ArtifactVersion buildVersion = iteration.getModuleVersion(BUILD);
+		final ArtifactVersion nextBuildVersion = buildVersion.getNextDevelopmentVersion();
+
+		// Fix version of shared resources to to-be-released version.
+		execute(workspace.getFile("parent/pom.xml", BUILD), new PomCallback<ParentPom>() {
+
+			@Override
+			public ParentPom doWith(ParentPom pom) {
+				pom.setSharedResourcesVersion(phase.equals(PREPARE) ? buildVersion : nextBuildVersion);
+				return pom;
+			}
+		});
 
 		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
@@ -95,21 +108,20 @@ public class MavenOperations {
 				continue;
 			}
 
-			execute(workspace.getFile(POM_XML, project), new PomCallback() {
+			execute(workspace.getFile(POM_XML, project), new PomCallback<Pom>() {
 
 				@Override
 				public Pom doWith(Pom pom) {
 
 					if (project.dependsOn(Projects.COMMONS)) {
 
-						ArtifactVersion version = CLEANUP.equals(phase) ? commonsVersion.getNextDevelopmentVersion()
-								: commonsVersion;
+						ArtifactVersion version = CLEANUP.equals(phase) ? nextCommonsVersion : commonsVersion;
 						logger.log(project, "Updating Spring Data Commons version dependecy to %s (setting property %s).", version,
 								COMMONS_VERSION_PROPERTY);
 						pom.setProperty(COMMONS_VERSION_PROPERTY, version);
 					}
 
-					ArtifactVersion version = CLEANUP.equals(phase) ? buildVersion.getNextDevelopmentVersion() : buildVersion;
+					ArtifactVersion version = CLEANUP.equals(phase) ? nextBuildVersion : buildVersion;
 					logger.log(project, "Updating Spring Data Build Parent version to %s.", version);
 					pom.setParentVersion(version);
 
@@ -176,7 +188,7 @@ public class MavenOperations {
 
 		logger.log(BUILD, "Updating BOM pom.xml…");
 
-		execute(bomPomFile, new PomCallback() {
+		execute(bomPomFile, new PomCallback<Pom>() {
 
 			@Override
 			public Pom doWith(Pom pom) {
@@ -217,18 +229,20 @@ public class MavenOperations {
 		}
 	}
 
-	private void execute(File file, PomCallback callback) throws Exception {
+	@SuppressWarnings("unchecked")
+	private <T extends Pom> void execute(File file, PomCallback<T> callback) throws Exception {
 
 		XBFileIO io = projectionFactory.io().file(file);
-		Pom pom = io.read(Pom.class);
+		Class<?> typeArgument = GenericTypeResolver.resolveTypeArgument(callback.getClass(), PomCallback.class);
 
+		T pom = (T) io.read(typeArgument);
 		pom = callback.doWith(pom);
 
 		io.write(pom);
 	}
 
-	private interface PomCallback {
+	private interface PomCallback<T extends Pom> {
 
-		public Pom doWith(Pom pom);
+		public T doWith(T pom);
 	}
 }
