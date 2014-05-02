@@ -52,7 +52,8 @@ public class ModuleIteration implements IterationVersion {
 	 * @see org.springframework.data.release.model.IterationVersion#getIteration()
 	 */
 	public Iteration getIteration() {
-		return module.hasCustomFirstIteration() ? module.getCustomFirstIteration() : this.iteration;
+		return this.iteration.isInitialIteration() && this.module.hasCustomFirstIteration() ? module
+				.getCustomFirstIteration() : this.iteration;
 	}
 
 	public String getJiraVersionName() {
