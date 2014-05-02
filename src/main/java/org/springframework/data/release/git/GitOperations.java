@@ -113,11 +113,8 @@ public class GitOperations {
 
 			update(module.getProject()).get();
 
-			String checkoutCommand = String.format("git checkout %s", branch);
+			String checkoutCommand = String.format("git checkout %s && git pull origin %s", branch, branch);
 			osCommandOperations.executeCommand(checkoutCommand, module.getProject()).get();
-
-			String updateCommand = String.format("git pull origin %s", branch);
-			osCommandOperations.executeCommand(updateCommand, module.getProject()).get();
 		}
 	}
 
@@ -143,8 +140,8 @@ public class GitOperations {
 
 			logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
 
-			return osCommandOperations.executeCommand("git checkout master && git fetch --tags && git pull origin master",
-					project);
+			return osCommandOperations.executeCommand(
+					"git checkout master && git reset --hard && git fetch --tags && git pull origin master", project);
 
 		} else {
 
