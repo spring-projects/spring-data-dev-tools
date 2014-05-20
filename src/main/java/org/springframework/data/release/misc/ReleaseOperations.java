@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.misc;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,6 +23,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.io.Workspace.LineCallback;
 import org.springframework.data.release.jira.Changelog;
@@ -56,6 +58,7 @@ public class ReleaseOperations {
 
 	private final PluginRegistry<IssueTracker, Project> trackers;
 	private final Workspace workspace;
+	private final GitOperations git;
 	private final Logger logger;
 
 	/**
@@ -94,6 +97,10 @@ public class ReleaseOperations {
 				});
 
 				if (processed) {
+
+					File file = workspace.getFile(location, module.getProject());
+					git.commit(module, "Updated changelog.", null, file);
+
 					logger.log(module.getProject(), "Updated changelog %s.", location);
 				}
 			}
@@ -104,20 +111,23 @@ public class ReleaseOperations {
 
 		for (final ModuleIteration module : iteration) {
 
-			workspace.processFile("src/main/resources/notice.txt", module.getProject(), new LineCallback() {
+			boolean processed = workspace.processFile("src/main/resources/notice.txt", module.getProject(),
+					new LineCallback() {
 
-				@Override
-				public String doWith(String line, long number) {
+						@Override
+						public String doWith(String line, long number) {
 
-					if (number != 0) {
-						return line;
-					}
+							if (number != 0) {
+								return line;
+							}
 
-					return module.toString();
-				}
-			});
+							return module.toString();
+						}
+					});
 
-			logger.log(module, "Updated notice.txt.");
+			if (processed) {
+				logger.log(module, "Updated notice.txt.");
+			}
 		}
 	}
 }

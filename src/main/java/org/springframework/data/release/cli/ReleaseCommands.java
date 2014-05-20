@@ -106,6 +106,8 @@ public class ReleaseCommands implements CommandMarker {
 
 		maven.updatePom(iteration, Phase.PREPARE);
 		gradle.updateProject(iteration, Phase.PREPARE);
+
+		git.commit(iteration, "Prepare %s.", null);
 	}
 
 	@CliCommand(value = "release conclude")
@@ -113,11 +115,9 @@ public class ReleaseCommands implements CommandMarker {
 
 		git.tagRelease(iteration);
 
-		// - post release pom updates
-
 		maven.updatePom(iteration, Phase.CLEANUP);
 		gradle.updateProject(iteration, Phase.CLEANUP);
 
-		// - push
+		git.commit(iteration, "After release cleanups.", null);
 	}
 }

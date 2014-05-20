@@ -63,12 +63,35 @@ public class GitCommands implements CommandMarker {
 	 * @throws Exception
 	 */
 	@CliCommand("git reset")
-	public void reset(@CliOption(key = { "", "train" }, mandatory = true) String trainName) throws Exception {
-		git.reset(ReleaseTrains.getTrainByName(trainName));
+	public void reset(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+		git.reset(iteration);
 	}
 
 	@CliCommand("git prepare")
 	public void prepare(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 		git.prepare(iteration);
+	}
+
+	/**
+	 * Pushes all changes of all modules of the given {@link TrainIteration} to the remote server. If {@code tags} is
+	 * given, only the tags are pushed.
+	 * 
+	 * @param iteration
+	 * @param tags
+	 * @throws Exception
+	 */
+	@CliCommand("git push")
+	public void push(//
+			@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "tags", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") String tags)
+			throws Exception {
+
+		boolean pushTags = Boolean.parseBoolean(tags);
+
+		if (pushTags) {
+			git.pushTags(iteration.getTrain());
+		} else {
+			git.push(iteration);
+		}
 	}
 }

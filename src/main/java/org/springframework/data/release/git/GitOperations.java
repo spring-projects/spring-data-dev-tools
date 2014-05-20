@@ -24,6 +24,7 @@ import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.release.io.CommandResult;
 import org.springframework.data.release.io.OsCommandOperations;
 import org.springframework.data.release.io.Workspace;
@@ -52,10 +53,11 @@ import org.springframework.util.StringUtils;
 public class GitOperations {
 
 	private final GitServer server = new GitServer();
-	private final OsCommandOperations osCommandOperations;
+	private final OsCommandOperations os;
 	private final Workspace workspace;
 	private final Logger logger;
 	private final PluginRegistry<IssueTracker, Project> issueTracker;
+	private final Environment environment;
 
 	public GitProject getGitProject(Project project) {
 		return new GitProject(project, server);
@@ -67,12 +69,15 @@ public class GitOperations {
 	 * @param train must not be {@literal null}.
 	 * @throws Exception
 	 */
-	public void reset(Train train) throws Exception {
+	public void reset(TrainIteration train) throws Exception {
 
 		Assert.notNull(train, "Train must not be null!");
 
-		for (Module module : train) {
-			osCommandOperations.executeCommand("git reset --hard", module.getProject()).get();
+		for (ModuleIteration module : train) {
+
+			Branch branch = Branch.from(module);
+
+			os.executeCommand(String.format("git reset --hard origin/%s", branch), module.getProject()).get();
 		}
 	}
 
@@ -99,7 +104,7 @@ public class GitOperations {
 						artifactVersion, project));
 			}
 
-			osCommandOperations.executeCommand(String.format("git checkout %s", tag), project).get();
+			os.executeCommand(String.format("git checkout %s", tag), project).get();
 		}
 
 		logger.log(iteration, "Successfully checked out projects.");
@@ -114,7 +119,7 @@ public class GitOperations {
 			update(module.getProject()).get();
 
 			String checkoutCommand = String.format("git checkout %s && git pull origin %s", branch, branch);
-			osCommandOperations.executeCommand(checkoutCommand, module.getProject()).get();
+			os.executeCommand(checkoutCommand, module.getProject()).get();
 		}
 	}
 
@@ -131,6 +136,22 @@ public class GitOperations {
 		}
 	}
 
+	public void push(TrainIteration iteration) throws Exception {
+
+		for (ModuleIteration module : iteration) {
+
+			Branch branch = Branch.from(module);
+			os.executeCommand(String.format("git push origin %s", branch), module.getProject()).get();
+		}
+	}
+
+	public void pushTags(Train train) throws Exception {
+
+		for (Module module : train) {
+			os.executeCommand("git push --tags", module.getProject()).get();
+		}
+	}
+
 	public Future<CommandResult> update(Project project) throws Exception {
 
 		GitProject gitProject = new GitProject(project, server);
@@ -140,8 +161,8 @@ public class GitOperations {
 
 			logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
 
-			return osCommandOperations.executeCommand(
-					"git checkout master && git reset --hard && git fetch --tags && git pull origin master", project);
+			return os.executeCommand("git checkout master && git reset --hard && git fetch --tags && git pull origin master",
+					project);
 
 		} else {
 
@@ -150,13 +171,13 @@ public class GitOperations {
 			File projectDirectory = workspace.getProjectDirectory(project);
 			String command = String.format("git clone %s %s", gitProject.getProjectUri(), projectDirectory.getName());
 
-			return osCommandOperations.executeCommand(command);
+			return os.executeCommand(command);
 		}
 	}
 
 	public Tags getTags(Project project) throws Exception {
 
-		String result = osCommandOperations.executeForResult("git tag -l", project);
+		String result = os.executeForResult("git tag -l", project);
 		List<Tag> tags = new ArrayList<>();
 
 		for (String line : result.split("\n")) {
@@ -177,15 +198,74 @@ public class GitOperations {
 			Project project = module.getProject();
 
 			String checkoutCommand = String.format("git checkout %s", branch);
-			osCommandOperations.executeCommand(checkoutCommand, project).get();
+			os.executeCommand(checkoutCommand, project).get();
 
 			String updateCommand = String.format("git pull origin %s", branch);
-			osCommandOperations.executeCommand(updateCommand, project).get();
+			os.executeCommand(updateCommand, project).get();
 
 			String hash = getReleaseHash(module);
 			Tag tag = getTags(project).createTag(module);
 			String tagCommand = String.format("git tag %s %s", tag, hash);
-			osCommandOperations.executeCommand(tagCommand, project).get();
+			os.executeCommand(tagCommand, project).get();
+		}
+	}
+
+	/**
+	 * Commits all changes currently made to all modules of the given {@link TrainIteration}. The summary can contain a
+	 * single {@code %s} placeholder which the version of the current module will get replace into.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
+	 * @param details can be {@literal null} or empty.
+	 * @throws Exception
+	 */
+	public void commit(TrainIteration iteration, String summary, String details) throws Exception {
+
+		Assert.notNull(iteration, "Train iteration must not be null!");
+		Assert.hasText(summary, "Summary must not be null or empty!");
+
+		for (ModuleIteration module : iteration) {
+
+			if (summary.contains("%s")) {
+				summary = String.format(summary, module.getVersionString());
+			}
+
+			commit(module, summary, details);
+		}
+	}
+
+	/**
+	 * Commits the given files for the given {@link ModuleIteration} using the given summary and details for the commit
+	 * message. If no files are given, all pending changes are commited.
+	 * 
+	 * @param module must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
+	 * @param details can be {@literal null} or empty.
+	 * @param files can be empty.
+	 * @throws Exception
+	 */
+	public void commit(ModuleIteration module, String summary, String details, File... files) throws Exception {
+
+		Assert.notNull(module, "Module iteration must not be null!");
+		Assert.hasText(summary, "Summary must not be null or empty!");
+
+		Project project = module.getProject();
+		IssueTracker tracker = issueTracker.getPluginFor(project);
+		Ticket ticket = tracker.getReleaseTicketFor(module);
+
+		Commit commit = new Commit(ticket, summary, details);
+		String author = environment.getProperty("git.author");
+		String commitCommand = String.format("git commit -m \"%s\" --author \"%s\"", commit, author);
+
+		if (files.length != 0) {
+
+			for (File file : files) {
+				os.executeCommand(String.format("git add %s", file.getAbsolutePath()), project).get();
+			}
+
+			os.executeCommand(commitCommand, project).get();
+		} else {
+			os.executeCommand(commitCommand.concat(" -a"), project).get();
 		}
 	}
 
@@ -193,7 +273,7 @@ public class GitOperations {
 
 		Project project = module.getProject();
 
-		String result = osCommandOperations.executeForResult("git log --pretty=format:'%h %s'", project);
+		String result = os.executeForResult("git log --pretty=format:'%h %s'", project);
 		Ticket releaseTicket = issueTracker.getPluginFor(project).getReleaseTicketFor(module);
 		String trigger = String.format("%s - Release", releaseTicket.getId());
 
