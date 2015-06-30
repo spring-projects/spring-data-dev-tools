@@ -16,6 +16,7 @@
 package org.springframework.data.release.model;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,19 +30,21 @@ public class Projects {
 
 	static {
 
-		BUILD = new Project("DATABUILD", "Build", Tracker.GITHUB);
-		COMMONS = new Project("DATACMNS", "Commons", BUILD);
-		JPA = new Project("DATAJPA", "JPA", COMMONS);
-		MONGO_DB = new Project("DATAMONGO", "MongoDB", COMMONS);
-		NEO4J = new Project("DATAGRAPH", "Neo4j", COMMONS);
-		SOLR = new Project("DATASOLR", "Solr", COMMONS);
-		COUCHBASE = new Project("DATACOUCH", "Couchbase", COMMONS);
-		CASSANDRA = new Project("DATACASS", "Cassandra", COMMONS);
-		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", COMMONS);
-		REDIS = new Project("DATAREDIS", "Redis");
-		GEMFIRE = new Project("SGF", "Gemfire", COMMONS);
+		BUILD = new Project("DATABUILD", "Build", Tracker.GITHUB, Collections.emptyList(), Collections.emptyList());
+		COMMONS = new Project("DATACMNS", "Commons", Arrays.asList(BUILD));
+		JPA = new Project("DATAJPA", "JPA", Arrays.asList(COMMONS));
+		MONGO_DB = new Project("DATAMONGO", "MongoDB", Arrays.asList(COMMONS),
+				Arrays.asList("spring-data-mongodb-cross-store", "spring-data-mongodb-log4j"));
+		NEO4J = new Project("DATAGRAPH", "Neo4j", Arrays.asList(COMMONS));
+		SOLR = new Project("DATASOLR", "Solr", Arrays.asList(COMMONS));
+		COUCHBASE = new Project("DATACOUCH", "Couchbase", Arrays.asList(COMMONS));
+		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS), Arrays.asList("spring-cql"));
+		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
+		REDIS = new Project("DATAREDIS", "Redis", Collections.emptyList());
+		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS));
 
-		REST = new Project("DATAREST", "REST", COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE);
+		REST = new Project("DATAREST", "REST", Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA),
+				Arrays.asList("spring-data-rest-core", "spring-data-rest-core"));
 
 		PROJECTS = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS,
 				GEMFIRE, REST);

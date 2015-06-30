@@ -15,9 +15,9 @@
  */
 package org.springframework.data.release.model;
 
-import java.util.Iterator;
-
 import lombok.Value;
+
+import java.util.Iterator;
 
 /**
  * @author Oliver Gierke
@@ -65,6 +65,6 @@ public class TrainIteration implements Iterable<ModuleIteration> {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s - %s", train.getName(), iteration.getName());
+		return String.format("%s %s", train.getName(), iteration.getName());
 	}
 }

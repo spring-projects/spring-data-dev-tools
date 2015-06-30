@@ -17,15 +17,15 @@ package org.springframework.data.release.model;
 
 import static org.springframework.data.release.model.Iteration.*;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
 
 import org.springframework.shell.support.util.OsUtils;
 import org.springframework.util.Assert;
@@ -163,7 +163,7 @@ public class Train implements Iterable<Module> {
 	@ToString
 	public static class Iterations implements Iterable<Iteration> {
 
-		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4);
+		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6);
 
 		private final List<Iteration> iterations;
 

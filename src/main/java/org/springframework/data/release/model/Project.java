@@ -15,12 +15,12 @@
  */
 package org.springframework.data.release.model;
 
-import java.util.Arrays;
-import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.util.Assert;
 
@@ -33,19 +33,25 @@ public class Project {
 
 	private final @Getter ProjectKey key;
 	private final @Getter String name;
-	private final List<Project> dependencies;
+	private final @Getter List<Project> dependencies;
 	private final Tracker tracker;
+	private final @Getter List<String> additionalArtifacts;
 
-	Project(String key, String name, Project... dependencies) {
-		this(key, name, Tracker.JIRA, dependencies);
+	Project(String key, String name, List<Project> dependencies) {
+		this(key, name, Tracker.JIRA, dependencies, Collections.emptyList());
 	}
 
-	Project(String key, String name, Tracker tracker, Project... dependencies) {
+	Project(String key, String name, List<Project> dependencies, List<String> additionalArtifacts) {
+		this(key, name, Tracker.JIRA, dependencies, additionalArtifacts);
+	}
+
+	Project(String key, String name, Tracker tracker, List<Project> dependencies, List<String> additionalArtifacts) {
 
 		this.key = new ProjectKey(key);
 		this.name = name;
-		this.dependencies = Arrays.asList(dependencies);
+		this.dependencies = dependencies;
 		this.tracker = tracker;
+		this.additionalArtifacts = additionalArtifacts;
 	}
 
 	public boolean uses(Tracker tracker) {
@@ -54,6 +60,10 @@ public class Project {
 
 	public String getFullName() {
 		return "Spring Data ".concat(name);
+	}
+
+	public String getDependencyProperty() {
+		return "springdata.".concat(name.toLowerCase());
 	}
 
 	/**

@@ -22,7 +22,7 @@ import org.springframework.data.release.model.Iteration;
  */
 public class Repository {
 
-	private static final String BASE = "http://repo.spring.io/libs-";
+	private static final String BASE = "https://repo.spring.io/libs-";
 
 	private final String id;
 	private final String url;

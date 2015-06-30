@@ -20,7 +20,7 @@ package org.springframework.data.release.git;
  */
 public class GitServer {
 
-	private static final String SERVER_URI = "https://www.github.com/spring-projects/";
+	private static final String SERVER_URI = "https://github.com/spring-projects/";
 
 	public String getUri() {
 		return SERVER_URI;

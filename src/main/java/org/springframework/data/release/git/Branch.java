@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 @EqualsAndHashCode
 class Branch {
 
-	private static final Branch MASTER = new Branch("master");
+	public static final Branch MASTER = new Branch("master");
 
 	private final String name;
 

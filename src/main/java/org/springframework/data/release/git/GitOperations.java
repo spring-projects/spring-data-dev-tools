@@ -22,11 +22,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.TagOpt;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.release.io.CommandResult;
-import org.springframework.data.release.io.OsCommandOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.Ticket;
@@ -42,7 +58,6 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Component to execut Git related operations.
@@ -54,11 +69,18 @@ import org.springframework.util.StringUtils;
 public class GitOperations {
 
 	private final GitServer server = new GitServer();
-	private final OsCommandOperations os;
 	private final Workspace workspace;
 	private final Logger logger;
 	private final PluginRegistry<IssueTracker, Project> issueTracker;
 	private final Environment environment;
+
+	private CredentialsProvider credentials;
+
+	@PostConstruct
+	public void init() {
+		this.credentials = new UsernamePasswordCredentialsProvider(environment.getProperty("git.username"),
+				environment.getProperty("git.password"));
+	}
 
 	public GitProject getGitProject(Project project) {
 		return new GitProject(project, server);
@@ -78,8 +100,15 @@ public class GitOperations {
 
 			Branch branch = Branch.from(module);
 
-			CommandUtils.getCommandResult(
-					os.executeCommand(String.format("git reset --hard origin/%s", branch), module.getProject()));
+			try (Git git = new Git(getRepository(module.getProject()))) {
+
+				logger.log(module, "git reset --hard origin/%s", branch);
+
+				git.reset().//
+						setMode(ResetType.HARD).//
+						setRef("origin/".concat(branch.toString())).//
+						call();
+			}
 		}
 	}
 
@@ -106,7 +135,11 @@ public class GitOperations {
 						String.format("No tag found for version %s of project %s, aborting.", artifactVersion, project));
 			}
 
-			CommandUtils.getCommandResult(os.executeCommand(String.format("git checkout %s", tag), project));
+			try (Git git = new Git(getRepository(module.getProject()))) {
+
+				logger.log(module, "git checkout %s", tag);
+				git.checkout().setStartPoint(tag.toString());
+			}
 		}
 
 		logger.log(iteration, "Successfully checked out projects.");
@@ -118,10 +151,16 @@ public class GitOperations {
 
 			Branch branch = Branch.from(module);
 
-			CommandUtils.getCommandResult(update(module.getProject()));
+			update(module.getProject());
 
-			String checkoutCommand = String.format("git checkout %s && git pull origin %s", branch, branch);
-			CommandUtils.getCommandResult(os.executeCommand(checkoutCommand, module.getProject()));
+			logger.log(module.getProject(), "git checkout %s && git pull origin %s", branch, branch);
+			checkout(module.getProject(), branch);
+
+			try (Git git = new Git(getRepository(module.getProject()))) {
+				git.pull().//
+						setRebase(true).//
+						call();
+			}
 		}
 	}
 
@@ -130,7 +169,7 @@ public class GitOperations {
 		List<Future<CommandResult>> executions = new ArrayList<>();
 
 		for (Module module : train) {
-			executions.add(update(module.getProject()));
+			update(module.getProject());
 		}
 
 		for (Future<CommandResult> execution : executions) {
@@ -143,54 +182,80 @@ public class GitOperations {
 		for (ModuleIteration module : iteration) {
 
 			Branch branch = Branch.from(module);
-			CommandUtils
-					.getCommandResult(os.executeCommand(String.format("git push origin %s", branch), module.getProject()));
+
+			logger.log(module, "git push origin %s", branch);
+
+			try (Git git = new Git(getRepository(module.getProject()))) {
+
+				Ref ref = git.getRepository().getRef(branch.toString());
+
+				git.push().//
+						setRemote("origin").//
+						setRefSpecs(new RefSpec(ref.getName())).//
+						setCredentialsProvider(credentials).//
+						call();
+			}
 		}
 	}
 
 	public void pushTags(Train train) throws Exception {
 
 		for (Module module : train) {
-			CommandUtils.getCommandResult(os.executeCommand("git push --tags", module.getProject()));
+
+			logger.log(module.getProject(), "git push --tags");
+
+			try (Git git = new Git(getRepository(module.getProject()))) {
+
+				git.push().//
+						setRemote("origin").//
+						setPushTags().//
+						setCredentialsProvider(this.credentials).//
+						call();
+			}
 		}
 	}
 
-	public Future<CommandResult> update(Project project) throws Exception {
+	public void update(Project project) throws Exception {
 
 		GitProject gitProject = new GitProject(project, server);
 		String repositoryName = gitProject.getRepositoryName();
 
-		if (workspace.hasProjectDirectory(project)) {
+		Repository repository = getRepository(project);
 
-			logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
+		try (Git git = new Git(repository)) {
 
-			return os.executeCommand("git checkout master && git reset --hard && git fetch --tags && git pull origin master",
-					project);
+			if (workspace.hasProjectDirectory(project)) {
 
-		} else {
+				logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
+				logger.log(project, "git checkout master && git reset --hard && git fetch --tags && git pull origin master");
 
-			logger.log(project, "No repository found! Cloning from %s…", gitProject.getProjectUri());
+				checkout(project, Branch.MASTER);
 
-			File projectDirectory = workspace.getProjectDirectory(project);
-			String command = String.format("git clone %s %s", gitProject.getProjectUri(), projectDirectory.getName());
+				git.reset().setMode(ResetType.HARD).call();
 
-			return os.executeCommand(command);
+				git.fetch().setTagOpt(TagOpt.FETCH_TAGS);
+
+				git.pull().call();
+
+				// return os.executeCommand("git checkout master && git reset --hard && git fetch --tags && git pull origin
+				// master",
+				// project);
+
+			} else {
+
+				logger.log(project, "No repository found! Cloning from %s…", gitProject.getProjectUri());
+				clone(project);
+
+				// return os.executeCommand(command);
+			}
 		}
 	}
 
 	public Tags getTags(Project project) throws Exception {
 
-		String result = os.executeForResult("git tag -l", project);
-		List<Tag> tags = new ArrayList<>();
-
-		for (String line : result.split("\n")) {
-
-			if (!StringUtils.isEmpty(line)) {
-				tags.add(new Tag(line));
-			}
+		try (Git git = new Git(getRepository(project))) {
+			return new Tags(git.tagList().call().stream().map(ref -> new Tag(ref.getName())).collect(Collectors.toList()));
 		}
-
-		return new Tags(tags);
 	}
 
 	public void tagRelease(TrainIteration iteration) throws Exception {
@@ -200,16 +265,25 @@ public class GitOperations {
 			Branch branch = Branch.from(module);
 			Project project = module.getProject();
 
-			String checkoutCommand = String.format("git checkout %s", branch);
-			CommandUtils.getCommandResult(os.executeCommand(checkoutCommand, project));
+			try (Git git = new Git(getRepository(module.getProject()))) {
 
-			String updateCommand = String.format("git pull origin %s", branch);
-			CommandUtils.getCommandResult(os.executeCommand(updateCommand, project));
+				logger.log(module, "git checkout %s", branch);
+				checkout(project, branch);
 
-			String hash = getReleaseHash(module);
-			Tag tag = getTags(project).createTag(module);
-			String tagCommand = String.format("git tag %s %s", tag, hash);
-			CommandUtils.getCommandResult(os.executeCommand(tagCommand, project));
+				logger.log(module, "git pull origin %s", branch);
+				git.pull().call();
+
+				ObjectId hash = getReleaseHash(module);
+				Tag tag = getTags(project).createTag(module);
+
+				try (RevWalk walk = new RevWalk(git.getRepository())) {
+
+					RevCommit commit = walk.parseCommit(hash);
+
+					logger.log(module, "git tag %s %s", tag, hash.getName());
+					git.tag().setName(tag.toString()).setObjectId(commit).call();
+				}
+			}
 		}
 	}
 
@@ -228,13 +302,18 @@ public class GitOperations {
 		Assert.hasText(summary, "Summary must not be null or empty!");
 
 		for (ModuleIteration module : iteration) {
-
-			if (summary.contains("%s")) {
-				summary = String.format(summary, module.getVersionString());
-			}
-
-			commit(module, summary, details);
+			commit(module, expandSummary(summary, module, iteration), details);
 		}
+	}
+
+	private String expandSummary(String summary, ModuleIteration module, TrainIteration iteration) {
+
+		if (!summary.contains("%s")) {
+			return summary;
+		}
+
+		return String.format(summary,
+				ArtifactVersion.from(module).toString().concat(String.format(" (%s)", iteration.toString())));
 	}
 
 	/**
@@ -258,36 +337,36 @@ public class GitOperations {
 
 		Commit commit = new Commit(ticket, summary, details);
 		String author = environment.getProperty("git.author");
-		String commitCommand = String.format("git commit -m \"%s\" --author \"%s\"", commit, author);
+		String email = environment.getProperty("git.email");
 
-		if (files.length != 0) {
+		logger.log(module, "git commit -m \"%s\" --author=\"%s <%s>\"", commit, author, email);
 
-			for (File file : files) {
-				os.executeCommand(String.format("git add %s", file.getAbsolutePath()), project).get();
-			}
+		try (Git git = new Git(getRepository(module.getProject()))) {
 
-			CommandUtils.getCommandResult(os.executeCommand(commitCommand, project));
-		} else {
-			CommandUtils.getCommandResult(os.executeCommand(commitCommand.concat(" -a"), project));
+			git.commit().//
+					setMessage(commit.toString()).//
+					setAuthor(author, email).//
+					setAll(true).//
+					call();
 		}
 	}
 
-	private String getReleaseHash(ModuleIteration module) throws Exception {
+	private ObjectId getReleaseHash(ModuleIteration module) throws Exception {
 
 		Project project = module.getProject();
 
-		String result = os.executeForResult("git log --pretty=format:'%h %s'", project);
 		Ticket releaseTicket = issueTracker.getPluginFor(project).getReleaseTicketFor(module);
 		String trigger = String.format("%s - Release", releaseTicket.getId());
 
-		logger.log(project, "Looking up release commit (ticket id %s)", releaseTicket.getId());
+		try (Git git = new Git(getRepository(module.getProject()))) {
 
-		for (String line : result.split("\n")) {
+			for (RevCommit commit : git.log().setMaxCount(50).call()) {
 
-			int summaryStart = line.indexOf(" ");
+				String summary = commit.getShortMessage();
 
-			if (line.substring(summaryStart + 1).startsWith(trigger)) {
-				return line.substring(0, summaryStart);
+				if (summary.startsWith(trigger)) {
+					return commit.getId();
+				}
 			}
 		}
 
@@ -313,5 +392,38 @@ public class GitOperations {
 		}
 
 		return null;
+	}
+
+	public void checkout(Project project, Branch branch) throws Exception {
+
+		try (Git git = new Git(getRepository(project))) {
+
+			Ref ref = git.getRepository().getRef(branch.toString());
+			CheckoutCommand checkout = git.checkout().setName(branch.toString());
+
+			if (ref == null) {
+
+				checkout.setCreateBranch(true).//
+						setUpstreamMode(SetupUpstreamMode.TRACK).//
+						setStartPoint("origin/".concat(branch.toString()));
+			}
+
+			checkout.call();
+		}
+	}
+
+	private Repository getRepository(Project project) throws Exception {
+		return FileRepositoryBuilder.create(workspace.getFile(".git", project));
+	}
+
+	public void clone(Project project) throws Exception {
+
+		Git git = Git.cloneRepository().//
+				setURI(getGitProject(project).getProjectUri()).//
+				setDirectory(workspace.getProjectDirectory(project)).//
+				call();
+
+		git.checkout().setName(Branch.MASTER.toString()).//
+				call();
 	}
 }

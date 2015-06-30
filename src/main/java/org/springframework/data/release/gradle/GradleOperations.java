@@ -16,6 +16,7 @@
 package org.springframework.data.release.gradle;
 
 import static org.springframework.data.release.model.Projects.*;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +37,13 @@ import org.springframework.stereotype.Component;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class GradleOperations {
 
 	private static final String BUILD_GRADLE = "build.gradle";
 	private static final String GRADLE_PROPERTIES = "gradle.properties";
 	private static final String COMMONS_PROPERTY = "springDataCommonsVersion";
+	private static final String BUILD_PROPERTY = "springDataBuildVersion";
 
 	private final Workspace workspace;
 	private final Logger logger;
@@ -57,6 +59,7 @@ public class GradleOperations {
 
 		final Repository repository = new Repository(iteration.getIteration());
 		final ArtifactVersion commonsVersion = iteration.getModuleVersion(COMMONS);
+		final ArtifactVersion buildVersion = iteration.getModuleVersion(BUILD);
 
 		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
@@ -75,15 +78,25 @@ public class GradleOperations {
 				@Override
 				public String doWith(String line, long number) {
 
-					if (!line.contains(COMMONS_PROPERTY)) {
-						return line;
+					if (line.contains(COMMONS_PROPERTY)) {
+
+						ArtifactVersion version = phase.equals(Phase.PREPARE) ? commonsVersion
+								: commonsVersion.getNextDevelopmentVersion();
+
+						logger.log(project, "Setting Spring Data Commons version in %s to %s.", GRADLE_PROPERTIES, version);
+						return String.format("%s=%s", COMMONS_PROPERTY, version);
 					}
 
-					ArtifactVersion version = phase.equals(Phase.PREPARE) ? commonsVersion : commonsVersion
-							.getNextDevelopmentVersion();
+					if (line.contains(BUILD_PROPERTY)) {
 
-					logger.log(project, "Setting Spring Data Commons version in %s to %s.", GRADLE_PROPERTIES, version);
-					return String.format("%s=%s", COMMONS_PROPERTY, version);
+						ArtifactVersion version = phase.equals(Phase.PREPARE) ? buildVersion
+								: buildVersion.getNextDevelopmentVersion();
+
+						logger.log(project, "Setting Spring Data Build version in %s to %s.", GRADLE_PROPERTIES, version);
+						return String.format("%s=%s", BUILD_PROPERTY, version);
+					}
+
+					return line;
 				}
 			});
 

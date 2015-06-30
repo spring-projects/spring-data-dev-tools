@@ -79,6 +79,6 @@ public class AnnouncementOperations {
 	public static void main(String[] args) {
 
 		AnnouncementOperations operations = new AnnouncementOperations();
-		System.out.println(operations.getProjectBulletpoints(new TrainIteration(ReleaseTrains.CODD, Iteration.SR2)));
+		System.out.println(operations.getProjectBulletpoints(new TrainIteration(ReleaseTrains.FOWLER, Iteration.SR1)));
 	}
 }

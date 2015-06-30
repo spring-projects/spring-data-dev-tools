@@ -55,8 +55,11 @@ public interface Pom {
 	 * @param artifactId
 	 * @param version
 	 */
-	@XBWrite("/project/dependencies/dependency[artifactId=''{0}'']/version")
+	@XBWrite("/project/dependencies/dependency[artifactId=\"{0}\"]/version")
 	Pom setDependencyVersion(String artifactId, @XBValue ArtifactVersion version);
+
+	@XBWrite("/project/dependencyManagement/dependencies/dependency[artifactId=\"{0}\"]/version")
+	Pom setDependencyManagementVersion(String artifactId, @XBValue ArtifactVersion version);
 
 	public interface Repository {
 

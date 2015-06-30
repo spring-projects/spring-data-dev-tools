@@ -34,7 +34,7 @@ public class ReleaseTrains {
 		CODD = codd();
 		DIJKSTRA = dijkstra();
 		EVANS = DIJKSTRA.next("Evans", Transition.MINOR);
-		FOWLER = EVANS.next("Fowler", Transition.MAJOR);
+		FOWLER = EVANS.next("Fowler", Transition.MINOR);
 
 		// Trains
 

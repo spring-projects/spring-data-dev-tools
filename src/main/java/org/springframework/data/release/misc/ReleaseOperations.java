@@ -15,12 +15,11 @@
  */
 package org.springframework.data.release.misc;
 
-import java.io.File;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.git.GitOperations;
@@ -42,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class ReleaseOperations {
 
 	private static final Set<String> CHANGELOG_LOCATIONS;
@@ -98,8 +97,7 @@ public class ReleaseOperations {
 
 				if (processed) {
 
-					File file = workspace.getFile(location, module.getProject());
-					git.commit(module, "Updated changelog.", null, file);
+					git.commit(module, "Updated changelog.", null);
 
 					logger.log(module.getProject(), "Updated changelog %s.", location);
 				}

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.io;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -23,8 +25,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 import javax.annotation.PostConstruct;
-
-import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @since 1.2.0
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 class CommonsExecOsCommandOperations implements OsCommandOperations {
 
 	private static final Map<String, String> ENVIRONMENT = new HashMap<>();
@@ -131,19 +131,19 @@ class CommonsExecOsCommandOperations implements OsCommandOperations {
 			throw new IllegalStateException(e);
 		}
 
-		return new AsyncResult<CommandResult>(new CommandResult(resultHandler.getExitValue(), writer.toString(),
-				resultHandler.getException()));
+		return new AsyncResult<CommandResult>(
+				new CommandResult(resultHandler.getExitValue(), writer.toString(), resultHandler.getException()));
 	}
 
 	/**
-	 * Adds {@code JAVA_HOME} to the ENVIRONMENT variables lookuing up the path to a Java 7.
+	 * Adds {@code JAVA_HOME} to the ENVIRONMENT variables looking up the path to a Java 7.
 	 * 
 	 * @throws Exception
 	 */
 	@PostConstruct
 	public void initialize() throws Exception {
 
-		String javaHome = executeCommand("/usr/libexec/java_home -F -v 1.7 -a x86_64 -d64").get().getOutput();
+		String javaHome = executeCommand("/usr/libexec/java_home -F -v 1.8 -a x86_64 -d64").get().getOutput();
 
 		if (javaHome.endsWith("\n")) {
 			javaHome = javaHome.substring(0, javaHome.length() - 1);

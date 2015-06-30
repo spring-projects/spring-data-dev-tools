@@ -40,7 +40,7 @@ public class StaticResources {
 	}
 
 	public String getDocumentationUrl() {
-		return baseUrl.concat("/reference/htmlsingle");
+		return baseUrl.concat("/reference/html");
 	}
 
 	public String getJavaDocUrl() {

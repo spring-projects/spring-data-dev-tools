@@ -18,10 +18,10 @@ package org.springframework.data.release.maven;
 import static org.springframework.data.release.model.Phase.*;
 import static org.springframework.data.release.model.Projects.*;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.File;
 import java.io.IOException;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.GenericTypeResolver;
@@ -32,7 +32,6 @@ import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
@@ -45,7 +44,7 @@ import org.xmlbeam.io.XBFileIO;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class MavenOperations {
 
 	private static final String COMMONS_VERSION_PROPERTY = "springdata.commons";
@@ -84,8 +83,6 @@ public class MavenOperations {
 		updateBomPom(iteration, phase);
 
 		final Repository repository = new Repository(iteration.getIteration());
-		final ArtifactVersion commonsVersion = iteration.getModuleVersion(COMMONS);
-		final ArtifactVersion nextCommonsVersion = commonsVersion.getNextDevelopmentVersion();
 		final ArtifactVersion buildVersion = iteration.getModuleVersion(BUILD);
 		final ArtifactVersion nextBuildVersion = buildVersion.getNextDevelopmentVersion();
 
@@ -113,12 +110,21 @@ public class MavenOperations {
 				@Override
 				public Pom doWith(Pom pom) {
 
-					if (project.dependsOn(Projects.COMMONS)) {
+					for (Project dependency : project.getDependencies()) {
 
-						ArtifactVersion version = CLEANUP.equals(phase) ? nextCommonsVersion : commonsVersion;
-						logger.log(project, "Updating Spring Data Commons version dependecy to %s (setting property %s).", version,
-								COMMONS_VERSION_PROPERTY);
-						pom.setProperty(COMMONS_VERSION_PROPERTY, version);
+						String dependencyProperty = dependency.getDependencyProperty();
+
+						if (pom.getProperty(dependencyProperty) == null) {
+							continue;
+						}
+
+						ArtifactVersion dependencyVersion = iteration.getModuleVersion(dependency);
+						ArtifactVersion version = CLEANUP.equals(phase) ? dependencyVersion.getNextDevelopmentVersion()
+								: dependencyVersion;
+
+						logger.log(project, "Updating %s dependency version property %s to %s.", dependency.getFullName(),
+								dependencyProperty, version);
+						pom.setProperty(dependencyProperty, version);
 					}
 
 					ArtifactVersion version = CLEANUP.equals(phase) ? nextBuildVersion : buildVersion;
@@ -201,7 +207,11 @@ public class MavenOperations {
 
 					logger.log(BUILD, "%s", module);
 
-					pom.setDependencyVersion(artifact.getArtifactId(), version);
+					pom.setDependencyManagementVersion(artifact.getArtifactId(), version);
+
+					for (String additionalArtifact : module.getProject().getAdditionalArtifacts()) {
+						pom.setDependencyManagementVersion(additionalArtifact, version);
+					}
 				}
 
 				return pom;

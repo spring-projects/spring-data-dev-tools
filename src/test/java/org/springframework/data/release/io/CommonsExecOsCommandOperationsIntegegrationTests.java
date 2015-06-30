@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
+import org.springframework.data.release.model.Projects;
 
 /**
  * @author Oliver Gierke
@@ -32,12 +33,21 @@ public class CommonsExecOsCommandOperationsIntegegrationTests extends AbstractIn
 	@Test
 	public void testname() throws Exception {
 
-		CommandResult result = operations
-				.executeCommand("git clone --progress https://github.com/spring-projects/spring-data-build").get();
+		// CommandResult result = operations
+		// .executeCommand("export GIT_TRACE=1 && git clone https://github.com/spring-projects/spring-data-build").get();
+
+		// CommandResult result = operations.executeCommand("git pull", Projects.BUILD).get();
+
+		CommandResult result = operations.executeCommand("git remote -v", Projects.BUILD).get();
+		// .get();
 
 		if (result.hasError()) {
+
 			System.out.println(result.getStatus());
+			System.out.println(result.getOutput());
 			System.out.println(result.getException().getMessage());
+
+			throw result.getException();
 		} else {
 			System.out.println(result.getOutput());
 		}

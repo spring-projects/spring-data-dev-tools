@@ -44,4 +44,10 @@ public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 		Tags tags = gitOperations.getTags(COMMONS);
 		System.out.println(StringUtils.collectionToDelimitedString(tags.asList(), "\n"));
 	}
+
+	@Test
+	public void foo() throws Exception {
+
+		gitOperations.update(ReleaseTrains.EVANS);
+	}
 }
