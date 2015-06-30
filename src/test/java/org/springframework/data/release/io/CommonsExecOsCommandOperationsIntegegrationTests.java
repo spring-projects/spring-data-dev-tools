@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.cli;
+package org.springframework.data.release.io;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -21,22 +21,28 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
-import org.springframework.data.release.git.GitOperations;
-import org.springframework.data.release.model.ReleaseTrains;
 
 /**
  * @author Oliver Gierke
  */
-public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
+public class CommonsExecOsCommandOperationsIntegegrationTests extends AbstractIntegrationTests {
 
-	@Autowired ReleaseCommands releaseCommands;
-	@Autowired GitOperations git;
+	@Autowired OsCommandOperations operations;
 
 	@Test
-	public void predictsReleaseTrainCorrectly() throws Exception {
+	public void testname() throws Exception {
 
-		git.update(ReleaseTrains.DIJKSTRA);
+		CommandResult result = operations
+				.executeCommand("git clone --progress https://github.com/spring-projects/spring-data-build").get();
 
-		assertThat(releaseCommands.predictTrainAndIteration(), is("Dijkstra"));
+		if (result.hasError()) {
+			System.out.println(result.getStatus());
+			System.out.println(result.getException().getMessage());
+		} else {
+			System.out.println(result.getOutput());
+		}
+
+		assertThat(result.hasError(), is(false));
+
 	}
 }

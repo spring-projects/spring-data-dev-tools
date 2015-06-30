@@ -43,10 +43,10 @@ public interface Pom {
 	@XBWrite("/project/properties/{0}")
 	void setProperty(String property, @XBValue ArtifactVersion value);
 
-	@XBWrite("/project/repositories/repository[id=''{0}'']/id")
+	@XBWrite("/project/repositories/repository[id=\"{0}\"]/id")
 	void setRepositoryId(String oldId, @XBValue String newId);
 
-	@XBWrite("/project/repositories/repository[id=''{0}'']/url")
+	@XBWrite("/project/repositories/repository[id=\"{0}\"]/url")
 	void setRepositoryUrl(String id, @XBValue String url);
 
 	/**

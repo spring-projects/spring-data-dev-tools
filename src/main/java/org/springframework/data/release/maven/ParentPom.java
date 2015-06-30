@@ -24,6 +24,6 @@ import org.xmlbeam.annotation.XBWrite;
  */
 public interface ParentPom extends Pom {
 
-	@XBWrite("/project/profiles/profile[id=''distribute'']/dependencies/dependency/version")
+	@XBWrite("/project/profiles/profile[id=\"distribute\"]/dependencies/dependency/version")
 	void setSharedResourcesVersion(@XBValue ArtifactVersion value);
 }

@@ -15,13 +15,13 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -37,6 +37,7 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.CommandUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class GitOperations {
 
 	private final GitServer server = new GitServer();
@@ -77,7 +78,8 @@ public class GitOperations {
 
 			Branch branch = Branch.from(module);
 
-			os.executeCommand(String.format("git reset --hard origin/%s", branch), module.getProject()).get();
+			CommandUtils.getCommandResult(
+					os.executeCommand(String.format("git reset --hard origin/%s", branch), module.getProject()));
 		}
 	}
 
@@ -100,11 +102,11 @@ public class GitOperations {
 			Tag tag = findTagFor(project, artifactVersion);
 
 			if (tag == null) {
-				throw new IllegalStateException(String.format("No tag found for version %s of project %s, aborting.",
-						artifactVersion, project));
+				throw new IllegalStateException(
+						String.format("No tag found for version %s of project %s, aborting.", artifactVersion, project));
 			}
 
-			os.executeCommand(String.format("git checkout %s", tag), project).get();
+			CommandUtils.getCommandResult(os.executeCommand(String.format("git checkout %s", tag), project));
 		}
 
 		logger.log(iteration, "Successfully checked out projects.");
@@ -116,10 +118,10 @@ public class GitOperations {
 
 			Branch branch = Branch.from(module);
 
-			update(module.getProject()).get();
+			CommandUtils.getCommandResult(update(module.getProject()));
 
 			String checkoutCommand = String.format("git checkout %s && git pull origin %s", branch, branch);
-			os.executeCommand(checkoutCommand, module.getProject()).get();
+			CommandUtils.getCommandResult(os.executeCommand(checkoutCommand, module.getProject()));
 		}
 	}
 
@@ -132,7 +134,7 @@ public class GitOperations {
 		}
 
 		for (Future<CommandResult> execution : executions) {
-			execution.get();
+			CommandUtils.getCommandResult(execution);
 		}
 	}
 
@@ -141,14 +143,15 @@ public class GitOperations {
 		for (ModuleIteration module : iteration) {
 
 			Branch branch = Branch.from(module);
-			os.executeCommand(String.format("git push origin %s", branch), module.getProject()).get();
+			CommandUtils
+					.getCommandResult(os.executeCommand(String.format("git push origin %s", branch), module.getProject()));
 		}
 	}
 
 	public void pushTags(Train train) throws Exception {
 
 		for (Module module : train) {
-			os.executeCommand("git push --tags", module.getProject()).get();
+			CommandUtils.getCommandResult(os.executeCommand("git push --tags", module.getProject()));
 		}
 	}
 
@@ -198,15 +201,15 @@ public class GitOperations {
 			Project project = module.getProject();
 
 			String checkoutCommand = String.format("git checkout %s", branch);
-			os.executeCommand(checkoutCommand, project).get();
+			CommandUtils.getCommandResult(os.executeCommand(checkoutCommand, project));
 
 			String updateCommand = String.format("git pull origin %s", branch);
-			os.executeCommand(updateCommand, project).get();
+			CommandUtils.getCommandResult(os.executeCommand(updateCommand, project));
 
 			String hash = getReleaseHash(module);
 			Tag tag = getTags(project).createTag(module);
 			String tagCommand = String.format("git tag %s %s", tag, hash);
-			os.executeCommand(tagCommand, project).get();
+			CommandUtils.getCommandResult(os.executeCommand(tagCommand, project));
 		}
 	}
 
@@ -263,9 +266,9 @@ public class GitOperations {
 				os.executeCommand(String.format("git add %s", file.getAbsolutePath()), project).get();
 			}
 
-			os.executeCommand(commitCommand, project).get();
+			CommandUtils.getCommandResult(os.executeCommand(commitCommand, project));
 		} else {
-			os.executeCommand(commitCommand.concat(" -a"), project).get();
+			CommandUtils.getCommandResult(os.executeCommand(commitCommand.concat(" -a"), project));
 		}
 	}
 
@@ -288,8 +291,8 @@ public class GitOperations {
 			}
 		}
 
-		throw new IllegalStateException(String.format("Did not find a release commit for project %s (ticket id %s)",
-				project, releaseTicket.getId()));
+		throw new IllegalStateException(
+				String.format("Did not find a release commit for project %s (ticket id %s)", project, releaseTicket.getId()));
 	}
 
 	/**
