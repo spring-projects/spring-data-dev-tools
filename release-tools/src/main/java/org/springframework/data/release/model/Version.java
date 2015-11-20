@@ -23,7 +23,7 @@ public class Version implements Comparable<Version> {
 	 * 
 	 * @param parts must not be {@literal null} or empty.
 	 */
-	public Version(int... parts) {
+	private Version(int... parts) {
 
 		Assert.notNull(parts);
 		Assert.isTrue(parts.length > 0 && parts.length < 5);
@@ -37,6 +37,10 @@ public class Version implements Comparable<Version> {
 		Assert.isTrue(minor >= 0, "Minor version must be greater or equal zero!");
 		Assert.isTrue(bugfix >= 0, "Bugfix version must be greater or equal zero!");
 		Assert.isTrue(build >= 0, "Build version must be greater or equal zero!");
+	}
+
+	public static Version of(int... parts) {
+		return new Version(parts);
 	}
 
 	/**

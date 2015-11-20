@@ -64,7 +64,7 @@ public class ModuleIteration implements IterationVersion {
 	public String getVersionString() {
 
 		StringBuilder builder = new StringBuilder();
-		builder.append(ArtifactVersion.from(this).toShortString());
+		builder.append(ArtifactVersion.of(this).toShortString());
 
 		if (!iteration.isServiceIteration()) {
 			builder.append(" ").append(iteration.getName());

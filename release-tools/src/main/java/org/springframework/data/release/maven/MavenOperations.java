@@ -34,6 +34,7 @@ import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -47,7 +48,6 @@ import org.xmlbeam.io.XBFileIO;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class MavenOperations {
 
-	private static final String COMMONS_VERSION_PROPERTY = "springdata.commons";
 	private static final String POM_XML = "pom.xml";
 
 	private final Workspace workspace;
@@ -90,9 +90,8 @@ public class MavenOperations {
 		execute(workspace.getFile("parent/pom.xml", BUILD), new PomCallback<ParentPom>() {
 
 			@Override
-			public ParentPom doWith(ParentPom pom) {
+			public void doWith(ParentPom pom) {
 				pom.setSharedResourcesVersion(phase.equals(PREPARE) ? buildVersion : nextBuildVersion);
-				return pom;
 			}
 		});
 
@@ -108,7 +107,7 @@ public class MavenOperations {
 			execute(workspace.getFile(POM_XML, project), new PomCallback<Pom>() {
 
 				@Override
-				public Pom doWith(Pom pom) {
+				public void doWith(Pom pom) {
 
 					for (Project dependency : project.getDependencies()) {
 
@@ -132,8 +131,6 @@ public class MavenOperations {
 					pom.setParentVersion(version);
 
 					updateRepository(project, pom, repository, phase);
-
-					return pom;
 				}
 			});
 		}
@@ -149,22 +146,22 @@ public class MavenOperations {
 	 */
 	public void triggerDistributionBuild(TrainIteration iteration) throws Exception {
 
-		for (ModuleIteration moduleIteration : iteration) {
+		ExecutionUtils.run(iteration, module -> {
 
-			Project project = moduleIteration.getProject();
+			Project project = module.getProject();
 
 			if (BUILD.equals(project)) {
-				continue;
+				return;
 			}
 
 			if (!isMavenProject(project)) {
 				logger.log(project, "Skipping project as no pom.xml could be found in the working directory!");
-				continue;
+				return;
 			}
 
 			logger.log(project, "Triggering distribution build…");
 
-			ArtifactVersion version = ArtifactVersion.from(moduleIteration);
+			ArtifactVersion version = ArtifactVersion.of(module);
 
 			String command = "mvn clean deploy -DskipTests -Pdistribute";
 
@@ -174,14 +171,14 @@ public class MavenOperations {
 				command = command.concat(",release");
 			}
 
-			CommandResult result = os.executeWithOutput(command, moduleIteration.getProject()).get();
+			CommandResult result = os.executeWithOutput(command, module.getProject()).get();
 
 			if (result.hasError()) {
 				throw result.getException();
 			}
 
 			logger.log(project, "Successfully finished distribution build!");
-		}
+		});
 	}
 
 	private boolean isMavenProject(Project project) {
@@ -197,7 +194,7 @@ public class MavenOperations {
 		execute(bomPomFile, new PomCallback<Pom>() {
 
 			@Override
-			public Pom doWith(Pom pom) {
+			public void doWith(Pom pom) {
 
 				for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 
@@ -213,8 +210,6 @@ public class MavenOperations {
 						pom.setDependencyManagementVersion(additionalArtifact, version);
 					}
 				}
-
-				return pom;
 			}
 		});
 	}
@@ -246,13 +241,11 @@ public class MavenOperations {
 		Class<?> typeArgument = GenericTypeResolver.resolveTypeArgument(callback.getClass(), PomCallback.class);
 
 		T pom = (T) io.read(typeArgument);
-		pom = callback.doWith(pom);
-
+		callback.doWith(pom);
 		io.write(pom);
 	}
 
 	private interface PomCallback<T extends Pom> {
-
-		public T doWith(T pom);
+		public void doWith(T pom);
 	}
 }

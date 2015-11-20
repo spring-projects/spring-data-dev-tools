@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -140,7 +138,7 @@ class CommonsExecOsCommandOperations implements OsCommandOperations {
 	 * 
 	 * @throws Exception
 	 */
-	@PostConstruct
+	// @PostConstruct
 	public void initialize() throws Exception {
 
 		String javaHome = executeCommand("/usr/libexec/java_home -F -v 1.8 -a x86_64 -d64").get().getOutput();

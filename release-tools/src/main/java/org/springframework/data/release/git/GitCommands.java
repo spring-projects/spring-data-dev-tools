@@ -18,6 +18,7 @@ package org.springframework.data.release.git;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
@@ -25,14 +26,13 @@ import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
  */
-@Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@CliComponent
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class GitCommands implements CommandMarker {
 
 	private final GitOperations git;
@@ -43,8 +43,8 @@ public class GitCommands implements CommandMarker {
 	}
 
 	@CliCommand("git update")
-	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName) throws Exception,
-			InterruptedException {
+	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
+			throws Exception, InterruptedException {
 		git.update(ReleaseTrains.getTrainByName(trainName));
 	}
 
@@ -84,7 +84,7 @@ public class GitCommands implements CommandMarker {
 	public void push(//
 			@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "tags", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") String tags)
-			throws Exception {
+					throws Exception {
 
 		boolean pushTags = Boolean.parseBoolean(tags);
 

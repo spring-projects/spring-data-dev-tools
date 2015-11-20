@@ -25,7 +25,7 @@ import java.util.List;
 public class Projects {
 
 	public static final Project COMMONS, BUILD, REST, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
-			REDIS, GEMFIRE;
+			REDIS, GEMFIRE, KEY_VALUE, ENVERS;
 	public static final List<Project> PROJECTS;
 
 	static {
@@ -44,9 +44,12 @@ public class Projects {
 		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS));
 
 		REST = new Project("DATAREST", "REST", Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA),
-				Arrays.asList("spring-data-rest-core", "spring-data-rest-core"));
+				Arrays.asList("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser"));
+
+		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
+		ENVERS = new Project("DATAENV", "Envers", Arrays.asList(JPA, COMMONS));
 
 		PROJECTS = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH, REDIS,
-				GEMFIRE, REST);
+				GEMFIRE, REST, KEY_VALUE, ENVERS);
 	}
 }

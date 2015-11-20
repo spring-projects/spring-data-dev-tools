@@ -15,36 +15,25 @@
  */
 package org.springframework.data.release.cli;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
  */
-@Component
+@CliComponent
 public class ModelCommands implements CommandMarker {
 
 	@CliCommand("trains")
 	public String train(@CliOption(key = { "", "train" }) Train train) {
 
-		if (train != null) {
-			return train.toString();
-		}
-
-		List<String> names = new ArrayList<>();
-
-		for (Train releaseTrain : ReleaseTrains.TRAINS) {
-			names.add(releaseTrain.getName());
-		}
-
-		return StringUtils.collectionToDelimitedString(names, ", ");
+		return train != null ? train.toString()
+				: ReleaseTrains.TRAINS.stream().map(Train::getName).collect(Collectors.joining(", "));
 	}
 }

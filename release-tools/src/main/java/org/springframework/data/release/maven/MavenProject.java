@@ -37,6 +37,6 @@ class MavenProject {
 	}
 
 	public ArtifactVersion getReleaseVersion() {
-		return new ArtifactVersion(module.getVersion());
+		return ArtifactVersion.of(module.getVersion());
 	}
 }

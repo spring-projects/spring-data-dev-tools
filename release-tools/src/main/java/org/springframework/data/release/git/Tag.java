@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Optional;
 
 import org.springframework.data.release.model.ArtifactVersion;
 
@@ -25,11 +28,18 @@ import org.springframework.data.release.model.ArtifactVersion;
  * 
  * @author Oliver Gierke
  */
-@RequiredArgsConstructor
 @EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Tag implements Comparable<Tag> {
 
 	private final String name;
+
+	public static Tag of(String source) {
+
+		int slashIndex = source.lastIndexOf('/');
+
+		return new Tag(source.substring(slashIndex == -1 ? 0 : slashIndex + 1));
+	}
 
 	/**
 	 * Returns the part of the name of the tag that is suitable to derive a version from the tag. Will transparently strip
@@ -41,8 +51,17 @@ public class Tag implements Comparable<Tag> {
 		return name.startsWith("v") ? name.substring(1) : name;
 	}
 
-	public ArtifactVersion toArtifactVersion() {
-		return ArtifactVersion.parse(getVersionSource());
+	public boolean isVersionTag() {
+		return toArtifactVersion().isPresent();
+	}
+
+	public Optional<ArtifactVersion> toArtifactVersion() {
+
+		try {
+			return Optional.of(ArtifactVersion.of(getVersionSource()));
+		} catch (IllegalArgumentException o_O) {
+			return Optional.empty();
+		}
 	}
 
 	/**
@@ -70,6 +89,10 @@ public class Tag implements Comparable<Tag> {
 	 */
 	@Override
 	public int compareTo(Tag that) {
-		return that.name.compareTo(this.name);
+
+		// Prefer artifact versions but fall back to name comparison
+
+		return toArtifactVersion().map(left -> that.toArtifactVersion().map(right -> left.compareTo(right)).//
+				orElse(name.compareTo(that.name))).orElse(name.compareTo(that.name));
 	}
 }

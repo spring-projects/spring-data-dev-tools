@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.jira;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,13 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.release.Application;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -47,7 +48,7 @@ import org.springframework.web.util.UriTemplate;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @_(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 class Jira implements JiraConnector {
 
 	private static final String JIRA_HOST = "https://jira.spring.io";
@@ -64,9 +65,7 @@ class Jira implements JiraConnector {
 	 */
 	@Override
 	@CacheEvict(value = "tickets", allEntries = true)
-	public void reset() {
-
-	}
+	public void reset() {}
 
 	@Cacheable("release-tickets")
 	public Ticket getReleaseTicketFor(ModuleIteration iteration) {
@@ -80,6 +79,10 @@ class Jira implements JiraConnector {
 
 		JiraIssues issues = operations.exchange(SEARCH_TEMPLATE, HttpMethod.GET, null, JiraIssues.class, parameters)
 				.getBody();
+
+		if (issues.getIssues().isEmpty()) {
+			throw new IllegalStateException(String.format("Did not find a release ticket for %s!", iteration));
+		}
 
 		JiraIssue issue = issues.getIssues().get(0);
 
@@ -121,8 +124,8 @@ class Jira implements JiraConnector {
 			parameters.put("fields", "summary,fixVersions");
 			parameters.put("startAt", startAt);
 
-			issues = operations.exchange(SEARCH_TEMPLATE, HttpMethod.GET, new HttpEntity<>(headers), JiraIssues.class,
-					parameters).getBody();
+			issues = operations
+					.exchange(SEARCH_TEMPLATE, HttpMethod.GET, new HttpEntity<>(headers), JiraIssues.class, parameters).getBody();
 
 			logger.log(iteration, "Got tickets %s to %s of %s.", startAt, issues.getNextStartAt(), issues.getTotal());
 
@@ -210,11 +213,10 @@ class Jira implements JiraConnector {
 
 	public static void main(String[] args) {
 
-		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"META-INF/spring/spring-shell-plugin.xml")) {
+		try (ConfigurableApplicationContext context = SpringApplication.run(Application.class, args)) {
 
 			JiraConnector tracker = context.getBean(JiraConnector.class);
-			TrainIteration iteration = new TrainIteration(ReleaseTrains.CODD, Iteration.SR2);
+			TrainIteration iteration = new TrainIteration(ReleaseTrains.GOSLING, Iteration.SR1);
 			ModuleIteration module = iteration.getModule("JPA");
 
 			// Changelog changelog = tracker.getChangelogFor(module);

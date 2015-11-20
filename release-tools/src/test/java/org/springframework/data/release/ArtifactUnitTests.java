@@ -35,7 +35,7 @@ public class ArtifactUnitTests {
 		Artifact artifact = new Artifact(ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "JPA"));
 
 		assertThat(artifact.getArtifactId(), is("spring-data-jpa"));
-		assertThat(artifact.getVersion(), is(ArtifactVersion.parse("1.6.0.M1")));
-		assertThat(artifact.getNextDevelopmentVersion(), is(ArtifactVersion.parse("1.6.0.BUILD-SNAPSHOT")));
+		assertThat(artifact.getVersion(), is(ArtifactVersion.of("1.6.0.M1")));
+		assertThat(artifact.getNextDevelopmentVersion(), is(ArtifactVersion.of("1.6.0.BUILD-SNAPSHOT")));
 	}
 }

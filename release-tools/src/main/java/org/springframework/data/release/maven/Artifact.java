@@ -48,7 +48,7 @@ public class Artifact {
 
 		this.module = module;
 		this.repository = new Repository(module.getIteration());
-		this.version = ArtifactVersion.from(module);
+		this.version = ArtifactVersion.of(module);
 	}
 
 	/**

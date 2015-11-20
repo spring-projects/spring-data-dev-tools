@@ -17,6 +17,7 @@ package org.springframework.data.release.utils;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,10 @@ public class Logger {
 
 	public void log(TrainIteration iteration, String template, Object... args) {
 		log(iteration.toString(), template, args);
+	}
+
+	public void log(Train train, String template, Object... args) {
+		log(train.getName(), template, args);
 	}
 
 	private void log(String context, String template, Object... args) {

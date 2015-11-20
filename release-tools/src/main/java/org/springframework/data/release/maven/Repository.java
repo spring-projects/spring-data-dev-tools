@@ -28,8 +28,8 @@ public class Repository {
 	private final String url;
 
 	public Repository(Iteration iteration) {
-		this.id = iteration.isPublicVersion() ? "spring-libs-release" : "spring-libs-milestone";
-		this.url = iteration.isPublicVersion() ? BASE.concat("release") : BASE.concat("milestone");
+		this.id = iteration.isPublic() ? "spring-libs-release" : "spring-libs-milestone";
+		this.url = iteration.isPublic() ? BASE.concat("release") : BASE.concat("milestone");
 	}
 
 	public String getId() {

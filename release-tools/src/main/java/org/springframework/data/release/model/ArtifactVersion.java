@@ -16,7 +16,6 @@
 package org.springframework.data.release.model;
 
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.util.Assert;
 
@@ -25,7 +24,6 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-@RequiredArgsConstructor
 @EqualsAndHashCode
 public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
@@ -43,13 +41,20 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	 * Creates a new {@link ArtifactVersion} from the given logical {@link Version}.
 	 * 
 	 * @param version must not be {@literal null}.
+	 * @param suffix must not be {@literal null} or empty.
 	 */
-	public ArtifactVersion(Version version) {
+	private ArtifactVersion(Version version, String suffix) {
 
 		Assert.notNull(version, "Version must not be null!");
+		Assert.hasText(suffix, "Suffix must not be null or empty!");
+		;
 
 		this.version = version;
-		this.suffix = RELEASE_SUFFIX;
+		this.suffix = suffix;
+	}
+
+	public static ArtifactVersion of(Version version) {
+		return new ArtifactVersion(version, RELEASE_SUFFIX);
 	}
 
 	/**
@@ -58,7 +63,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	 * @param source must not be {@literal null} or empty.
 	 * @return
 	 */
-	public static ArtifactVersion parse(String source) {
+	public static ArtifactVersion of(String source) {
 
 		Assert.hasText(source, "Version source must not be null or empty!");
 
@@ -67,7 +72,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		Version version = Version.parse(source.substring(0, suffixStart));
 		String suffix = source.substring(suffixStart + 1);
 
-		Assert.isTrue(suffix.matches(VALID_SUFFIX), "Invalid version suffix!");
+		Assert.isTrue(suffix.matches(VALID_SUFFIX), String.format("Invalid version suffix: %s!", source));
 
 		return new ArtifactVersion(version, suffix);
 	}
@@ -78,14 +83,14 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	 * @param iterationVersion must not be {@literal null}.
 	 * @return
 	 */
-	public static ArtifactVersion from(IterationVersion iterationVersion) {
+	public static ArtifactVersion of(IterationVersion iterationVersion) {
 
 		Assert.notNull(iterationVersion, "IterationVersion must not be null!");
 
 		Version version = iterationVersion.getVersion();
 		Iteration iteration = iterationVersion.getIteration();
 
-		if (iteration.isGAVersion()) {
+		if (iteration.isGAIteration()) {
 			return new ArtifactVersion(version, RELEASE_SUFFIX);
 		}
 
@@ -133,17 +138,38 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return suffix.matches(MILESTONE_SUFFIX);
 	}
 
+	/**
+	 * Returns the next development version to be used for the current release version, which means next minor for GA
+	 * versions and next bug fix for service releases. Will return the current version as snapshot otherwise.
+	 * 
+	 * @return
+	 */
 	public ArtifactVersion getNextDevelopmentVersion() {
 
-		if (suffix.equals(SNAPSHOT_SUFFIX)) {
-			return this;
+		if (suffix.equals(RELEASE_SUFFIX)) {
+
+			boolean isGaVersion = version.withBugfix(0).equals(version);
+			Version nextVersion = isGaVersion ? version.nextMinor() : version.nextBugfix();
+
+			return new ArtifactVersion(nextVersion, SNAPSHOT_SUFFIX);
 		}
+
+		return suffix.equals(SNAPSHOT_SUFFIX) ? this : new ArtifactVersion(version, SNAPSHOT_SUFFIX);
+	}
+
+	/**
+	 * Returns the next bug fix version for the current version if it's a release version or the snapshot version of the
+	 * current one otherwise.
+	 * 
+	 * @return
+	 */
+	public ArtifactVersion getNextBugfixVersion() {
 
 		if (suffix.equals(RELEASE_SUFFIX)) {
 			return new ArtifactVersion(version.nextBugfix(), SNAPSHOT_SUFFIX);
 		}
 
-		return new ArtifactVersion(version, SNAPSHOT_SUFFIX);
+		return suffix.equals(SNAPSHOT_SUFFIX) ? this : new ArtifactVersion(version, SNAPSHOT_SUFFIX);
 	}
 
 	/* 
@@ -152,7 +178,9 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	 */
 	@Override
 	public int compareTo(ArtifactVersion that) {
-		return this.toString().compareTo(that.toString());
+
+		int versionsEqual = this.version.compareTo(that.version);
+		return versionsEqual != 0 ? versionsEqual : this.suffix.compareTo(that.suffix);
 	}
 
 	/*
@@ -165,7 +193,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	}
 
 	/**
-	 * Returns the {@link String} of the plain version (read: x.y.z, ommitting trailing bugfix zeros).
+	 * Returns the {@link String} of the plain version (read: x.y.z, omitting trailing bug fix zeros).
 	 * 
 	 * @return
 	 */

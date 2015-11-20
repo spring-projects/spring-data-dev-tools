@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.io;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -23,10 +25,7 @@ import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.data.release.model.Project;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -39,14 +38,12 @@ import com.google.common.io.Files;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class Workspace {
 
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
-	public static final String WORK_DIR_PROPERTY = "io.workDir";
-
-	private final Environment environment;
+	private final IoProperties ioProperties;
 
 	/**
 	 * Returns the current working directory.
@@ -54,9 +51,7 @@ public class Workspace {
 	 * @return
 	 */
 	public File getWorkingDirectory() {
-
-		String workDir = environment.getProperty("io.workDir");
-		return new File(workDir.replace("~", System.getProperty("user.home")));
+		return ioProperties.getWorkDir();
 	}
 
 	/**

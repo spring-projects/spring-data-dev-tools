@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.git.GitProject;
 import org.springframework.data.release.git.Tag;
-import org.springframework.data.release.git.Tags;
+import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.io.Workspace.LineCallback;
 import org.springframework.data.release.model.ModuleIteration;
@@ -44,7 +44,7 @@ public class DocumentationOperations {
 
 	public void updateDockbookIncludes(TrainIteration iteration) throws Exception {
 
-		Tags tags = git.getTags(COMMONS);
+		VersionTags tags = git.getTags(COMMONS);
 
 		ModuleIteration commons = iteration.getModule(COMMONS);
 		ModuleIteration previousIteration = iteration.getPreviousIteration(commons);

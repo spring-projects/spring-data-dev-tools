@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,41 +17,21 @@ package org.springframework.data.release.git;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.springframework.data.release.model.Projects.*;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.TestReleaseTrains;
 
 /**
  * @author Oliver Gierke
  */
-public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
+public class GitPropertiesIntegrationTests extends AbstractIntegrationTests {
 
-	@Autowired GitOperations gitOperations;
-
-	@Test
-	public void updatesGitRepositories() throws Exception {
-		gitOperations.update(ReleaseTrains.GOSLING);
-	}
+	@Autowired GitProperties gitProperties;
 
 	@Test
-	public void showTags() throws Exception {
-
-		gitOperations.update(TestReleaseTrains.SAMPLE);
-
-		assertThat(gitOperations.getTags(BUILD).asList(), is(not(emptyIterable())));
-	}
-
-	@Test
-	public void foo() throws Exception {
-		gitOperations.update(TestReleaseTrains.SAMPLE);
-	}
-
-	@Test
-	public void obtainsVersionTagsForRepoThatAlsoHasOtherTags() {
-		gitOperations.getTags(MONGO_DB);
+	public void hasBasicPropertiesConfigured() {
+		assertThat(gitProperties.getAuthor(), is(notNullValue()));
+		assertThat(gitProperties.getEmail(), is(notNullValue()));
 	}
 }

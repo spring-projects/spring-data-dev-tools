@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
+import java.util.stream.StreamSupport;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
@@ -36,31 +32,25 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.data.release.io.CommandResult;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.Ticket;
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.utils.CommandUtils;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
- * Component to execut Git related operations.
+ * Component to execute Git related operations.
  * 
  * @author Oliver Gierke
  */
@@ -72,15 +62,7 @@ public class GitOperations {
 	private final Workspace workspace;
 	private final Logger logger;
 	private final PluginRegistry<IssueTracker, Project> issueTracker;
-	private final Environment environment;
-
-	private CredentialsProvider credentials;
-
-	@PostConstruct
-	public void init() {
-		this.credentials = new UsernamePasswordCredentialsProvider(environment.getProperty("git.username"),
-				environment.getProperty("git.password"));
-	}
+	private final GitProperties gitProperties;
 
 	public GitProject getGitProject(Project project) {
 		return new GitProject(project, server);
@@ -96,7 +78,7 @@ public class GitOperations {
 
 		Assert.notNull(train, "Train must not be null!");
 
-		for (ModuleIteration module : train) {
+		ExecutionUtils.run(train, module -> {
 
 			Branch branch = Branch.from(module);
 
@@ -109,24 +91,23 @@ public class GitOperations {
 						setRef("origin/".concat(branch.toString())).//
 						call();
 			}
-		}
+		});
 	}
 
 	/**
-	 * Checks out all projects of the given {@link Train} at the tags for the given {@link Iteration}.
+	 * Checks out all projects of the given {@link TrainIteration}.
 	 * 
-	 * @param train
 	 * @param iteration
 	 * @throws Exception
 	 */
-	public void checkout(TrainIteration iteration) throws Exception {
+	public void checkout(TrainIteration iteration) {
 
 		update(iteration.getTrain());
 
-		for (ModuleIteration module : iteration) {
+		ExecutionUtils.run(iteration, module -> {
 
 			Project project = module.getProject();
-			ArtifactVersion artifactVersion = ArtifactVersion.from(module);
+			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
 
 			Tag tag = findTagFor(project, artifactVersion);
 
@@ -138,16 +119,17 @@ public class GitOperations {
 			try (Git git = new Git(getRepository(module.getProject()))) {
 
 				logger.log(module, "git checkout %s", tag);
+
 				git.checkout().setStartPoint(tag.toString());
 			}
-		}
+		});
 
 		logger.log(iteration, "Successfully checked out projects.");
 	}
 
 	public void prepare(TrainIteration iteration) throws Exception {
 
-		for (ModuleIteration module : iteration) {
+		ExecutionUtils.run(iteration, module -> {
 
 			Branch branch = Branch.from(module);
 
@@ -161,28 +143,18 @@ public class GitOperations {
 						setRebase(true).//
 						call();
 			}
-		}
+		});
 	}
 
-	public void update(Train train) throws Exception {
-
-		List<Future<CommandResult>> executions = new ArrayList<>();
-
-		for (Module module : train) {
-			update(module.getProject());
-		}
-
-		for (Future<CommandResult> execution : executions) {
-			CommandUtils.getCommandResult(execution);
-		}
+	public void update(Train train) {
+		ExecutionUtils.run(train, module -> update(module.getProject()));
 	}
 
-	public void push(TrainIteration iteration) throws Exception {
+	public void push(TrainIteration iteration) {
 
-		for (ModuleIteration module : iteration) {
+		ExecutionUtils.run(iteration, module -> {
 
 			Branch branch = Branch.from(module);
-
 			logger.log(module, "git push origin %s", branch);
 
 			try (Git git = new Git(getRepository(module.getProject()))) {
@@ -192,15 +164,15 @@ public class GitOperations {
 				git.push().//
 						setRemote("origin").//
 						setRefSpecs(new RefSpec(ref.getName())).//
-						setCredentialsProvider(credentials).//
+						setCredentialsProvider(gitProperties.getCredentials()).//
 						call();
 			}
-		}
+		});
 	}
 
-	public void pushTags(Train train) throws Exception {
+	public void pushTags(Train train) {
 
-		for (Module module : train) {
+		ExecutionUtils.run(train.getModules(), module -> {
 
 			logger.log(module.getProject(), "git push --tags");
 
@@ -209,10 +181,10 @@ public class GitOperations {
 				git.push().//
 						setRemote("origin").//
 						setPushTags().//
-						setCredentialsProvider(this.credentials).//
+						setCredentialsProvider(gitProperties.getCredentials()).//
 						call();
 			}
-		}
+		});
 	}
 
 	public void update(Project project) throws Exception {
@@ -220,9 +192,7 @@ public class GitOperations {
 		GitProject gitProject = new GitProject(project, server);
 		String repositoryName = gitProject.getRepositoryName();
 
-		Repository repository = getRepository(project);
-
-		try (Git git = new Git(repository)) {
+		try (Git git = new Git(getRepository(project))) {
 
 			if (workspace.hasProjectDirectory(project)) {
 
@@ -232,35 +202,34 @@ public class GitOperations {
 				checkout(project, Branch.MASTER);
 
 				git.reset().setMode(ResetType.HARD).call();
-
 				git.fetch().setTagOpt(TagOpt.FETCH_TAGS);
-
 				git.pull().call();
-
-				// return os.executeCommand("git checkout master && git reset --hard && git fetch --tags && git pull origin
-				// master",
-				// project);
 
 			} else {
 
 				logger.log(project, "No repository found! Cloning from %s…", gitProject.getProjectUri());
-				clone(project);
 
-				// return os.executeCommand(command);
+				clone(project);
 			}
 		}
 	}
 
-	public Tags getTags(Project project) throws Exception {
+	public VersionTags getTags(Project project) {
 
 		try (Git git = new Git(getRepository(project))) {
-			return new Tags(git.tagList().call().stream().map(ref -> new Tag(ref.getName())).collect(Collectors.toList()));
+
+			return new VersionTags(git.tagList().call().stream().//
+					map(ref -> Tag.of(ref.getName())).//
+					collect(Collectors.toList()));
+
+		} catch (Exception o_O) {
+			throw new RuntimeException(o_O);
 		}
 	}
 
-	public void tagRelease(TrainIteration iteration) throws Exception {
+	public void tagRelease(TrainIteration iteration) {
 
-		for (ModuleIteration module : iteration) {
+		ExecutionUtils.run(iteration, module -> {
 
 			Branch branch = Branch.from(module);
 			Project project = module.getProject();
@@ -284,7 +253,7 @@ public class GitOperations {
 					git.tag().setName(tag.toString()).setObjectId(commit).call();
 				}
 			}
-		}
+		});
 	}
 
 	/**
@@ -301,19 +270,17 @@ public class GitOperations {
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
 
-		for (ModuleIteration module : iteration) {
-			commit(module, expandSummary(summary, module, iteration), details);
-		}
+		ExecutionUtils.run(iteration, module -> commit(module, expandSummary(summary, module, iteration), details));
 	}
 
-	private String expandSummary(String summary, ModuleIteration module, TrainIteration iteration) {
+	private static String expandSummary(String summary, ModuleIteration module, TrainIteration iteration) {
 
 		if (!summary.contains("%s")) {
 			return summary;
 		}
 
 		return String.format(summary,
-				ArtifactVersion.from(module).toString().concat(String.format(" (%s)", iteration.toString())));
+				ArtifactVersion.of(module).toString().concat(String.format(" (%s)", iteration.toString())));
 	}
 
 	/**
@@ -336,8 +303,8 @@ public class GitOperations {
 		Ticket ticket = tracker.getReleaseTicketFor(module);
 
 		Commit commit = new Commit(ticket, summary, details);
-		String author = environment.getProperty("git.author");
-		String email = environment.getProperty("git.email");
+		String author = gitProperties.getAuthor();
+		String email = gitProperties.getEmail();
 
 		logger.log(module, "git commit -m \"%s\" --author=\"%s <%s>\"", commit, author, email);
 
@@ -382,16 +349,12 @@ public class GitOperations {
 	 * @return
 	 * @throws IOException
 	 */
-	private Tag findTagFor(Project project, ArtifactVersion version) throws Exception {
+	private Tag findTagFor(Project project, ArtifactVersion version) {
 
-		for (Tag tag : getTags(project)) {
-
-			if (tag.toArtifactVersion().equals(version)) {
-				return tag;
-			}
-		}
-
-		return null;
+		return StreamSupport.stream(getTags(project).spliterator(), false).//
+				filter(tag -> tag.toArtifactVersion().map(it -> it.equals(version)).orElse(false)).//
+				findFirst().orElseThrow(() -> new IllegalArgumentException(
+						String.format("No tag found for version %s of project %s!", version, project)));
 	}
 
 	public void checkout(Project project, Branch branch) throws Exception {
@@ -409,10 +372,11 @@ public class GitOperations {
 			}
 
 			checkout.call();
+
 		}
 	}
 
-	private Repository getRepository(Project project) throws Exception {
+	private Repository getRepository(Project project) throws IOException {
 		return FileRepositoryBuilder.create(workspace.getFile(".git", project));
 	}
 

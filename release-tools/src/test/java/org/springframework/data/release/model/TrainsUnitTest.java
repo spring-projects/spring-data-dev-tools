@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.cli;
+package org.springframework.data.release.model;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.AbstractIntegrationTests;
-import org.springframework.data.release.git.GitOperations;
-import org.springframework.data.release.model.ReleaseTrains;
 
 /**
+ * Unit tests for release {@link Train}s.
+ * 
  * @author Oliver Gierke
  */
-public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
-
-	@Autowired ReleaseCommands releaseCommands;
-	@Autowired GitOperations git;
+public class TrainsUnitTest {
 
 	@Test
-	public void predictsReleaseTrainCorrectly() throws Exception {
+	public void prefersNewVersionOfAdditionalModule() {
 
-		git.update(ReleaseTrains.GOSLING);
+		Module module = ReleaseTrains.HOPPER.getModule(Projects.NEO4J);
 
-		assertThat(releaseCommands.predictTrainAndIteration(), is("Gosling"));
+		assertThat(module.getVersion(), is(Version.parse("4.1")));
+	}
+
+	@Test
+	public void addsNewlyAddedModule() {
+		assertThat(ReleaseTrains.HOPPER.getModule(Projects.ENVERS), is(notNullValue()));
 	}
 }

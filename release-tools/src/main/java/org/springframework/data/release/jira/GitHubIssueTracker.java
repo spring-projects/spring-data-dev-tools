@@ -15,14 +15,14 @@
  */
 package org.springframework.data.release.jira;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -48,7 +48,7 @@ import org.springframework.web.util.UriTemplate;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @_(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 class GitHubIssueTracker implements IssueTracker {
 
 	private static final String MILESTONE_URI = "https://api.github.com/repos/spring-projects/{repoName}/milestones?state={state}";
@@ -68,13 +68,12 @@ class GitHubIssueTracker implements IssueTracker {
 	@Cacheable("release-tickets")
 	public Ticket getReleaseTicketFor(ModuleIteration module) {
 
-		for (GitHubIssue issue : getIssuesFor(module)) {
-			if (issue.isReleaseTicket(module)) {
-				return new Ticket(issue.getId(), issue.getTitle());
-			}
-		}
-
-		throw new IllegalArgumentException(String.format("Could not find a release ticket for %s!", module));
+		return getIssuesFor(module).stream().//
+				filter(issue -> issue.isReleaseTicket(module)).//
+				findFirst().//
+				map(issue -> new Ticket(issue.getId(), issue.getTitle())).//
+				orElseThrow(
+						() -> new IllegalArgumentException(String.format("Could not find a release ticket for %s!", module)));
 	}
 
 	/* 
@@ -85,12 +84,9 @@ class GitHubIssueTracker implements IssueTracker {
 	@Cacheable("changelogs")
 	public Changelog getChangelogFor(ModuleIteration module) {
 
-		List<GitHubIssue> issues = getIssuesFor(module);
-		List<Ticket> tickets = new ArrayList<>(issues.size());
-
-		for (GitHubIssue issue : issues) {
-			tickets.add(new Ticket(issue.getId(), issue.getTitle()));
-		}
+		List<Ticket> tickets = getIssuesFor(module).stream().//
+				map(issue -> new Ticket(issue.getId(), issue.getTitle())).//
+				collect(Collectors.toList());
 
 		logger.log(module, "Created changelog with %s entries.", tickets.size());
 
@@ -131,8 +127,8 @@ class GitHubIssueTracker implements IssueTracker {
 
 			logger.log(module, "Looking up milestone from %s…", milestoneUri);
 
-			List<GitHubMilestone> exchange = operations.exchange(MILESTONE_URI, HttpMethod.GET, null, MILESTONES_TYPE,
-					parameters).getBody();
+			List<GitHubMilestone> exchange = operations
+					.exchange(MILESTONE_URI, HttpMethod.GET, null, MILESTONES_TYPE, parameters).getBody();
 
 			GitHubMilestone milestone = null;
 

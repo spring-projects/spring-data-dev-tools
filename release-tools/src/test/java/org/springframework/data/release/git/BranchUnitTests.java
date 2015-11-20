@@ -32,14 +32,14 @@ public class BranchUnitTests {
 	@Test
 	public void testname() {
 
-		IterationVersion iterationVersion = new SimpleIterationVersion(new Version(1, 4), Iteration.RC1);
+		IterationVersion iterationVersion = new SimpleIterationVersion(Version.of(1, 4), Iteration.RC1);
 		assertThat(Branch.from(iterationVersion).toString(), is("master"));
 	}
 
 	@Test
 	public void createsBugfixBranchForServiceRelease() {
 
-		IterationVersion iterationVersion = new SimpleIterationVersion(new Version(1, 4), Iteration.SR1);
+		IterationVersion iterationVersion = new SimpleIterationVersion(Version.of(1, 4), Iteration.SR1);
 		assertThat(Branch.from(iterationVersion).toString(), is("1.4.x"));
 	}
 }

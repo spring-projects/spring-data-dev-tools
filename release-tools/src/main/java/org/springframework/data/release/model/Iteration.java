@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,11 +52,17 @@ public class Iteration {
 		this.next = next;
 	}
 
-	public boolean isGAVersion() {
+	public boolean isGAIteration() {
 		return this.equals(GA);
 	}
 
-	public boolean isPublicVersion() {
+	/**
+	 * Returns whether the {@link Iteration} is considered public, i.e. the artifacts produced by the iteration are
+	 * supposed to be published to Maven Central.
+	 * 
+	 * @return
+	 */
+	public boolean isPublic() {
 		return isServiceIteration() || this.equals(GA);
 	}
 

@@ -2,6 +2,7 @@ target/
 .settings/
 .project
 .classpath
+.factorypath
 .springBeans
-jira.properties
+application-local.properties
 spring-shell.log

@@ -15,26 +15,30 @@
  */
 package org.springframework.data.release.cli;
 
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.jira.Changelog;
 import org.springframework.data.release.jira.Credentials;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.JiraConnector;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
  */
-@Component
-public class IssueTracerCommands implements CommandMarker {
+@CliComponent
+public class IssueTrackerCommands implements CommandMarker {
 
 	private final PluginRegistry<IssueTracker, Project> tracker;
 	private final JiraConnector jira;
@@ -45,7 +49,8 @@ public class IssueTracerCommands implements CommandMarker {
 	 * @param environment
 	 */
 	@Autowired
-	public IssueTracerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira, Environment environment) {
+	public IssueTrackerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira,
+			Environment environment) {
 
 		String username = environment.getProperty("jira.username", (String) null);
 		String password = environment.getProperty("jira.password", (String) null);
@@ -61,9 +66,9 @@ public class IssueTracerCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = "jira tickets")
-	public String jira(
-			@CliOption(key = "", mandatory = true) TrainIteration iteration, //
-			@CliOption(key = "for-current-user", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean forCurrentUser) {
+	public String jira(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "for-current-user", specifiedDefaultValue = "true",
+					unspecifiedDefaultValue = "false") boolean forCurrentUser) {
 
 		if (forCurrentUser && credentials == null) {
 			return "No authentication specified! Use 'jira authenticate' first!";
@@ -82,14 +87,11 @@ public class IssueTracerCommands implements CommandMarker {
 			return tracker.getPluginFor(module.getProject()).getChangelogFor(module).toString();
 		}
 
-		StringBuilder builder = new StringBuilder();
+		return ExecutionUtils.runAndReturn(iteration, this::getChangelog).//
+				stream().map(it -> it.toString()).collect(Collectors.joining("\n"));
+	}
 
-		for (ModuleIteration module : iteration) {
-
-			IssueTracker issues = tracker.getPluginFor(module.getProject());
-			builder.append(issues.getChangelogFor(module)).append("\n");
-		}
-
-		return builder.toString();
+	private Changelog getChangelog(ModuleIteration module) {
+		return tracker.getPluginFor(module.getProject()).getChangelogFor(module);
 	}
 }

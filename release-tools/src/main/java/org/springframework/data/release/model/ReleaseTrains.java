@@ -27,7 +27,7 @@ import java.util.List;
 public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
-	public static final Train CODD, DIJKSTRA, EVANS, FOWLER;
+	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER;
 
 	static {
 
@@ -35,10 +35,13 @@ public class ReleaseTrains {
 		DIJKSTRA = dijkstra();
 		EVANS = DIJKSTRA.next("Evans", Transition.MINOR);
 		FOWLER = EVANS.next("Fowler", Transition.MINOR);
+		GOSLING = FOWLER.next("Gosling", Transition.MINOR, new Module(KEY_VALUE, "1.0"));
+		HOPPER = GOSLING.next("Hopper", Transition.MINOR, new Module(NEO4J, "4.1"), new Module(COUCHBASE, "2.1"),
+				new Module(ENVERS, "1.0"));
 
 		// Trains
 
-		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER);
+		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER);
 
 		// Train names
 

@@ -34,7 +34,7 @@ public class StaticResources {
 	public StaticResources(ModuleIteration module) {
 
 		Project project = module.getProject();
-		ArtifactVersion version = ArtifactVersion.from(module);
+		ArtifactVersion version = ArtifactVersion.of(module);
 
 		this.baseUrl = String.format(URL_TEMPLATE, project.getName().toLowerCase(), version);
 	}

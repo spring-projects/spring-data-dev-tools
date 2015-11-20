@@ -56,7 +56,6 @@ public class TrainConverter implements Converter<Train> {
 	@Override
 	public boolean getAllPossibleValues(List<Completion> completions, Class<?> targetType, String existingData,
 			String optionContext, MethodTarget target) {
-
 		return false;
 	}
 }

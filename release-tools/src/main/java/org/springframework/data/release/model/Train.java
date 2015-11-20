@@ -21,15 +21,17 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.shell.support.util.OsUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
@@ -38,7 +40,7 @@ import org.springframework.util.StringUtils;
 public class Train implements Iterable<Module> {
 
 	private final String name;;
-	private final List<Module> modules;
+	private final Collection<Module> modules;
 	private final Iterations iterations;
 
 	public Train(String name, Module... modules) {
@@ -48,10 +50,10 @@ public class Train implements Iterable<Module> {
 		this.iterations = Iterations.DEFAULT;
 	}
 
-	public Train(String name, List<Module> modules) {
+	public Train(String name, Collection<Module> modules) {
 
 		this.name = name;
-		this.modules = Collections.unmodifiableList(modules);
+		this.modules = Collections.unmodifiableCollection(modules);
 		this.iterations = Iterations.DEFAULT;
 	}
 
@@ -66,46 +68,39 @@ public class Train implements Iterable<Module> {
 
 	public Module getModule(String name) {
 
-		for (Module module : this) {
-			if (module.getProject().getName().equals(name)) {
-				return module;
-			}
-		}
-
-		return null;
+		return modules.stream().//
+				filter(module -> module.getProject().getName().equals(name)).//
+				findFirst().//
+				orElseThrow(() -> new IllegalArgumentException(String.format("No Module found with name %s!", name)));
 	}
 
 	public Module getModule(Project project) {
 
-		for (Module module : this) {
-			if (module.getProject().equals(project)) {
-				return module;
-			}
-		}
-
-		return null;
+		return modules.stream().//
+				filter(module -> module.getProject().equals(project)).//
+				findFirst().orElseThrow(
+						() -> new IllegalArgumentException(String.format("No module found for project %s!", project.getName())));
 	}
 
-	public Train next(String name, Transition transition) {
+	public Train next(String name, Transition transition, Module... additionalModules) {
 
-		List<Module> nextModules = new ArrayList<>();
+		Set<Module> collect = Stream.concat(modules.stream(), Stream.of(additionalModules)).//
+				map(module -> Arrays.stream(additionalModules).//
+						reduce(module.next(transition),
+								(it, additionalModule) -> it.hasSameProjectAs(additionalModule) ? additionalModule : it))
+				.collect(Collectors.toSet());
 
-		for (Module module : modules) {
-			nextModules.add(module.next(transition));
-		}
-
-		return new Train(name, nextModules);
+		return new Train(name, collect);
 	}
 
 	public ModuleIteration getModuleIteration(Iteration iteration, String moduleName) {
 
-		for (Module module : this) {
-			if (module.hasName(moduleName)) {
-				return new ModuleIteration(module, iteration, this);
-			}
-		}
-
-		return null;
+		return modules.stream().//
+				filter(module -> module.hasName(moduleName)).//
+				findFirst().//
+				map(module -> new ModuleIteration(module, iteration, this)).//
+				orElseThrow(
+						() -> new IllegalArgumentException(String.format("No module found with module name %s!", moduleName)));
 	}
 
 	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration) {
@@ -114,19 +109,12 @@ public class Train implements Iterable<Module> {
 
 	List<ModuleIteration> getModuleIterations(Iteration iteration, Project... exclusions) {
 
-		List<ModuleIteration> iterations = new ArrayList<>(modules.size());
 		List<Project> exclusionList = Arrays.asList(exclusions);
 
-		for (Module module : this) {
-
-			if (exclusionList.contains(module.getProject())) {
-				continue;
-			}
-
-			iterations.add(new ModuleIteration(module, iteration, this));
-		}
-
-		return iterations;
+		return modules.stream().//
+				filter(module -> !exclusionList.contains(module.getProject())).//
+				map(module -> new ModuleIteration(module, iteration, this)).//
+				collect(Collectors.toList());
 	}
 
 	public Iteration getIteration(String name) {
@@ -136,7 +124,8 @@ public class Train implements Iterable<Module> {
 	public ArtifactVersion getModuleVersion(Project project, Iteration iteration) {
 
 		Module module = getModule(project);
-		return ArtifactVersion.from(new ModuleIteration(module, iteration, this));
+
+		return ArtifactVersion.of(new ModuleIteration(module, iteration, this));
 	}
 
 	/*
@@ -148,8 +137,14 @@ public class Train implements Iterable<Module> {
 
 		StringBuilder builder = new StringBuilder();
 
-		builder.append(name).append(OsUtils.LINE_SEPARATOR).append(OsUtils.LINE_SEPARATOR);
-		builder.append(StringUtils.collectionToDelimitedString(modules, OsUtils.LINE_SEPARATOR));
+		builder.append(name).//
+				append(OsUtils.LINE_SEPARATOR).//
+				append(OsUtils.LINE_SEPARATOR);
+
+		builder.append(modules.stream().//
+				map(Module::toString).//
+				sorted().//
+				collect(Collectors.joining(OsUtils.LINE_SEPARATOR)));
 
 		return builder.toString();
 	}
@@ -186,24 +181,18 @@ public class Train implements Iterable<Module> {
 
 			Assert.hasText(name, "Name must not be null or empty!");
 
-			for (Iteration iteration : this) {
-				if (iteration.getName().equalsIgnoreCase(name)) {
-					return iteration;
-				}
-			}
-
-			return null;
+			return iterations.stream().//
+					filter(iteration -> iteration.getName().equalsIgnoreCase(name)).//
+					findFirst()
+					.orElseThrow(() -> new IllegalArgumentException(String.format("No iteration found with name %s!", name)));
 		}
 
 		Iteration getPreviousIteration(Iteration iteration) {
 
-			for (Iteration candidate : iterations) {
-				if (candidate.isNext(iteration)) {
-					return candidate;
-				}
-			}
-
-			throw new IllegalArgumentException(String.format("Could not find previous iteration for %s!", iteration));
+			return iterations.stream().//
+					filter(candidate -> candidate.isNext(iteration)).//
+					findFirst().orElseThrow(() -> new IllegalArgumentException(
+							String.format("Could not find previous iteration for %s!", iteration)));
 		}
 
 		/* 

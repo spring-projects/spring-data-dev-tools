@@ -16,18 +16,17 @@
 package org.springframework.data.release.cli;
 
 import static org.springframework.data.release.model.Projects.*;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.docs.DocumentationOperations;
 import org.springframework.data.release.git.GitOperations;
-import org.springframework.data.release.git.Tags;
+import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.gradle.GradleOperations;
 import org.springframework.data.release.maven.MavenOperations;
-import org.springframework.data.release.maven.Pom;
 import org.springframework.data.release.misc.ReleaseOperations;
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
@@ -41,7 +40,7 @@ import org.springframework.stereotype.Component;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class ReleaseCommands implements CommandMarker {
 
 	private final MavenOperations maven;
@@ -53,25 +52,16 @@ public class ReleaseCommands implements CommandMarker {
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() throws Exception {
 
-		Pom pom = maven.getMavenProject(COMMONS);
+		return git.getTags(COMMONS).getLatest().toArtifactVersion().//
+				map(this::getTrainNameForCommonsVersion).//
+				orElse(null);
+	}
 
-		Tags tags = git.getTags(COMMONS);
+	public String getTrainNameForCommonsVersion(ArtifactVersion version) {
 
-		ArtifactVersion version = tags.getLatest().toArtifactVersion();
-		System.out.println(version);
-
-		for (Train train : ReleaseTrains.TRAINS) {
-
-			Module module = train.getModule(COMMONS);
-
-			if (!pom.getVersion().toString().startsWith(module.getVersion().toMajorMinorBugfix())) {
-				continue;
-			}
-
-			return train.getName();
-		}
-
-		return null;
+		return ReleaseTrains.TRAINS.stream().//
+				filter(train -> version.toString().startsWith(train.getModule(COMMONS).getVersion().toString())).//
+				findFirst().map(Train::getName).orElse(null);
 	}
 
 	/**

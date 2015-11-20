@@ -17,9 +17,7 @@ package org.springframework.data.release.maven;
 
 import java.io.IOException;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -36,15 +34,13 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 	@Autowired Workspace workspace;
 	@Autowired ProjectionFactory projection;
 
-	public @Rule TemporaryFolder folder = new TemporaryFolder();
-
 	@Test
 	public void modifiesParentPomCorrectly() throws IOException {
 
 		XBFileIO io = projection.io().file(new ClassPathResource("parent-pom.xml").getFile());
 
 		ParentPom pom = io.read(ParentPom.class);
-		pom.setSharedResourcesVersion(ArtifactVersion.parse("1.2.0.RELEASE"));
+		pom.setSharedResourcesVersion(ArtifactVersion.of("1.2.0.RELEASE"));
 
 		// System.out.println(projection.asString(pom));
 	}

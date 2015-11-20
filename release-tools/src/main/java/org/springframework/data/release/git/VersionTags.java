@@ -15,12 +15,11 @@
  */
 package org.springframework.data.release.git;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import lombok.EqualsAndHashCode;
+
 import java.util.Iterator;
 import java.util.List;
-
-import lombok.EqualsAndHashCode;
+import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
@@ -32,23 +31,22 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
-public class Tags implements Iterable<Tag> {
+public class VersionTags implements Iterable<Tag> {
 
 	private final List<Tag> tags;
 
 	/**
-	 * Creates a new {@link Tags} instance for the given {@link List} of {@link Tag}s.
+	 * Creates a new {@link VersionTags} instance for the given {@link List} of {@link Tag}s.
 	 * 
 	 * @param source must not be {@literal null}.
 	 */
-	Tags(List<Tag> source) {
+	VersionTags(List<Tag> source) {
 
 		Assert.notNull(source, "Tags must not be null!");
 
-		List<Tag> tags = new ArrayList<>(source);
-		Collections.sort(tags);
-
-		this.tags = Collections.unmodifiableList(tags);
+		this.tags = source.stream().//
+				filter(Tag::isVersionTag).//
+				sorted().collect(Collectors.toList());
 	}
 
 	/**
@@ -57,11 +55,11 @@ public class Tags implements Iterable<Tag> {
 	 * @return
 	 */
 	public Tag getLatest() {
-		return tags.get(0);
+		return tags.get(tags.size() - 1);
 	}
 
 	public Tag createTag(ModuleIteration iteration) {
-		return getLatest().createNew(ArtifactVersion.from(iteration));
+		return getLatest().createNew(ArtifactVersion.of(iteration));
 	}
 
 	/**

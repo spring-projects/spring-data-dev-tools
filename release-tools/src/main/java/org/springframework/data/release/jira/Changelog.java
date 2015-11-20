@@ -44,7 +44,7 @@ public class Changelog {
 	@Override
 	public String toString() {
 
-		ArtifactVersion version = ArtifactVersion.from(module);
+		ArtifactVersion version = ArtifactVersion.of(module);
 
 		String headline = String.format("Changes in version %s (%s)", version,
 				new DateFormatter("YYYY-MM-dd").print(new Date(), Locale.US));

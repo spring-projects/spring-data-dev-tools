@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,10 @@
  */
 package org.springframework.data.release.model;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.IterationVersion;
-import org.springframework.data.release.model.Version;
 
 /**
  * @author Oliver Gierke
@@ -31,22 +27,22 @@ public class ArtifactVersionUnitTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectsInvalidVersionSuffix() {
-		ArtifactVersion.parse("1.4.5.GA");
+		ArtifactVersion.of("1.4.5.GA");
 	}
 
 	@Test
 	public void parsesReleaseVersionCorrectly() {
 
-		ArtifactVersion version = ArtifactVersion.parse("1.4.5.RELEASE");
+		ArtifactVersion version = ArtifactVersion.of("1.4.5.RELEASE");
 
 		assertThat(version.isReleaseVersion(), is(true));
-		assertThat(version.getNextDevelopmentVersion(), is(ArtifactVersion.parse("1.4.6.BUILD-SNAPSHOT")));
+		assertThat(version.getNextDevelopmentVersion(), is(ArtifactVersion.of("1.4.6.BUILD-SNAPSHOT")));
 	}
 
 	@Test
 	public void createsMilestoneVersionCorrectly() {
 
-		ArtifactVersion version = ArtifactVersion.parse("1.4.5.M1");
+		ArtifactVersion version = ArtifactVersion.of("1.4.5.M1");
 
 		assertThat(version.isReleaseVersion(), is(false));
 		assertThat(version.isMilestoneVersion(), is(true));
@@ -55,7 +51,7 @@ public class ArtifactVersionUnitTests {
 	@Test
 	public void createsReleaseVersionByDefault() {
 
-		ArtifactVersion version = new ArtifactVersion(new Version(1, 4, 5));
+		ArtifactVersion version = ArtifactVersion.of(Version.of(1, 4, 5));
 
 		assertThat(version.isReleaseVersion(), is(true));
 		assertThat(version.toString(), is("1.4.5.RELEASE"));
@@ -64,8 +60,8 @@ public class ArtifactVersionUnitTests {
 	@Test
 	public void createsMilestoneVersionFromIteration() {
 
-		IterationVersion oneFourMilestoneOne = new SimpleIterationVersion(new Version(1, 4), Iteration.M1);
-		ArtifactVersion version = ArtifactVersion.from(oneFourMilestoneOne);
+		IterationVersion oneFourMilestoneOne = new SimpleIterationVersion(Version.of(1, 4), Iteration.M1);
+		ArtifactVersion version = ArtifactVersion.of(oneFourMilestoneOne);
 
 		assertThat(version.isMilestoneVersion(), is(true));
 		assertThat(version.toString(), is("1.4.0.M1"));
@@ -74,8 +70,8 @@ public class ArtifactVersionUnitTests {
 	@Test
 	public void createsReleaseVersionFromIteration() {
 
-		IterationVersion oneFourGA = new SimpleIterationVersion(new Version(1, 4), Iteration.GA);
-		ArtifactVersion version = ArtifactVersion.from(oneFourGA);
+		IterationVersion oneFourGA = new SimpleIterationVersion(Version.of(1, 4), Iteration.GA);
+		ArtifactVersion version = ArtifactVersion.of(oneFourGA);
 
 		assertThat(version.isReleaseVersion(), is(true));
 		assertThat(version.toString(), is("1.4.0.RELEASE"));
@@ -84,10 +80,48 @@ public class ArtifactVersionUnitTests {
 	@Test
 	public void createsServiceReleaseVersionFromIteration() {
 
-		IterationVersion oneFourServiceReleaseTwo = new SimpleIterationVersion(new Version(1, 4), Iteration.SR2);
-		ArtifactVersion version = ArtifactVersion.from(oneFourServiceReleaseTwo);
+		IterationVersion oneFourServiceReleaseTwo = new SimpleIterationVersion(Version.of(1, 4), Iteration.SR2);
+		ArtifactVersion version = ArtifactVersion.of(oneFourServiceReleaseTwo);
 
 		assertThat(version.isReleaseVersion(), is(true));
 		assertThat(version.toString(), is("1.4.2.RELEASE"));
+	}
+
+	@Test
+	public void returnsNextMinorSnapshotVersionForGARelease() {
+
+		ArtifactVersion version = ArtifactVersion.of("1.5.0.RELEASE").getNextDevelopmentVersion();
+
+		assertThat(version.isMilestoneVersion(), is(false));
+		assertThat(version.isReleaseVersion(), is(false));
+		assertThat(version, is(ArtifactVersion.of("1.6.0.BUILD-SNAPSHOT")));
+	}
+
+	@Test
+	public void ordersCorrectly() {
+
+		ArtifactVersion oneNine = ArtifactVersion.of("1.9.0.RELEASE");
+		ArtifactVersion oneTen = ArtifactVersion.of("1.10.0.RELEASE");
+
+		assertThat(oneNine.compareTo(oneTen), is(lessThan(0)));
+	}
+
+	@Test
+	public void ordersSnapshotsOfSameVersionSmaller() {
+
+		ArtifactVersion oneTenRelease = ArtifactVersion.of("1.10.0.RELEASE");
+		ArtifactVersion oneTenSnapshot = ArtifactVersion.of("1.10.0.BUILD-SNAPSHOT");
+
+		assertThat(oneTenRelease.compareTo(oneTenSnapshot), is(greaterThan(0)));
+	}
+
+	@Test
+	public void returnsCorrectBugfixVersions() {
+
+		assertThat(ArtifactVersion.of("1.0.0.RELEASE").getNextBugfixVersion(),
+				is(ArtifactVersion.of("1.0.1.BUILD-SNAPSHOT")));
+		assertThat(ArtifactVersion.of("1.0.0.M1").getNextBugfixVersion(), is(ArtifactVersion.of("1.0.0.BUILD-SNAPSHOT")));
+		assertThat(ArtifactVersion.of("1.0.1.RELEASE").getNextBugfixVersion(),
+				is(ArtifactVersion.of("1.0.2.BUILD-SNAPSHOT")));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release;
+package org.springframework.data.release.model;
 
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import java.util.Arrays;
 
 /**
+ * Sample release {@link Train} definitions.
+ * 
  * @author Oliver Gierke
  */
-@ActiveProfiles({ "test", "local" })
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-public abstract class AbstractIntegrationTests {}
+public class TestReleaseTrains {
+
+	public static Train SAMPLE = new Train("SAMPLE", Arrays.asList(new Module(Projects.BUILD, "1.0")));
+}
