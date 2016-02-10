@@ -45,8 +45,9 @@ public class IssueTrackerCommands implements CommandMarker {
 	private final Credentials credentials;
 
 	/**
-	 * @param tracker
-	 * @param environment
+	 * @param tracker must not be {@literal null}.
+	 * @param jira must not be {@literal null}.
+	 * @param environment must not be {@literal null}.
 	 */
 	@Autowired
 	public IssueTrackerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira,

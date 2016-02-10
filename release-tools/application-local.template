@@ -1,0 +1,11 @@
+# Git
+git.username=
+git.author=
+git.email=
+git.password=
+
+# Maven
+maven.mavenHome=
+
+# Deployment
+deployment.password=

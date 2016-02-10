@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.build;
+
+import lombok.Value;
 
 import org.springframework.data.release.model.Iteration;
+import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
  */
+
+@Value
 public class Repository {
 
+	private static final String ID_BASE = "spring-libs-";
 	private static final String BASE = "https://repo.spring.io/libs-";
 
-	private final String id;
-	private final String url;
+	String id, url;
 
 	public Repository(Iteration iteration) {
-		this.id = iteration.isPublic() ? "spring-libs-release" : "spring-libs-milestone";
-		this.url = iteration.isPublic() ? BASE.concat("release") : BASE.concat("milestone");
-	}
 
-	public String getId() {
-		return id;
+		Assert.notNull(iteration, "Iteration must not be null!");
+
+		this.id = ID_BASE.concat(iteration.isPublic() ? "release" : "milestone");
+		this.url = BASE.concat(iteration.isPublic() ? "release" : "milestone");
 	}
 
 	public String getSnapshotId() {
-		return "spring-libs-snapshot";
-	}
-
-	public String getUrl() {
-		return url;
+		return ID_BASE.concat("snapshot");
 	}
 
 	public String getSnapshotUrl() {

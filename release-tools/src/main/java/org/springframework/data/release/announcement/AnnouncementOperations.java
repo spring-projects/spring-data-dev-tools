@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,22 @@ package org.springframework.data.release.announcement;
 
 import static org.springframework.data.release.model.Projects.*;
 
+import org.springframework.data.release.build.MavenArtifact;
 import org.springframework.data.release.cli.StaticResources;
-import org.springframework.data.release.maven.Artifact;
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
  */
+@Component
 public class AnnouncementOperations {
 
 	/**
-	 * Returns the project list and links to be included in the release announcement for the given {@link Train} and
-	 * {@link Iteration}.
+	 * Returns the project list and links to be included in the release announcement for the given {@link TrainIteration}.
 	 * 
-	 * @param train must not be {@literal null}.
 	 * @param iteration must not be {@literal null}.
 	 * @return
 	 */
@@ -46,16 +42,16 @@ public class AnnouncementOperations {
 
 		StringBuilder builder = new StringBuilder();
 
-		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
+		iteration.getModulesExcept(BUILD).forEach(module -> {
 
 			Project project = module.getProject();
 
 			builder.append("* ");
 			builder.append(project.getFullName()).append(" ");
-			builder.append(module.getVersionString());
+			builder.append(module.getShortVersionString());
 			builder.append(" - ");
 
-			Artifact artifact = new Artifact(module);
+			MavenArtifact artifact = new MavenArtifact(module);
 
 			builder.append(getMarkDownLink("Artifacts", artifact.getRootUrl()));
 			builder.append(" - ");
@@ -67,18 +63,12 @@ public class AnnouncementOperations {
 			builder.append(getMarkDownLink("Changelog", resources.getChangelogUrl()));
 
 			builder.append("\n");
-		}
+		});
 
 		return builder.toString();
 	}
 
-	private String getMarkDownLink(String name, String url) {
+	private static String getMarkDownLink(String name, String url) {
 		return String.format("[%s](%s)", name, url);
-	}
-
-	public static void main(String[] args) {
-
-		AnnouncementOperations operations = new AnnouncementOperations();
-		System.out.println(operations.getProjectBulletpoints(new TrainIteration(ReleaseTrains.GOSLING, Iteration.SR1)));
 	}
 }

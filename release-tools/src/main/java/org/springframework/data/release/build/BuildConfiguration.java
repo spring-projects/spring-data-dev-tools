@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.build;
+
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.release.model.Project;
+import org.springframework.plugin.core.OrderAwarePluginRegistry;
+import org.springframework.plugin.core.PluginRegistry;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.XBProjector;
 import org.xmlbeam.XBProjector.Flags;
@@ -24,10 +29,17 @@ import org.xmlbeam.config.DefaultXMLFactoriesConfig;
 import org.xmlbeam.config.DefaultXMLFactoriesConfig.NamespacePhilosophy;
 
 /**
+ * Spring configuration for build related components.
+ * 
  * @author Oliver Gierke
  */
 @Configuration
-class MavenConfig {
+class BuildConfiguration {
+
+	@Bean
+	public PluginRegistry<BuildSystem, Project> buildSystems(List<? extends BuildSystem> buildSystems) {
+		return OrderAwarePluginRegistry.create(buildSystems);
+	}
 
 	@Bean
 	public ProjectionFactory projectionFactory() {
@@ -36,8 +48,6 @@ class MavenConfig {
 		config.setNamespacePhilosophy(NamespacePhilosophy.AGNOSTIC);
 		config.setOmitXMLDeclaration(false);
 
-		XBProjector projector = new XBProjector(config, Flags.TO_STRING_RENDERS_XML);
-
-		return projector;
+		return new XBProjector(config, Flags.TO_STRING_RENDERS_XML);
 	}
 }

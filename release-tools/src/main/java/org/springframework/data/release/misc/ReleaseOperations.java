@@ -24,7 +24,6 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
-import org.springframework.data.release.io.Workspace.LineCallback;
 import org.springframework.data.release.jira.Changelog;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.model.Iteration;
@@ -77,27 +76,23 @@ public class ReleaseOperations {
 
 			for (String location : CHANGELOG_LOCATIONS) {
 
-				boolean processed = workspace.processFile(location, module.getProject(), new LineCallback() {
+				boolean processed = workspace.processFile(location, module.getProject(), (line, number) -> {
 
-					@Override
-					public String doWith(String line, long number) {
+					if (line.startsWith("=")) {
 
-						if (line.startsWith("=")) {
+						StringBuilder builder = new StringBuilder();
+						builder.append(line).append("\n\n");
+						builder.append(changelog.toString());
 
-							StringBuilder builder = new StringBuilder();
-							builder.append(line).append("\n\n");
-							builder.append(changelog.toString());
-
-							return builder.toString();
-						} else {
-							return line;
-						}
+						return builder.toString();
+					} else {
+						return line;
 					}
 				});
 
 				if (processed) {
 
-					git.commit(module, "Updated changelog.", null);
+					git.commit(module, "Updated changelog.");
 
 					logger.log(module.getProject(), "Updated changelog %s.", location);
 				}
@@ -107,25 +102,14 @@ public class ReleaseOperations {
 
 	public void updateResources(TrainIteration iteration) throws Exception {
 
-		for (final ModuleIteration module : iteration) {
+		iteration.stream().forEach(module -> {
 
 			boolean processed = workspace.processFile("src/main/resources/notice.txt", module.getProject(),
-					new LineCallback() {
-
-						@Override
-						public String doWith(String line, long number) {
-
-							if (number != 0) {
-								return line;
-							}
-
-							return module.toString();
-						}
-					});
+					(line, number) -> number != 0 ? line : module.toString());
 
 			if (processed) {
 				logger.log(module, "Updated notice.txt.");
 			}
-		}
+		});
 	}
 }

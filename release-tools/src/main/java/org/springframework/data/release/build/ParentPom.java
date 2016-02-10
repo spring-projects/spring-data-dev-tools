@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.build;
 
 import org.springframework.data.release.model.ArtifactVersion;
 import org.xmlbeam.annotation.XBValue;
@@ -23,6 +23,9 @@ import org.xmlbeam.annotation.XBWrite;
  * @author Oliver Gierke
  */
 public interface ParentPom extends Pom {
+
+	@XBWrite("/project/properties/releasetrain")
+	void setReleaseTrain(@XBValue String releaseTrain);
 
 	@XBWrite("/project/profiles/profile[id=\"distribute\"]/dependencies/dependency/version")
 	void setSharedResourcesVersion(@XBValue ArtifactVersion value);

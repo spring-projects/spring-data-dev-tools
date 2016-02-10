@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,35 +19,39 @@ import static org.springframework.data.release.model.Projects.*;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.docs.DocumentationOperations;
+import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.build.BuildOperations;
+import org.springframework.data.release.deployment.DeploymentInformation;
+import org.springframework.data.release.deployment.DeploymentOperations;
 import org.springframework.data.release.git.GitOperations;
-import org.springframework.data.release.git.VersionTags;
-import org.springframework.data.release.gradle.GradleOperations;
-import org.springframework.data.release.maven.MavenOperations;
 import org.springframework.data.release.misc.ReleaseOperations;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
+import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
-import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
  */
-@Component
+@CliComponent
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class ReleaseCommands implements CommandMarker {
 
-	private final MavenOperations maven;
-	private final GradleOperations gradle;
 	private final GitOperations git;
 	private final ReleaseOperations misc;
-	private final DocumentationOperations docs;
+	private final DeploymentOperations deployment;
+	private final BuildOperations build;
 
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() throws Exception {
@@ -65,20 +69,6 @@ public class ReleaseCommands implements CommandMarker {
 	}
 
 	/**
-	 * Triggers the distribution of release artifacts for all projects.
-	 * 
-	 * @param trainName
-	 * @param iterationName
-	 * @throws Exception
-	 */
-	@CliCommand("release distribute")
-	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
-
-		git.checkout(iteration);
-		maven.triggerDistributionBuild(iteration);
-	}
-
-	/**
 	 * Prepares the release of the given iteration of the given train.
 	 * 
 	 * @param trainName the name of the release train (ignoring case).
@@ -92,22 +82,73 @@ public class ReleaseCommands implements CommandMarker {
 
 		misc.prepareChangelogs(iteration);
 		misc.updateResources(iteration);
-		docs.updateDockbookIncludes(iteration);
 
-		maven.updatePom(iteration, Phase.PREPARE);
-		gradle.updateProject(iteration, Phase.PREPARE);
+		build.updateProjectDescriptors(iteration, Phase.PREPARE);
 
-		git.commit(iteration, "Prepare %s.", null);
+		git.commit(iteration, "Prepare %s.");
 	}
 
+	@CliCommand(value = "release build")
+	public void buildRelease(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "project", mandatory = false) String projectName) throws Exception {
+
+		if (projectName != null) {
+
+			Project project = Projects.byName(projectName);
+			ModuleIteration module = iteration.getModule(project);
+
+			DeploymentInformation information = build.performRelease(module);
+			deployment.promote(information);
+
+		} else {
+
+			List<DeploymentInformation> deploymentInformation = build.performRelease(iteration);
+			git.commit(iteration, "Release version %s.");
+			deploymentInformation.forEach(deployment::promote);
+
+			build.prepareVersions(iteration, Phase.CLEANUP);
+			git.commit(iteration, "Prepare next development iteration.");
+		}
+	}
+
+	/**
+	 * Concludes the release of the given {@link TrainIteration}.
+	 * 
+	 * @param iteration
+	 * @throws Exception
+	 */
 	@CliCommand(value = "release conclude")
 	public void conclude(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 
+		Assert.notNull(iteration, "Train iteration must not be null!");
+
+		// Tag release
 		git.tagRelease(iteration);
 
-		maven.updatePom(iteration, Phase.CLEANUP);
-		gradle.updateProject(iteration, Phase.CLEANUP);
+		// Prepare master branch
+		build.updateProjectDescriptors(iteration, Phase.CLEANUP);
+		git.commit(iteration, "After release cleanups.");
 
-		git.commit(iteration, "After release cleanups.", null);
+		// Prepare maintenance branches
+		git.checkout(iteration);
+		git.createMaintenanceBranches(iteration);
+
+		build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
+		build.prepareVersions(iteration, Phase.MAINTENANCE);
+		git.commit(iteration, "Prepare next development iteration.");
+	}
+
+	/**
+	 * Triggers the distribution of release artifacts for all projects.
+	 * 
+	 * @param trainName
+	 * @param iterationName
+	 * @throws Exception
+	 */
+	@CliCommand("release distribute")
+	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+
+		git.checkout(iteration);
+		build.distributeResources(iteration);
 	}
 }

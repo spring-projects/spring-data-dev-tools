@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
@@ -86,12 +86,47 @@ public class GitOperations {
 
 				logger.log(module, "git reset --hard origin/%s", branch);
 
-				git.reset().//
-						setMode(ResetType.HARD).//
-						setRef("origin/".concat(branch.toString())).//
-						call();
+				reset(git, branch.toString());
 			}
 		});
+	}
+
+	/**
+	 * Checks out all projects of the given {@link TrainIteration}.
+	 * 
+	 * @param iteration
+	 * @throws Exception
+	 */
+	public void checkout(Train train) {
+
+		update(train);
+
+		ExecutionUtils.run(train, module -> {
+
+			try (Git git = new Git(getRepository(module.getProject()))) {
+
+				Branch branch = Branch.from(module);
+				CheckoutCommand command = git.checkout().setName(branch.toString());
+
+				if (!branchExists(module.getProject(), branch)) {
+
+					logger.log(module.getProject(), "git checkout -b %s --track origin/%s", branch, branch);
+					command.setCreateBranch(true).//
+							setStartPoint("origin/".concat(branch.toString())).//
+							call();
+
+				} else {
+
+					logger.log(module.getProject(), "git checkout %s", branch);
+					command.call();
+				}
+
+				logger.log(module.getProject(), "git reset --hard origin/%s", branch);
+				reset(git, branch.toString());
+			}
+		});
+
+		logger.log(train, "Successfully checked out projects.");
 	}
 
 	/**
@@ -120,7 +155,7 @@ public class GitOperations {
 
 				logger.log(module, "git checkout %s", tag);
 
-				git.checkout().setStartPoint(tag.toString());
+				git.checkout().setStartPoint(tag.toString()).call();
 			}
 		});
 
@@ -197,12 +232,13 @@ public class GitOperations {
 			if (workspace.hasProjectDirectory(project)) {
 
 				logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
-				logger.log(project, "git checkout master && git reset --hard && git fetch --tags && git pull origin master");
+				logger.log(project,
+						"git checkout master && git reset --hard origin/master && git fetch --tags && git pull origin master");
 
 				checkout(project, Branch.MASTER);
 
-				git.reset().setMode(ResetType.HARD).call();
-				git.fetch().setTagOpt(TagOpt.FETCH_TAGS);
+				reset(git, "master");
+				git.fetch().setTagOpt(TagOpt.FETCH_TAGS).call();
 				git.pull().call();
 
 			} else {
@@ -262,10 +298,22 @@ public class GitOperations {
 	 * 
 	 * @param iteration must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
+	 * @throws Exception
+	 */
+	public void commit(TrainIteration iteration, String summary) throws Exception {
+		commit(iteration, summary, Optional.empty());
+	}
+
+	/**
+	 * Commits all changes currently made to all modules of the given {@link TrainIteration}. The summary can contain a
+	 * single {@code %s} placeholder which the version of the current module will get replace into.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
 	 * @throws Exception
 	 */
-	public void commit(TrainIteration iteration, String summary, String details) throws Exception {
+	public void commit(TrainIteration iteration, String summary, Optional<String> details) throws Exception {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
@@ -273,19 +321,22 @@ public class GitOperations {
 		ExecutionUtils.run(iteration, module -> commit(module, expandSummary(summary, module, iteration), details));
 	}
 
-	private static String expandSummary(String summary, ModuleIteration module, TrainIteration iteration) {
-
-		if (!summary.contains("%s")) {
-			return summary;
-		}
-
-		return String.format(summary,
-				ArtifactVersion.of(module).toString().concat(String.format(" (%s)", iteration.toString())));
+	/**
+	 * Commits the given files for the given {@link ModuleIteration} using the given summary for the commit message. If no
+	 * files are given, all pending changes are committed.
+	 * 
+	 * @param module must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
+	 * @param files can be empty.
+	 * @throws Exception
+	 */
+	public void commit(ModuleIteration module, String summary, File... files) throws Exception {
+		commit(module, summary, Optional.empty(), files);
 	}
 
 	/**
 	 * Commits the given files for the given {@link ModuleIteration} using the given summary and details for the commit
-	 * message. If no files are given, all pending changes are commited.
+	 * message. If no files are given, all pending changes are committed.
 	 * 
 	 * @param module must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
@@ -293,7 +344,7 @@ public class GitOperations {
 	 * @param files can be empty.
 	 * @throws Exception
 	 */
-	public void commit(ModuleIteration module, String summary, String details, File... files) throws Exception {
+	public void commit(ModuleIteration module, String summary, Optional<String> details, File... files) throws Exception {
 
 		Assert.notNull(module, "Module iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
@@ -318,6 +369,55 @@ public class GitOperations {
 		}
 	}
 
+	public void checkout(Project project, Branch branch) throws Exception {
+
+		try (Git git = new Git(getRepository(project))) {
+
+			Ref ref = git.getRepository().getRef(branch.toString());
+			CheckoutCommand checkout = git.checkout().setName(branch.toString());
+
+			if (ref == null) {
+
+				checkout.setCreateBranch(true).//
+						setUpstreamMode(SetupUpstreamMode.TRACK).//
+						setStartPoint("origin/".concat(branch.toString()));
+			}
+
+			checkout.call();
+		}
+	}
+
+	public void createMaintenanceBranches(TrainIteration iteration) throws Exception {
+
+		checkout(iteration);
+
+		ExecutionUtils.run(iteration, module -> {
+			Branch branch = createMaintenanceBranch(module);
+			checkout(module.getProject(), branch);
+		});
+	}
+
+	private Branch createMaintenanceBranch(ModuleIteration module) throws Exception {
+
+		try (Git git = new Git(getRepository(module.getProject()))) {
+
+			Branch branch = Branch.from(module);
+			git.branchCreate().setName(branch.toString()).call();
+
+			return branch;
+		}
+	}
+
+	/**
+	 * Returns the {@link ObjectId} of the commit that is considered the release commit. It is identified by the summary
+	 * starting with the release ticket identifier, followed by a dash separated by spaces and the key word
+	 * {@code Release}. To prevent skimming through the entire Git history, we expect such a commit to be found within the
+	 * 50 most recent commits.
+	 * 
+	 * @param module
+	 * @return
+	 * @throws Exception
+	 */
 	private ObjectId getReleaseHash(ModuleIteration module) throws Exception {
 
 		Project project = module.getProject();
@@ -329,9 +429,7 @@ public class GitOperations {
 
 			for (RevCommit commit : git.log().setMaxCount(50).call()) {
 
-				String summary = commit.getShortMessage();
-
-				if (summary.startsWith(trigger)) {
+				if (commit.getShortMessage().startsWith(trigger)) {
 					return commit.getId();
 				}
 			}
@@ -351,36 +449,17 @@ public class GitOperations {
 	 */
 	private Tag findTagFor(Project project, ArtifactVersion version) {
 
-		return StreamSupport.stream(getTags(project).spliterator(), false).//
+		return getTags(project).stream().//
 				filter(tag -> tag.toArtifactVersion().map(it -> it.equals(version)).orElse(false)).//
 				findFirst().orElseThrow(() -> new IllegalArgumentException(
 						String.format("No tag found for version %s of project %s!", version, project)));
-	}
-
-	public void checkout(Project project, Branch branch) throws Exception {
-
-		try (Git git = new Git(getRepository(project))) {
-
-			Ref ref = git.getRepository().getRef(branch.toString());
-			CheckoutCommand checkout = git.checkout().setName(branch.toString());
-
-			if (ref == null) {
-
-				checkout.setCreateBranch(true).//
-						setUpstreamMode(SetupUpstreamMode.TRACK).//
-						setStartPoint("origin/".concat(branch.toString()));
-			}
-
-			checkout.call();
-
-		}
 	}
 
 	private Repository getRepository(Project project) throws IOException {
 		return FileRepositoryBuilder.create(workspace.getFile(".git", project));
 	}
 
-	public void clone(Project project) throws Exception {
+	private void clone(Project project) throws Exception {
 
 		Git git = Git.cloneRepository().//
 				setURI(getGitProject(project).getProjectUri()).//
@@ -389,5 +468,24 @@ public class GitOperations {
 
 		git.checkout().setName(Branch.MASTER.toString()).//
 				call();
+	}
+
+	private boolean branchExists(Project project, Branch branch) {
+
+		try (Git git = new Git(getRepository(project))) {
+
+			return git.getRepository().getRef(branch.toString()) != null;
+
+		} catch (Exception o_O) {
+			throw new RuntimeException(o_O);
+		}
+	}
+
+	private static void reset(Git git, String name) throws Exception {
+		git.reset().setMode(ResetType.HARD).setRef("origin/".concat(name)).call();
+	}
+
+	private static String expandSummary(String summary, ModuleIteration module, TrainIteration iteration) {
+		return summary.contains("%s") ? String.format(summary, module.getMediumVersionString()) : summary;
 	}
 }

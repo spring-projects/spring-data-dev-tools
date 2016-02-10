@@ -17,10 +17,7 @@ package org.springframework.data.release.jira;
 
 import lombok.Value;
 
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Train;
 
 /**
  * @author Oliver Gierke
@@ -28,16 +25,7 @@ import org.springframework.data.release.model.Train;
 @Value
 class JiraVersion {
 
-	private final Module module;
-	private final Train train;
-	private final Iteration iteration;
-
-	public JiraVersion(ModuleIteration moduleIteration) {
-
-		this.module = moduleIteration.getModule();
-		this.iteration = moduleIteration.getIteration();
-		this.train = moduleIteration.getTrain();
-	}
+	private ModuleIteration module;
 
 	/*
 	 * (non-Javadoc)
@@ -45,15 +33,6 @@ class JiraVersion {
 	 */
 	@Override
 	public String toString() {
-
-		Iteration iteration = this.iteration.isInitialIteration() && module.hasCustomFirstIteration() ? module
-				.getCustomFirstIteration() : this.iteration;
-
-		if (iteration.isServiceIteration()) {
-			return String.format("%s.%s (%s %s)", module.getVersion(), iteration.getBugfixValue(), train.getName(),
-					iteration.getName());
-		}
-
-		return String.format("%s %s (%s)", module.getVersion(), iteration.getName(), train.getName());
+		return module.getMediumVersionString();
 	}
 }

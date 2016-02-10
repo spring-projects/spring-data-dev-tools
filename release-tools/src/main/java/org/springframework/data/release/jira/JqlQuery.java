@@ -17,10 +17,10 @@ package org.springframework.data.release.jira;
 
 import static org.springframework.data.release.model.Projects.*;
 
+import lombok.Value;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Value;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.TrainIteration;

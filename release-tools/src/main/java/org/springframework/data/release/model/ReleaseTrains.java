@@ -36,8 +36,8 @@ public class ReleaseTrains {
 		EVANS = DIJKSTRA.next("Evans", Transition.MINOR);
 		FOWLER = EVANS.next("Fowler", Transition.MINOR);
 		GOSLING = FOWLER.next("Gosling", Transition.MINOR, new Module(KEY_VALUE, "1.0"));
-		HOPPER = GOSLING.next("Hopper", Transition.MINOR, new Module(NEO4J, "4.1"), new Module(COUCHBASE, "2.1"),
-				new Module(ENVERS, "1.0"));
+		HOPPER = GOSLING.next("Hopper", Transition.MINOR, new Module(SOLR, "2.0"), new Module(ENVERS, "1.0"),
+				new Module(NEO4J, "4.1"), new Module(COUCHBASE, "2.1"));
 
 		// Trains
 

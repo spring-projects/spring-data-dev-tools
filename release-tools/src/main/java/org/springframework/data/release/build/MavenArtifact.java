@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.build;
 
 import static org.springframework.data.release.model.Projects.*;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -24,25 +25,25 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
 
 /**
- * Value object to represent a Maven {@link Artifact}.
+ * Value object to represent a Maven artifact.
  * 
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
-public class Artifact {
+public class MavenArtifact {
 
-	private static final GroupId GROUP_ID = new GroupId("org.springframework.data");
+	private static final GroupId GROUP_ID = GroupId.of("org.springframework.data");
 
 	private final ModuleIteration module;
 	private final Repository repository;
 	private final @Getter ArtifactVersion version;
 
 	/**
-	 * Creates a new {@link Artifact} for the given {@link ModuleIteration}.
+	 * Creates a new {@link MavenArtifact} for the given {@link ModuleIteration}.
 	 * 
 	 * @param module must not be {@literal null}.
 	 */
-	public Artifact(ModuleIteration module) {
+	public MavenArtifact(ModuleIteration module) {
 
 		Assert.notNull(module, "Module iteration must not be null!");
 

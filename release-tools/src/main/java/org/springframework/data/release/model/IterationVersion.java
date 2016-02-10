@@ -20,9 +20,9 @@ package org.springframework.data.release.model;
  * 
  * @author Oliver Gierke
  */
-public interface IterationVersion {
-
-	Version getVersion();
+public interface IterationVersion extends VersionAware {
 
 	Iteration getIteration();
+
+	boolean isServiceIteration();
 }

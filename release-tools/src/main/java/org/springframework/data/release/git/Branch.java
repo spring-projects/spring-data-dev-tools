@@ -15,11 +15,13 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.release.model.IterationVersion;
 import org.springframework.data.release.model.Version;
+import org.springframework.data.release.model.VersionAware;
 import org.springframework.util.Assert;
 
 /**
@@ -27,8 +29,8 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
-@RequiredArgsConstructor
 @EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 class Branch {
 
 	public static final Branch MASTER = new Branch("master");
@@ -43,15 +45,28 @@ class Branch {
 	 */
 	public static Branch from(IterationVersion iterationVersion) {
 
-		Assert.notNull(iterationVersion, "Iteration versoin must not be null!");
+		Assert.notNull(iterationVersion, "Iteration version must not be null!");
 
-		Version version = iterationVersion.getVersion();
-
-		if (iterationVersion.getIteration().isServiceIteration()) {
-			return new Branch(version.toString().concat(".x"));
+		if (iterationVersion.isServiceIteration()) {
+			return from((VersionAware) iterationVersion);
 		}
 
 		return MASTER;
+	}
+
+	public static Branch from(VersionAware versioned) {
+		return from(versioned.getVersion());
+	}
+
+	private static Branch from(Version version) {
+		return from(version.toString().concat(".x"));
+	}
+
+	private static Branch from(String name) {
+
+		int slashIndex = name.lastIndexOf('/');
+
+		return new Branch(slashIndex != -1 ? name.substring(slashIndex + 1) : name);
 	}
 
 	/* 

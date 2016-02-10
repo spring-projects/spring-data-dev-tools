@@ -19,7 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.data.release.maven.Artifact;
+import org.springframework.data.release.build.MavenArtifact;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ReleaseTrains;
@@ -32,7 +32,7 @@ public class ArtifactUnitTests {
 	@Test
 	public void testname() {
 
-		Artifact artifact = new Artifact(ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "JPA"));
+		MavenArtifact artifact = new MavenArtifact(ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "JPA"));
 
 		assertThat(artifact.getArtifactId(), is("spring-data-jpa"));
 		assertThat(artifact.getVersion(), is(ArtifactVersion.of("1.6.0.M1")));

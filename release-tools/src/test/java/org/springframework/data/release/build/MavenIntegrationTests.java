@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.build;
 
 import java.io.IOException;
 
@@ -21,8 +21,16 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.release.AbstractIntegrationTests;
+import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Iteration;
+import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Phase;
+import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.model.UpdateInformation;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.io.XBFileIO;
 
@@ -33,6 +41,8 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired Workspace workspace;
 	@Autowired ProjectionFactory projection;
+	@Autowired MavenBuildSystem maven;
+	@Autowired GitOperations git;
 
 	@Test
 	public void modifiesParentPomCorrectly() throws IOException {
@@ -42,7 +52,7 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 		ParentPom pom = io.read(ParentPom.class);
 		pom.setSharedResourcesVersion(ArtifactVersion.of("1.2.0.RELEASE"));
 
-		// System.out.println(projection.asString(pom));
+		System.out.println(projection.asString(pom));
 	}
 
 	@Test
@@ -56,5 +66,18 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 		pom.setRepositoryUrl("spring-libs-release", "https://repo.spring.io/libs-release");
 
 		// System.out.println(projection.asString(pom));
+	}
+
+	@Test
+	public void testname() throws Exception {
+
+		git.update(ReleaseTrains.HOPPER);
+
+		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
+		ModuleIteration build = iteration.getModule(Projects.BUILD);
+		UpdateInformation information = new UpdateInformation(iteration, Phase.PREPARE);
+
+		maven.updateProjectDescriptors(build, information);
+		maven.prepareVersion(build, Phase.PREPARE);
 	}
 }

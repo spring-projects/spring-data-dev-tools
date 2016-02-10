@@ -33,6 +33,6 @@ class GitHubIssue {
 	}
 
 	public boolean isReleaseTicket(ModuleIteration module) {
-		return title.contains("Release") && title.contains(module.getVersionString());
+		return title.contains("Release") && title.contains(module.getShortVersionString());
 	}
 }

@@ -18,18 +18,20 @@ package org.springframework.data.release.jira;
 import lombok.RequiredArgsConstructor;
 
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.release.git.GitProject;
+import org.springframework.data.release.git.GitProperties;
 import org.springframework.data.release.git.GitServer;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
@@ -39,16 +41,16 @@ import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriTemplate;
 
 /**
  * @author Oliver Gierke
  */
-@Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
 class GitHubIssueTracker implements IssueTracker {
 
 	private static final String MILESTONE_URI = "https://api.github.com/repos/spring-projects/{repoName}/milestones?state={state}";
@@ -59,6 +61,7 @@ class GitHubIssueTracker implements IssueTracker {
 
 	private final RestOperations operations;
 	private final Logger logger;
+	private final GitProperties properties;
 
 	/* 
 	 * (non-Javadoc)
@@ -112,7 +115,9 @@ class GitHubIssueTracker implements IssueTracker {
 		parameters.put("repoName", repositoryName);
 		parameters.put("id", milestone.getNumber());
 
-		return operations.exchange(URI_TEMPLATE, HttpMethod.GET, null, ISSUES_TYPE, parameters).getBody();
+		return operations
+				.exchange(URI_TEMPLATE, HttpMethod.GET, new HttpEntity<>(getAuthenticationHeaders()), ISSUES_TYPE, parameters)
+				.getBody();
 	}
 
 	private GitHubMilestone findMilestone(ModuleIteration module, String repositoryName) {
@@ -127,13 +132,13 @@ class GitHubIssueTracker implements IssueTracker {
 
 			logger.log(module, "Looking up milestone from %s…", milestoneUri);
 
-			List<GitHubMilestone> exchange = operations
-					.exchange(MILESTONE_URI, HttpMethod.GET, null, MILESTONES_TYPE, parameters).getBody();
+			List<GitHubMilestone> exchange = operations.exchange(MILESTONE_URI, HttpMethod.GET,
+					new HttpEntity<>(getAuthenticationHeaders()), MILESTONES_TYPE, parameters).getBody();
 
 			GitHubMilestone milestone = null;
 
 			for (GitHubMilestone candidate : exchange) {
-				if (candidate.getTitle().contains(module.getVersionString())) {
+				if (candidate.getTitle().contains(module.getShortVersionString())) {
 					milestone = candidate;
 				}
 			}
@@ -144,7 +149,19 @@ class GitHubIssueTracker implements IssueTracker {
 			}
 		}
 
-		throw new IllegalStateException(String.format("No milestone found containing %s!", module.getVersionString()));
+		throw new IllegalStateException(String.format("No milestone found containing %s!", module.getShortVersionString()));
+	}
+
+	private HttpHeaders getAuthenticationHeaders() {
+
+		byte[] encodedAuth = Base64.getEncoder()
+				.encode(properties.getAuthenticationHeader().getBytes(Charset.forName("US-ASCII")));
+		String authHeader = "Basic " + new String(encodedAuth);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", authHeader);
+
+		return headers;
 	}
 
 	public static void main(String[] args) {

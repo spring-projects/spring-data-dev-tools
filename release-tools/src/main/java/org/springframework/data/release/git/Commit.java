@@ -18,6 +18,8 @@ package org.springframework.data.release.git;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
 import org.springframework.data.release.jira.Ticket;
 
 /**
@@ -29,7 +31,7 @@ public class Commit {
 
 	private final Ticket ticket;
 	private final String summary;
-	private final String details;
+	private final Optional<String> details;
 
 	/* 
 	 * (non-Javadoc)
@@ -42,10 +44,10 @@ public class Commit {
 
 		builder.append(ticket.getId()).append(" - ").append(summary).append("\n");
 
-		if (details != null) {
+		details.ifPresent(it -> {
 			builder.append("\n");
-			builder.append(details).append("\n");
-		}
+			builder.append(it).append("\n");
+		});
 
 		return builder.toString();
 	}

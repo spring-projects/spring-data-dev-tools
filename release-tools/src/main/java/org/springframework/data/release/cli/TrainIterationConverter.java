@@ -70,6 +70,6 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 			}
 		}
 
-		return false;
+		return true;
 	}
 }

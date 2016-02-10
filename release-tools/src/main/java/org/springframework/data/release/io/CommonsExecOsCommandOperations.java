@@ -15,8 +15,6 @@
  */
 package org.springframework.data.release.io;
 
-import lombok.RequiredArgsConstructor;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -35,22 +33,35 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link OsCommandOperations} interface.
+ * Implementation of {@link OsOperations} interface.
  * 
  * @author Stefan Schmidt
  * @author Oliver Gierke
  * @since 1.2.0
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-class CommonsExecOsCommandOperations implements OsCommandOperations {
+class CommonsExecOsCommandOperations implements OsOperations {
 
 	private static final Map<String, String> ENVIRONMENT = new HashMap<>();
 
 	private final Workspace workspace;
 	private final Logger logger;
+	private final File javaHome;
+
+	@Autowired
+	public CommonsExecOsCommandOperations(Workspace workspace, Logger logger, IoProperties properties) throws Exception {
+
+		this.workspace = workspace;
+		this.logger = logger;
+		this.javaHome = detectJavaHome(properties);
+
+		Assert.isTrue(javaHome.exists(), String.format("Java home %s does not exist!", javaHome.getAbsolutePath()));
+
+		ENVIRONMENT.put("JAVA_HOME", javaHome.getAbsolutePath());
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -133,20 +144,24 @@ class CommonsExecOsCommandOperations implements OsCommandOperations {
 				new CommandResult(resultHandler.getExitValue(), writer.toString(), resultHandler.getException()));
 	}
 
-	/**
-	 * Adds {@code JAVA_HOME} to the ENVIRONMENT variables looking up the path to a Java 7.
-	 * 
-	 * @throws Exception
-	 */
-	// @PostConstruct
-	public void initialize() throws Exception {
+	public File getJavaHome() {
+		return javaHome;
+	}
 
-		String javaHome = executeCommand("/usr/libexec/java_home -F -v 1.8 -a x86_64 -d64").get().getOutput();
+	private File detectJavaHome(IoProperties properties) throws Exception {
 
-		if (javaHome.endsWith("\n")) {
-			javaHome = javaHome.substring(0, javaHome.length() - 1);
+		File javaHome = properties.getJavaHome();
+
+		if (javaHome != null) {
+			return javaHome;
 		}
 
-		ENVIRONMENT.put("JAVA_HOME", javaHome);
+		String javaHomePath = executeCommand("/usr/libexec/java_home -F -v 1.8 -a x86_64 -d64").get().getOutput();
+
+		if (javaHomePath.endsWith("\n")) {
+			javaHomePath = javaHomePath.substring(0, javaHomePath.length() - 1);
+		}
+
+		return new File(javaHomePath);
 	}
 }

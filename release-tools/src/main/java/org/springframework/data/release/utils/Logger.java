@@ -32,23 +32,23 @@ public class Logger {
 
 	private final java.util.logging.Logger LOGGER = HandlerUtils.getLogger(getClass());
 
-	public void log(ModuleIteration module, String template, Object... args) {
+	public void log(ModuleIteration module, Object template, Object... args) {
 		log(module.getProject(), template, args);
 	}
 
-	public void log(Project project, String template, Object... args) {
+	public void log(Project project, Object template, Object... args) {
 		log(project.getName(), template, args);
 	}
 
-	public void log(TrainIteration iteration, String template, Object... args) {
+	public void log(TrainIteration iteration, Object template, Object... args) {
 		log(iteration.toString(), template, args);
 	}
 
-	public void log(Train train, String template, Object... args) {
+	public void log(Train train, Object template, Object... args) {
 		log(train.getName(), template, args);
 	}
 
-	private void log(String context, String template, Object... args) {
-		LOGGER.info(String.format(PREFIX_TEMPLATE, context, String.format(template, args)));
+	private void log(String context, Object template, Object... args) {
+		LOGGER.info(String.format(PREFIX_TEMPLATE, context, String.format(template.toString(), args)));
 	}
 }

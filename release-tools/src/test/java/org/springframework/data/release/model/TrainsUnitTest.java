@@ -39,4 +39,18 @@ public class TrainsUnitTest {
 	public void addsNewlyAddedModule() {
 		assertThat(ReleaseTrains.HOPPER.getModule(Projects.ENVERS), is(notNullValue()));
 	}
+
+	@Test
+	public void testname() {
+
+		Iterable<ModuleIteration> iterations = ReleaseTrains.HOPPER.getModuleIterations(Iteration.M1);
+
+		for (ModuleIteration iteration : iterations) {
+			System.out.println(iteration);
+		}
+
+		System.out.println();
+
+		iterations.forEach(System.out::println);
+	}
 }

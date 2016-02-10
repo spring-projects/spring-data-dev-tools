@@ -30,17 +30,19 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "io")
-public class IoProperties {
+class IoProperties {
 
-	private String workDir;
+	private File workDir, javaHome;
 
 	public void setWorkDir(String workDir) {
 
-		this.workDir = workDir.replace("~", System.getProperty("user.home"));
 		log.info(String.format("Using %s as working directory!", workDir));
+		this.workDir = new File(workDir.replace("~", System.getProperty("user.home")));
 	}
 
-	public File getWorkDir() {
-		return new File(workDir);
+	public void setJavaHome(String javaHome) {
+
+		log.info(String.format("Using %s as Java home!", javaHome));
+		this.workDir = new File(javaHome.replace("~", System.getProperty("user.home")));
 	}
 }

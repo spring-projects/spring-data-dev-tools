@@ -19,8 +19,8 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
+import org.springframework.data.release.Streamable;
 import org.springframework.util.Assert;
 
 /**
@@ -35,15 +35,15 @@ public class ExecutionUtils {
 	 * all executions to complete before returning. Exceptions being thrown in the {@link ConsumerWithException} will be
 	 * converted into {@link RuntimeException}s.
 	 * 
-	 * @param iterable must not be {@literal null}.
+	 * @param streamable must not be {@literal null}.
 	 * @param consumer must not be {@literal null}.
 	 */
-	public static <T> void run(Iterable<T> iterable, ConsumerWithException<T> consumer) {
+	public static <T> void run(Streamable<T> streamable, ConsumerWithException<T> consumer) {
 
-		Assert.notNull(iterable, "Iterable must not be null!");
+		Assert.notNull(streamable, "Streamable must not be null!");
 		Assert.notNull(consumer, "Consumer must not be null!");
 
-		StreamSupport.stream(iterable.spliterator(), false).//
+		streamable.stream().//
 				map(it -> CompletableFuture.runAsync(() -> {
 					try {
 						consumer.accept(it);
@@ -55,19 +55,19 @@ public class ExecutionUtils {
 	}
 
 	/**
-	 * Runs the given {@link Function} for each element in the given {@link Iterable} in parallel waiting for all
+	 * Runs the given {@link Function} for each element in the given {@link Streamable} in parallel waiting for all
 	 * executions to complete before returning the results.
 	 * 
-	 * @param iterable must not be {@literal null}.
+	 * @param streamable must not be {@literal null}.
 	 * @param function must not be {@literal null}.
 	 * @return
 	 */
-	public static <T, S> Collection<S> runAndReturn(Iterable<T> iterable, Function<T, S> function) {
+	public static <T, S> Collection<S> runAndReturn(Streamable<T> streamable, Function<T, S> function) {
 
-		Assert.notNull(iterable, "Iterable must not be null!");
+		Assert.notNull(streamable, "Iterable must not be null!");
 		Assert.notNull(function, "Consumer must not be null!");
 
-		return StreamSupport.stream(iterable.spliterator(), false).//
+		return streamable.stream().//
 				map(it -> CompletableFuture.supplyAsync(() -> function.apply(it))).//
 				collect(Collectors.toList()).//
 				stream().//

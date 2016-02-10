@@ -15,17 +15,23 @@
  */
 package org.springframework.data.release.io;
 
+import static org.springframework.data.release.utils.StreamUtils.*;
+
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.release.model.Project;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -44,6 +50,7 @@ public class Workspace {
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 	private final IoProperties ioProperties;
+	private final ResourcePatternResolver resolver;
 
 	/**
 	 * Returns the current working directory.
@@ -93,7 +100,23 @@ public class Workspace {
 		return new File(getProjectDirectory(project), name);
 	}
 
-	public boolean processFile(String filename, Project project, LineCallback callback) throws Exception {
+	public Stream<File> getFiles(String pattern, Project project) {
+
+		File projectDirectory = getProjectDirectory(project);
+		String patternToLookup = String.format("file:%s/%s", projectDirectory.getAbsolutePath(), pattern);
+
+		try {
+			return Arrays.stream(resolver.getResources(patternToLookup)).map(wrap(Resource::getFile));
+		} catch (IOException o_O) {
+			throw new RuntimeException(o_O);
+		}
+	}
+
+	public boolean processFiles(String pattern, Project project, LineCallback callback) {
+		return false;
+	}
+
+	public boolean processFile(String filename, Project project, LineCallback callback) {
 
 		File file = getFile(filename, project);
 
@@ -115,9 +138,13 @@ public class Workspace {
 					builder.append(result).append("\n");
 				}
 			}
+
+			writeContentToFile(filename, project, builder.toString());
+
+		} catch (Exception o_O) {
+			throw new RuntimeException(o_O);
 		}
 
-		writeContentToFile(filename, project, builder.toString());
 		return true;
 	}
 

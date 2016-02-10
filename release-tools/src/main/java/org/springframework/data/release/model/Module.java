@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Value
-public class Module {
+public class Module implements VersionAware {
 
 	private final Project project;
 	private final Version version;

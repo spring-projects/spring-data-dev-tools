@@ -22,4 +22,13 @@ public class SimpleIterationVersion implements IterationVersion {
 
 	private final Version version;
 	private final Iteration iteration;
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.model.IterationVersion#isServiceIteration()
+	 */
+	@Override
+	public boolean isServiceIteration() {
+		return iteration.isServiceIteration();
+	}
 }

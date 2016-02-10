@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.utils;
 
-import lombok.Value;
-
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Module;
+import java.util.function.Function;
 
 /**
  * @author Oliver Gierke
  */
-@Value
-class MavenProject {
+public interface StreamUtils {
 
-	private final Module module;
-
-	public String getGroupId() {
-		return "org.springframework.data";
+	public static <T, S> Function<T, S> wrap(FunctionWithException<T, S> function) {
+		return it -> {
+			try {
+				return function.apply(it);
+			} catch (Exception o_O) {
+				throw new RuntimeException(o_O);
+			}
+		};
 	}
 
-	public String getArtifactId() {
-		return String.format("spring-data-%s", module.getProject().getName().toLowerCase());
-	}
-
-	public ArtifactVersion getReleaseVersion() {
-		return ArtifactVersion.of(module.getVersion());
+	public interface FunctionWithException<T, S> {
+		S apply(T source) throws Exception;
 	}
 }

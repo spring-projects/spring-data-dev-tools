@@ -23,10 +23,13 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.release.git.GitProperties;
+import org.springframework.data.release.model.Project;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.plugin.core.config.EnablePluginRegistries;
+import org.springframework.plugin.core.OrderAwarePluginRegistry;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -37,13 +40,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Configuration
 @EnableCaching
-@PropertySource(value = "file:jira.properties", ignoreResourceNotFound = true)
-@EnablePluginRegistries({ IssueTracker.class })
-class JiraConfiguration {
+class IssueTrackerConfiguration {
 
 	@Bean
 	public CacheManager cacheManager() {
 		return new ConcurrentMapCacheManager();
+	}
+
+	@Bean
+	public PluginRegistry<IssueTracker, Project> issueTrackers(List<? extends IssueTracker> plugins) {
+		return OrderAwarePluginRegistry.create(plugins);
 	}
 
 	@Bean
@@ -68,5 +74,15 @@ class JiraConfiguration {
 		template.setMessageConverters(converters);
 
 		return template;
+	}
+
+	@Bean
+	public Jira jira(Logger logger) {
+		return new Jira(restTemplate(), logger);
+	}
+
+	@Bean
+	public GitHubIssueTracker github(Logger logger, GitProperties properties) {
+		return new GitHubIssueTracker(restTemplate(), logger, properties);
 	}
 }

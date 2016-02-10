@@ -19,8 +19,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.springframework.util.Assert;
 
@@ -35,17 +35,18 @@ public class Project {
 	private final @Getter String name;
 	private final @Getter List<Project> dependencies;
 	private final Tracker tracker;
-	private final @Getter List<String> additionalArtifacts;
+	private final @Getter ArtifactCoordinates additionalArtifacts;
 
 	Project(String key, String name, List<Project> dependencies) {
-		this(key, name, Tracker.JIRA, dependencies, Collections.emptyList());
+		this(key, name, Tracker.JIRA, dependencies, ArtifactCoordinates.NONE);
 	}
 
-	Project(String key, String name, List<Project> dependencies, List<String> additionalArtifacts) {
+	Project(String key, String name, List<Project> dependencies, ArtifactCoordinates additionalArtifacts) {
 		this(key, name, Tracker.JIRA, dependencies, additionalArtifacts);
 	}
 
-	Project(String key, String name, Tracker tracker, List<Project> dependencies, List<String> additionalArtifacts) {
+	Project(String key, String name, Tracker tracker, List<Project> dependencies,
+			ArtifactCoordinates additionalArtifacts) {
 
 		this.key = new ProjectKey(key);
 		this.name = name;
@@ -66,6 +67,10 @@ public class Project {
 		return "springdata.".concat(name.toLowerCase());
 	}
 
+	public void doWithAdditionalArtifacts(Consumer<ArtifactCoordinate> consumer) {
+		additionalArtifacts.getCoordinates().forEach(consumer);
+	}
+
 	/**
 	 * Returns whether the current project depends on the given one.
 	 * 
@@ -75,6 +80,7 @@ public class Project {
 	public boolean dependsOn(Project project) {
 
 		Assert.notNull(project, "Project must not be null!");
-		return dependencies.contains(project);
+
+		return dependencies.stream().anyMatch(dependency -> dependency.equals(project) || dependency.dependsOn(project));
 	}
 }

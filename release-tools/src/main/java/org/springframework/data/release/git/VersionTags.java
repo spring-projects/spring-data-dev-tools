@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
-public class VersionTags implements Iterable<Tag> {
+public class VersionTags implements Streamable<Tag> {
 
 	private final List<Tag> tags;
 

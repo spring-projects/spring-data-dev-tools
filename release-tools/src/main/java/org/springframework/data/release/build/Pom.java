@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.maven;
+package org.springframework.data.release.build;
 
 import org.springframework.data.release.model.ArtifactVersion;
 import org.xmlbeam.annotation.XBRead;
@@ -26,13 +26,16 @@ import org.xmlbeam.annotation.XBWrite;
 public interface Pom {
 
 	@XBRead("/project")
-	Artifact getArtifactId();
+	Artifact getArtifact();
+
+	@XBRead("/project/version")
+	String getRawVersion();
 
 	@XBRead("/project/version")
 	ArtifactVersion getVersion();
 
 	@XBWrite("/project/version")
-	void setVersion(String version);
+	void setVersion(ArtifactVersion version);
 
 	@XBWrite("/project/parent/version")
 	void setParentVersion(ArtifactVersion version);
@@ -73,12 +76,20 @@ public interface Pom {
 	public interface Artifact {
 
 		@XBRead("child::groupId")
-		String getGroupId();
+		GroupId getGroupId();
 
 		@XBRead("child::artifactId")
 		String getArtifactId();
 
 		@XBRead("child::version")
 		String getVersion();
+
+		default String getArtifactPath() {
+			return "/".concat(getGroupId().asPath()).concat("/").concat(getArtifactId());
+		}
+
+		default String getPath() {
+			return getArtifactPath().concat(getVersion());
+		}
 	}
 }

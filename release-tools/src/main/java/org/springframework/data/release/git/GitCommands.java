@@ -37,7 +37,12 @@ public class GitCommands implements CommandMarker {
 
 	private final GitOperations git;
 
-	@CliCommand("git checkout")
+	@CliCommand("git co train")
+	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
+		git.checkout(train);
+	}
+
+	@CliCommand("git co")
 	public void checkout(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 		git.checkout(iteration);
 	}

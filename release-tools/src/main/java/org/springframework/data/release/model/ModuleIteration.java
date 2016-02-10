@@ -27,8 +27,14 @@ import lombok.RequiredArgsConstructor;
 public class ModuleIteration implements IterationVersion {
 
 	private final @Getter Module module;
-	private final Iteration iteration;
-	private final @Getter Train train;
+	private final @Getter TrainIteration trainIteration;
+
+	/**
+	 * @return the train
+	 */
+	public Train getTrain() {
+		return trainIteration.getTrain();
+	}
 
 	public ProjectKey getProjectKey() {
 		return module.getProject().getKey();
@@ -52,19 +58,32 @@ public class ModuleIteration implements IterationVersion {
 	 * @see org.springframework.data.release.model.IterationVersion#getIteration()
 	 */
 	public Iteration getIteration() {
-		return this.iteration.isInitialIteration() && this.module.hasCustomFirstIteration() ? module
-				.getCustomFirstIteration() : this.iteration;
+
+		return trainIteration.getIteration().isInitialIteration() && this.module.hasCustomFirstIteration()
+				? module.getCustomFirstIteration() : this.trainIteration.getIteration();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.model.IterationVersion#isServiceIteration()
+	 */
+	@Override
+	public boolean isServiceIteration() {
+		return getIteration().isServiceIteration();
 	}
 
 	/**
-	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}.
+	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}. This will
+	 * abbreviate trailing zeros and not include the release train name.
 	 * 
 	 * @return
 	 */
-	public String getVersionString() {
+	public String getShortVersionString() {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append(ArtifactVersion.of(this).toShortString());
+
+		Iteration iteration = trainIteration.getIteration();
 
 		if (!iteration.isServiceIteration()) {
 			builder.append(" ").append(iteration.getName());
@@ -73,12 +92,41 @@ public class ModuleIteration implements IterationVersion {
 		return builder.toString();
 	}
 
+	public String getMediumVersionString() {
+
+		StringBuilder builder = new StringBuilder();
+		builder.append(ArtifactVersion.of(this).toShortString());
+
+		Iteration iteration = trainIteration.getIteration();
+
+		if (iteration.isServiceIteration()) {
+			builder.append(" (").append(trainIteration.toString());
+		} else {
+			builder.append(" ").append(iteration.getName()).append(" (");
+			builder.append(trainIteration.getTrain().getName());
+		}
+
+		return builder.append(")").toString();
+	}
+
+	/**
+	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}. This will use the
+	 * technical version string and append the train iteration.
+	 * 
+	 * @return
+	 */
+	public String getFullVersionString() {
+
+		String result = ArtifactVersion.of(this).toString();
+		return result.concat(" (").concat(trainIteration.toString()).concat(")");
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s %s", module.getProject().getFullName(), getVersionString());
+		return String.format("%s %s", module.getProject().getFullName(), getShortVersionString());
 	}
 }

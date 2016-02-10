@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
@@ -26,7 +27,7 @@ import org.springframework.data.release.model.Project;
  * @author Stefan Schmidt
  * @since 1.2.0
  */
-public interface OsCommandOperations {
+public interface OsOperations {
 
 	/**
 	 * Attempts the execution of a commands and delegates the output to the standard logger.
@@ -41,4 +42,6 @@ public interface OsCommandOperations {
 	Future<CommandResult> executeWithOutput(String command, Project project) throws IOException;
 
 	String executeForResult(String command, Project project) throws Exception;
+
+	File getJavaHome();
 }

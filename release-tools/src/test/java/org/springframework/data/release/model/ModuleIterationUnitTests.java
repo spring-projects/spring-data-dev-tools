@@ -31,7 +31,9 @@ public class ModuleIterationUnitTests {
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.M1);
 		ModuleIteration module = iteration.getModule(Projects.JPA);
 
-		assertThat(module.getVersionString(), is("1.6 M1"));
+		assertThat(module.getShortVersionString(), is("1.6 M1"));
+		assertThat(module.getMediumVersionString(), is("1.6 M1 (Dijkstra)"));
+		assertThat(module.getFullVersionString(), is("1.6.0.M1 (Dijkstra M1)"));
 	}
 
 	@Test
@@ -40,6 +42,8 @@ public class ModuleIterationUnitTests {
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.SR1);
 		ModuleIteration module = iteration.getModule(Projects.JPA);
 
-		assertThat(module.getVersionString(), is("1.6.1"));
+		assertThat(module.getShortVersionString(), is("1.6.1"));
+		assertThat(module.getMediumVersionString(), is("1.6.1 (Dijkstra SR1)"));
+		assertThat(module.getFullVersionString(), is("1.6.1.RELEASE (Dijkstra SR1)"));
 	}
 }

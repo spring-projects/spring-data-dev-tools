@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.release.docs;
 
 import static org.springframework.data.release.model.Projects.*;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ import org.springframework.data.release.git.GitProject;
 import org.springframework.data.release.git.Tag;
 import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.io.Workspace;
-import org.springframework.data.release.io.Workspace.LineCallback;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 public class DocumentationOperations {
 
 	private static final String INDEX_LOCATION = "/src/docbkx/index.xml";
@@ -61,16 +61,12 @@ public class DocumentationOperations {
 				continue;
 			}
 
-			workspace.processFile(INDEX_LOCATION, project, new LineCallback() {
+			workspace.processFile(INDEX_LOCATION, project, (line, number) -> {
 
-				@Override
-				public String doWith(String line, long number) {
+				boolean isInclude = line.contains("xi:include");
+				boolean containsGitRepo = line.contains(gitProject.getRepositoryName());
 
-					boolean isInclude = line.contains("xi:include");
-					boolean containsGitRepo = line.contains(gitProject.getRepositoryName());
-
-					return isInclude && containsGitRepo ? line.replace(previousTag.toString(), newTag.toString()) : line;
-				}
+				return isInclude && containsGitRepo ? line.replace(previousTag.toString(), newTag.toString()) : line;
 			});
 		}
 	}

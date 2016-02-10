@@ -23,13 +23,13 @@ import lombok.Value;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.data.release.Streamable;
 import org.springframework.shell.support.util.OsUtils;
 import org.springframework.util.Assert;
 
@@ -37,23 +37,20 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Value
-public class Train implements Iterable<Module> {
+public class Train implements Streamable<Module> {
 
 	private final String name;;
-	private final Collection<Module> modules;
+	private final Modules modules;
 	private final Iterations iterations;
 
 	public Train(String name, Module... modules) {
-
-		this.name = name;
-		this.modules = Arrays.asList(modules);
-		this.iterations = Iterations.DEFAULT;
+		this(name, Arrays.asList(modules));
 	}
 
 	public Train(String name, Collection<Module> modules) {
 
 		this.name = name;
-		this.modules = Collections.unmodifiableCollection(modules);
+		this.modules = new Modules(modules);
 		this.iterations = Iterations.DEFAULT;
 	}
 
@@ -64,6 +61,12 @@ public class Train implements Iterable<Module> {
 	@Override
 	public Iterator<Module> iterator() {
 		return modules.iterator();
+	}
+
+	public boolean contains(Project project) {
+
+		return modules.stream().//
+				anyMatch(module -> module.getProject().equals(project));
 	}
 
 	public Module getModule(String name) {
@@ -98,7 +101,7 @@ public class Train implements Iterable<Module> {
 		return modules.stream().//
 				filter(module -> module.hasName(moduleName)).//
 				findFirst().//
-				map(module -> new ModuleIteration(module, iteration, this)).//
+				map(module -> new ModuleIteration(module, new TrainIteration(this, iteration))).//
 				orElseThrow(
 						() -> new IllegalArgumentException(String.format("No module found with module name %s!", moduleName)));
 	}
@@ -113,7 +116,8 @@ public class Train implements Iterable<Module> {
 
 		return modules.stream().//
 				filter(module -> !exclusionList.contains(module.getProject())).//
-				map(module -> new ModuleIteration(module, iteration, this)).//
+				map(module -> new ModuleIteration(module, new TrainIteration(this, iteration))).//
+				sorted().//
 				collect(Collectors.toList());
 	}
 
@@ -125,7 +129,7 @@ public class Train implements Iterable<Module> {
 
 		Module module = getModule(project);
 
-		return ArtifactVersion.of(new ModuleIteration(module, iteration, this));
+		return ArtifactVersion.of(new ModuleIteration(module, new TrainIteration(this, iteration)));
 	}
 
 	/*

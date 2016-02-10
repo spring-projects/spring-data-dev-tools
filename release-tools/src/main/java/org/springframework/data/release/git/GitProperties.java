@@ -57,4 +57,8 @@ public class GitProperties {
 	public CredentialsProvider getCredentials() {
 		return new UsernamePasswordCredentialsProvider(username, password);
 	}
+
+	public String getAuthenticationHeader() {
+		return username.concat(":").concat(password);
+	}
 }
