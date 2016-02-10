@@ -247,7 +247,7 @@ class MavenBuildSystem implements BuildSystem {
 		List<String> arguments = new ArrayList<>();
 		arguments.add("clean");
 		arguments.add("deploy");
-		arguments.add("-Prelease");
+		arguments.add("-Pci,release");
 
 		arguments.add("-DskipTests");
 
