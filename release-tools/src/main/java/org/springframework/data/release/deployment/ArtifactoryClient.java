@@ -59,19 +59,51 @@ class ArtifactoryClient {
 		try {
 			template.postForEntity(uri, new PromotionRequest(information.getTargetRepository()), String.class);
 		} catch (HttpClientErrorException o_O) {
-			handle(o_O, module);
+			handle("Promotion failed!", o_O, module);
 		}
 	}
 
-	private void handle(HttpClientErrorException o_O, ModuleIteration module) {
+	public void verify() {
+
+		URI verificationResource = properties.getServer().getVerificationResource();
 
 		try {
 
-			logger.log(module, "Promotion failed!");
+			logger.log("Artifactory", "Verifying authentication using a GET call to %s.", verificationResource);
+
+			template.getForEntity(verificationResource, String.class);
+
+			logger.log("Artifactory", "Authentication verified!");
+
+		} catch (HttpClientErrorException o_O) {
+			handle("Authentication verification failed!", o_O);
+		}
+	}
+
+	private void handle(String log, HttpClientErrorException o_O, ModuleIteration module) {
+
+		try {
+
+			logger.log(module, log);
 
 			Errors errors = new ObjectMapper().readValue(o_O.getResponseBodyAsByteArray(), Errors.class);
 			errors.getErrors().forEach(error -> logger.log(module, error));
 			errors.getMessages().forEach(message -> logger.log(module, message));
+
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void handle(String log, HttpClientErrorException o_O) {
+
+		try {
+
+			logger.log("Artifactory Client", log);
+
+			Errors errors = new ObjectMapper().readValue(o_O.getResponseBodyAsByteArray(), Errors.class);
+			errors.getErrors().forEach(error -> logger.log("Artifactory Client", error));
+			errors.getMessages().forEach(message -> logger.log("Artifactory Client", message));
 
 		} catch (IOException e) {
 			throw new RuntimeException(e);

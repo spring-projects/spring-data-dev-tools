@@ -20,6 +20,7 @@ import lombok.Data;
 import java.net.URI;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriTemplate;
@@ -69,11 +70,16 @@ public class DeploymentProperties {
 		return server.getUri().toString().concat("/").concat(stagingRepository);
 	}
 
+	public HttpBasicCredentials getCredentials() {
+		return new HttpBasicCredentials(username, password);
+	}
+
 	@Data
 	public static class Server {
 
 		private static final String PROMOTION_RESOURCE = "/api/build/promote/{buildName}/{buildNumber}";
 		private static final String DELETE_BUILD_RESOURCE = "/api/build/{buildName}?buildNumbers={buildNumber}&artifacts=1";
+		private static final String VERIFICATION_RESOURCE = "/api/storage/test-libs-staging-local";
 
 		private String uri;
 
@@ -93,6 +99,10 @@ public class DeploymentProperties {
 		public URI getDeleteBuildResource(DeploymentInformation information) {
 
 			return new UriTemplate(uri.concat(DELETE_BUILD_RESOURCE)).expand(information.getBuildInfoParameters());
+		}
+
+		public URI getVerificationResource() {
+			return URI.create(uri.concat(VERIFICATION_RESOURCE));
 		}
 	}
 }

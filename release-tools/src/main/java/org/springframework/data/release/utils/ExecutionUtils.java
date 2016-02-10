@@ -51,7 +51,6 @@ public class ExecutionUtils {
 						throw new RuntimeException(o_O);
 					}
 				})).collect(Collectors.toList()).forEach(future -> future.join());
-
 	}
 
 	/**

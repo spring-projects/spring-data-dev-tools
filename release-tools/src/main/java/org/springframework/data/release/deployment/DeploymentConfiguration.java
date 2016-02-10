@@ -50,7 +50,7 @@ class DeploymentConfiguration {
 	public RestTemplate artifactoryRestTemplate() {
 
 		RestTemplate template = new RestTemplate();
-		template.setInterceptors(Arrays.asList(new AuthenticatingClientHttpRequestInterceptor(properties.getApiKey())));
+		template.setInterceptors(Arrays.asList(new AuthenticatingClientHttpRequestInterceptor(properties)));
 
 		return template;
 	}
@@ -58,7 +58,7 @@ class DeploymentConfiguration {
 	@RequiredArgsConstructor
 	private static class AuthenticatingClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
 
-		private final @NonNull String apiKey;
+		private final @NonNull DeploymentProperties properties;
 
 		/* 
 		 * (non-Javadoc)
@@ -68,7 +68,8 @@ class DeploymentConfiguration {
 		public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
 				throws IOException {
 
-			request.getHeaders().add("X-Api-Key", apiKey);
+			request.getHeaders().add("X-Api-Key", properties.getApiKey());
+			request.getHeaders().add("Authentication", properties.getCredentials().toString());
 
 			return execution.execute(request, body);
 		}

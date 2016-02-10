@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,21 @@ package org.springframework.data.release.deployment;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import org.springframework.data.release.CliComponent;
+import org.springframework.shell.core.CommandMarker;
+import org.springframework.shell.core.annotation.CliCommand;
 
 /**
- * Deployment functionality.
- * 
  * @author Oliver Gierke
  */
-@Component
+@CliComponent
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class DeploymentOperations {
+public class ArtifactoryCommands implements CommandMarker {
 
-	private final ArtifactoryClient client;
+	private final DeploymentOperations deployment;
 
-	public void verifyAuthentication() {
-		client.verify();
-	}
-
-	/**
-	 * Promotes the artifacts identified by the given {@link DeploymentInformation}.
-	 * 
-	 * @param information must not be {@literal null}.
-	 */
-	public void promote(DeploymentInformation information) {
-
-		Assert.notNull(information, "DeploymentInformation must not be null!");
-
-		client.promote(information);
+	@CliCommand(value = "artifactory verify", help = "Verifies authentication at Artifactory.")
+	public void verify() {
+		deployment.verifyAuthentication();
 	}
 }

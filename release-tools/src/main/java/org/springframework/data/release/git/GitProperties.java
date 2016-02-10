@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -58,7 +59,7 @@ public class GitProperties {
 		return new UsernamePasswordCredentialsProvider(username, password);
 	}
 
-	public String getAuthenticationHeader() {
-		return username.concat(":").concat(password);
+	public HttpBasicCredentials getHttpCredentials() {
+		return new HttpBasicCredentials(username, password);
 	}
 }

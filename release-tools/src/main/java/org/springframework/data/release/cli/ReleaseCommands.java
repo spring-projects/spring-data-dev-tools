@@ -102,6 +102,8 @@ public class ReleaseCommands implements CommandMarker {
 
 		} else {
 
+			deployment.verifyAuthentication();
+
 			List<DeploymentInformation> deploymentInformation = build.performRelease(iteration);
 			git.commit(iteration, "Release version %s.");
 			deploymentInformation.forEach(deployment::promote);

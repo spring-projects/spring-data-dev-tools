@@ -18,9 +18,7 @@ package org.springframework.data.release.jira;
 import lombok.RequiredArgsConstructor;
 
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,12 +152,8 @@ class GitHubIssueTracker implements IssueTracker {
 
 	private HttpHeaders getAuthenticationHeaders() {
 
-		byte[] encodedAuth = Base64.getEncoder()
-				.encode(properties.getAuthenticationHeader().getBytes(Charset.forName("US-ASCII")));
-		String authHeader = "Basic " + new String(encodedAuth);
-
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", authHeader);
+		headers.set("Authorization", properties.getHttpCredentials().toString());
 
 		return headers;
 	}
