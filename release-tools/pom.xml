@@ -96,7 +96,7 @@
 			<artifactId>maven-invoker</artifactId>
 			<version>2.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jgrapht</groupId>
 			<artifactId>jgrapht-core</artifactId>
@@ -119,11 +119,6 @@
 						<program>
 							<mainClass>${jar.mainclass}</mainClass>
 							<id>spring-data-release-shell</id>
-							<jvmSettings>
-								<systemProperties>
-									<systemProperty>git.password=${git.password}</systemProperty>
-								</systemProperties>
-							</jvmSettings>
 						</program>
 					</programs>
 				</configuration>
