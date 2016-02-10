@@ -29,6 +29,7 @@ import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.model.UpdateInformation;
 import org.springframework.plugin.core.PluginRegistry;
+import org.springframework.plugin.core.PluginRegistry.Supplier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -156,7 +157,10 @@ public class BuildOperations {
 	 * @return
 	 */
 	private <T> T doWithBuildSystem(ModuleIteration module, BiFunction<BuildSystem, ModuleIteration, T> function) {
-		return function.apply(buildSystems.getPluginFor(module.getProject(), () -> new IllegalStateException(
-				String.format("No build system plugin found for project %s!", module.getProject()))), module);
+
+		Supplier<IllegalStateException> exception = () -> new IllegalStateException(
+				String.format("No build system plugin found for project %s!", module.getProject()));
+
+		return function.apply(buildSystems.getPluginFor(module.getProject(), exception), module);
 	}
 }
