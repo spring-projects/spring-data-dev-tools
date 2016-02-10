@@ -29,6 +29,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -84,6 +85,32 @@ public class Workspace {
 			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
 
 				if (!workingDirPath.equals(dir)) {
+					Files.delete(dir);
+				}
+
+				return FileVisitResult.CONTINUE;
+			}
+		});
+	}
+
+	public void purge(Path path, Predicate<Path> filter) throws IOException {
+
+		Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+
+				if (filter.test(file)) {
+					Files.delete(file);
+				}
+
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+
+				if (filter.test(dir)) {
 					Files.delete(dir);
 				}
 

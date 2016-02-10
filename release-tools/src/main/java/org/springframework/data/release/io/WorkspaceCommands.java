@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.build.BuildOperations;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -33,6 +34,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 public class WorkspaceCommands implements CommandMarker {
 
 	private final Workspace workspace;
+	private final BuildOperations build;
 	private final Logger logger;
 
 	@CliCommand("workspace cleanup")
@@ -42,5 +44,20 @@ public class WorkspaceCommands implements CommandMarker {
 				workspace.getWorkingDirectory().getAbsolutePath());
 
 		workspace.cleanup();
+	}
+
+	/**
+	 * Removes all Spring Data artifacts from the local repository.
+	 * 
+	 * @throws IOException
+	 */
+	@CliCommand("workspace purge artifacts")
+	public void purge() throws IOException {
+
+		logger.log("Workspace", "Cleaning up workspace directory at %s.",
+				workspace.getWorkingDirectory().getAbsolutePath());
+
+		workspace.purge(build.getLocalRepository(),
+				path -> build.getLocalRepository().relativize(path).startsWith("org/springframework/data"));
 	}
 }

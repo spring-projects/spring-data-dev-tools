@@ -17,6 +17,7 @@ package org.springframework.data.release.build;
 
 import lombok.RequiredArgsConstructor;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
 public class BuildOperations {
 
 	private final PluginRegistry<BuildSystem, Project> buildSystems;
+	private final MavenProperties properties;
 
 	/**
 	 * Updates all inter-project dependencies based on the given {@link TrainIteration} and release {@link Phase}.
@@ -120,6 +122,10 @@ public class BuildOperations {
 		Assert.notNull(phase, "Phase must not be null!");
 
 		return doWithBuildSystem(iteration, (system, module) -> system.prepareVersion(module, phase));
+	}
+
+	public Path getLocalRepository() {
+		return properties.getLocalRepository().toPath();
 	}
 
 	/**
