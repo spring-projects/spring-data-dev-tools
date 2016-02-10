@@ -22,7 +22,11 @@ import lombok.RequiredArgsConstructor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.stream.Stream;
@@ -35,8 +39,6 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.release.model.Project;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import com.google.common.io.Files;
 
 /**
  * Abstraction of the workspace that is used to work with the {@link Project}'s repositories, execute builds, etc.
@@ -59,6 +61,35 @@ public class Workspace {
 	 */
 	public File getWorkingDirectory() {
 		return ioProperties.getWorkDir();
+	}
+
+	/**
+	 * Cleans up the working directory by removing all files and folders in it.
+	 * 
+	 * @throws IOException
+	 */
+	public void cleanup() throws IOException {
+
+		Path workingDirPath = getWorkingDirectory().toPath();
+
+		Files.walkFileTree(workingDirPath, new SimpleFileVisitor<Path>() {
+
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+				Files.delete(file);
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+
+				if (!workingDirPath.equals(dir)) {
+					Files.delete(dir);
+				}
+
+				return FileVisitResult.CONTINUE;
+			}
+		});
 	}
 
 	/**
@@ -151,7 +182,7 @@ public class Workspace {
 	private void writeContentToFile(String name, Project project, String content) throws IOException {
 
 		File file = getFile(name, project);
-		Files.write(content, file, UTF_8);
+		com.google.common.io.Files.write(content, file, UTF_8);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.cli;
+package org.springframework.data.release.io;
 
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
-import org.springframework.shell.core.annotation.CliOption;
 
 /**
  * @author Oliver Gierke
  */
 @CliComponent
-public class ModelCommands implements CommandMarker {
+@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+public class WorkspaceCommands implements CommandMarker {
 
-	@CliCommand(value = "trains", help = "Displays all release trains or contents of them if a name is provided")
-	public String train(@CliOption(key = { "", "train" }) Train train) {
+	private final Workspace workspace;
+	private final Logger logger;
 
-		return train != null ? train.toString()
-				: ReleaseTrains.TRAINS.stream().map(Train::getName).collect(Collectors.joining(", "));
+	@CliCommand("workspace cleanup")
+	public void cleanup() throws IOException {
+
+		logger.log("Workspace", "Cleaning up workspace directory at %s.",
+				workspace.getWorkingDirectory().getAbsolutePath());
+
+		workspace.cleanup();
 	}
 }
