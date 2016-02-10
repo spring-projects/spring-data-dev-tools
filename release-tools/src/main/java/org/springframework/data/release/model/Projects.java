@@ -50,7 +50,7 @@ public class Projects {
 		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS),
 				ArtifactCoordinates.NONE.artifacts("spring-cql"));
 		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
-		REDIS = new Project("DATAREDIS", "Redis", Collections.emptyList());
+		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS));
 		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS));
 
 		REST = new Project("DATAREST", "REST", Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA),
