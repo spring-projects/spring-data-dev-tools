@@ -50,7 +50,7 @@ public class Train implements Streamable<Module> {
 	public Train(String name, Collection<Module> modules) {
 
 		this.name = name;
-		this.modules = new Modules(modules);
+		this.modules = Modules.of(modules);
 		this.iterations = Iterations.DEFAULT;
 	}
 
@@ -117,7 +117,6 @@ public class Train implements Streamable<Module> {
 		return modules.stream().//
 				filter(module -> !exclusionList.contains(module.getProject())).//
 				map(module -> new ModuleIteration(module, new TrainIteration(this, iteration))).//
-				sorted().//
 				collect(Collectors.toList());
 	}
 
@@ -147,7 +146,6 @@ public class Train implements Streamable<Module> {
 
 		builder.append(modules.stream().//
 				map(Module::toString).//
-				sorted().//
 				collect(Collectors.joining(OsUtils.LINE_SEPARATOR)));
 
 		return builder.toString();

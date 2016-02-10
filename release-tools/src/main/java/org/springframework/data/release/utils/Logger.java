@@ -48,7 +48,7 @@ public class Logger {
 		log(train.getName(), template, args);
 	}
 
-	private void log(String context, Object template, Object... args) {
+	public void log(String context, Object template, Object... args) {
 		LOGGER.info(String.format(PREFIX_TEMPLATE, context, String.format(template.toString(), args)));
 	}
 }

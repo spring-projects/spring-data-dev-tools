@@ -15,21 +15,34 @@
  */
 package org.springframework.data.release.model;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 import org.springframework.data.release.Streamable;
 
 /**
+ * A {@link Streamable} set of modules. Makes sure the stream order will match the natural dependency order of the given
+ * {@link Module} instances.
+ * 
  * @author Oliver Gierke
  */
-@RequiredArgsConstructor
-public class Modules implements Streamable<Module> {
+class Modules implements Streamable<Module> {
 
 	private final Collection<Module> modules;
 
+	private Modules(Collection<Module> modules) {
+		this.modules = new TreeSet<>(modules);
+	}
+
+	public static Modules of(Collection<Module> modules) {
+		return new Modules(modules);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Iterable#iterator()
+	 */
 	public Iterator<Module> iterator() {
 		return modules.iterator();
 	}

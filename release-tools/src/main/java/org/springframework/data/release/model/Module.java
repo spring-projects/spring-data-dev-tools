@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Value
-public class Module implements VersionAware {
+public class Module implements VersionAware, Comparable<Module> {
 
 	private final Project project;
 	private final Version version;
@@ -67,6 +67,19 @@ public class Module implements VersionAware {
 		return this.project.equals(module.project);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Module that) {
+		return this.project.compareTo(that.project);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return String.format("Spring Data %s %s - %s", project.getName(), version, project.getKey());

@@ -83,5 +83,4 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 	public String toString() {
 		return String.format("%s %s", train.getName(), iteration.getName());
 	}
-
 }

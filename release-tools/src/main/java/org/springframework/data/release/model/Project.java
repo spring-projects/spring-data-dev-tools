@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  */
 @ToString
 @EqualsAndHashCode
-public class Project {
+public class Project implements Comparable<Project> {
 
 	private final @Getter ProjectKey key;
 	private final @Getter String name;
@@ -82,5 +82,14 @@ public class Project {
 		Assert.notNull(project, "Project must not be null!");
 
 		return dependencies.stream().anyMatch(dependency -> dependency.equals(project) || dependency.dependsOn(project));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Project that) {
+		return Projects.PROJECTS.indexOf(this) - Projects.PROJECTS.indexOf(that);
 	}
 }
