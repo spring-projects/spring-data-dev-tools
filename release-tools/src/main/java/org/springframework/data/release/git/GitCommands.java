@@ -15,7 +15,7 @@
  */
 package org.springframework.data.release.git;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +23,8 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.jira.Ticket;
+import org.springframework.data.release.jira.TicketBranches;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
@@ -30,7 +32,11 @@ import org.springframework.data.release.model.TrainIteration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
+import org.springframework.shell.support.table.Table;
+import org.springframework.shell.support.table.TableHeader;
 import org.springframework.util.StringUtils;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Oliver Gierke
@@ -67,8 +73,8 @@ public class GitCommands implements CommandMarker {
 
 	/**
 	 * Resets all projects contained in the given {@link Train}.
-	 * 
-	 * @param trainName
+	 *
+	 * @param iteration
 	 * @throws Exception
 	 */
 	@CliCommand("git reset")
@@ -84,7 +90,7 @@ public class GitCommands implements CommandMarker {
 	/**
 	 * Pushes all changes of all modules of the given {@link TrainIteration} to the remote server. If {@code tags} is
 	 * given, only the tags are pushed.
-	 * 
+	 *
 	 * @param iteration
 	 * @param tags
 	 * @throws Exception
@@ -117,5 +123,45 @@ public class GitCommands implements CommandMarker {
 				.collect(Collectors.toList());
 
 		git.backportChangelogs(iteration, targets);
+	}
+
+	/**
+	 * List the branches with their tickets of the git repository.
+	 *
+	 * @param projectName
+	 * @return
+	 * @throws Exception
+	 */
+	@CliCommand("git issuebranches")
+	public Table issuebranches(@CliOption(key = { "" }, mandatory = true) String projectName,
+			@CliOption(key = "resolved") Boolean resolved) throws Exception {
+
+		Project project = ReleaseTrains.getProjectByName(projectName);
+
+		Table table = new Table();
+		TicketBranches ticketBranches = git.listTicketBranches(project);
+
+		table.addHeader(1, new TableHeader("Branch"));
+		table.addHeader(2, new TableHeader("Status"));
+		table.addHeader(3, new TableHeader("Description"));
+
+		ticketBranches.stream().sorted().//
+				filter(branch -> {
+					Optional<Ticket> ticket = ticketBranches.getTicket(branch);
+					if (resolved != null && resolved) {
+						if (!ticket.isPresent() || (ticket.isPresent() && ticket.get().getTicketStatus().isResolved())) {
+							return false;
+						}
+					}
+
+					return true;
+				}).//
+				forEachOrdered(branch -> {
+					Optional<Ticket> ticket = ticketBranches.getTicket(branch);
+					table.addRow(branch.toString(), ticket.map(t -> t.getTicketStatus().getLabel()).orElse(""),
+							ticket.map(t -> t.getSummary()).orElse(""));
+				});
+
+		return table;
 	}
 }

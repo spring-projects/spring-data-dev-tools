@@ -52,6 +52,8 @@ class JiraIssue {
 
 		String summary;
 		List<FixVersions> fixVersions;
+		Status status;
+		Resolution resolution;
 	}
 
 	@Data
@@ -60,5 +62,30 @@ class JiraIssue {
 	static class FixVersions {
 
 		String name;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	static class Status {
+
+		String name;
+		StatusCategory statusCategory;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	static class Resolution {
+
+		String name;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	static class StatusCategory {
+
+		String key;
 	}
 }

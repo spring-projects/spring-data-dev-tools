@@ -15,14 +15,16 @@
  */
 package org.springframework.data.release.jira;
 
-import lombok.RequiredArgsConstructor;
-
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.cache.annotation.CacheEvict;
@@ -71,7 +73,7 @@ class Jira implements JiraConnector {
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("jql", query);
-		parameters.put("fields", "summary");
+		parameters.put("fields", "summary,status,resolution");
 		parameters.put("startAt", 0);
 
 		JiraIssues issues = operations.exchange(SEARCH_TEMPLATE, HttpMethod.GET, null, JiraIssues.class, parameters)
@@ -83,7 +85,34 @@ class Jira implements JiraConnector {
 
 		JiraIssue issue = issues.getIssues().get(0);
 
-		return new Ticket(issue.getKey(), issue.getFields().getSummary());
+		return toTicket(issue);
+	}
+
+	/**
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.IssueTracker#findTickets(Project, Collection)
+	 */
+	@Override
+	@Cacheable("tickets")
+	public Collection<Ticket> findTickets(Project project, Collection<String> ticketIds) {
+
+		if (ticketIds.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		JqlQuery query = JqlQuery.from(ticketIds).and(" resolution is not EMPTY");
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("jql", query);
+		parameters.put("fields", "summary,status,resolution");
+		parameters.put("startAt", 0);
+
+		JiraIssues issues = operations.exchange(SEARCH_TEMPLATE, HttpMethod.GET, null, JiraIssues.class, parameters)
+				.getBody();
+
+		return issues.getIssues().stream().//
+				map(this::toTicket).//
+				collect(Collectors.toList());
 	}
 
 	/*
@@ -118,7 +147,7 @@ class Jira implements JiraConnector {
 
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("jql", query);
-			parameters.put("fields", "summary,fixVersions");
+			parameters.put("fields", "summary,status,resolution,fixVersions");
 			parameters.put("startAt", startAt);
 
 			issues = operations
@@ -128,7 +157,7 @@ class Jira implements JiraConnector {
 
 			for (JiraIssue issue : issues) {
 				if (!issue.wasBackportedFrom(iteration.getTrain())) {
-					tickets.add(new Ticket(issue.getKey(), issue.getFields().getSummary()));
+					tickets.add(toTicket(issue));
 				}
 			}
 
@@ -137,6 +166,24 @@ class Jira implements JiraConnector {
 		} while (issues.hasMoreResults());
 
 		return new Tickets(Collections.unmodifiableList(tickets), issues.getTotal());
+	}
+
+	private Ticket toTicket(JiraIssue issue) {
+
+		JiraIssue.Fields fields = issue.getFields();
+
+		JiraTicketStatus jiraTicketStatus;
+		if (fields.getStatus() != null && fields.getResolution() != null) {
+			JiraIssue.Status status = fields.getStatus();
+			boolean resolved = status.getStatusCategory().getKey().equals("done");
+			JiraIssue.Resolution resolution = fields.getResolution();
+
+			jiraTicketStatus = new JiraTicketStatus(resolved, status.getName(), resolution.getName());
+		} else {
+			jiraTicketStatus = JiraTicketStatus.UNKNOWN;
+		}
+
+		return new Ticket(issue.getKey(), fields.getSummary(), jiraTicketStatus);
 	}
 
 	/* 
@@ -180,7 +227,7 @@ class Jira implements JiraConnector {
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("jql", JqlQuery.from(module));
-		parameters.put("fields", "summary,fixVersions");
+		parameters.put("fields", "summary,status,resolution,fixVersions");
 		parameters.put("startAt", 0);
 
 		URI searchUri = new UriTemplate(SEARCH_TEMPLATE).expand(parameters);
@@ -191,7 +238,7 @@ class Jira implements JiraConnector {
 		List<Ticket> tickets = new ArrayList<>();
 
 		for (JiraIssue issue : issues) {
-			tickets.add(new Ticket(issue.getKey(), issue.getFields().getSummary()));
+			tickets.add(toTicket(issue));
 		}
 
 		logger.log(module, "Created changelog with %s entries.", tickets.size());

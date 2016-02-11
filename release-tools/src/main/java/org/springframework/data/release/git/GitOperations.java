@@ -15,19 +15,26 @@
  */
 package org.springframework.data.release.git;
 
-import lombok.RequiredArgsConstructor;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -40,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.Ticket;
+import org.springframework.data.release.jira.TicketBranches;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -93,7 +101,7 @@ public class GitOperations {
 
 	/**
 	 * Checks out all projects of the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param train
 	 * @throws Exception
 	 */
@@ -269,6 +277,63 @@ public class GitOperations {
 		});
 	}
 
+	/**
+	 * Retrieve a list of remote branches where their related ticket is resolved.
+	 * 
+	 * @param project
+	 * @return
+	 */
+	public TicketBranches listTicketBranches(Project project) {
+
+		IssueTracker tracker = issueTracker.getPluginFor(project);
+
+		try (Git git = new Git(getRepository(project))) {
+			update(project);
+			Pattern pattern = Pattern.compile(project.getTracker().getTicketPattern());
+
+			Collection<Ref> branches = git.lsRemote().setHeads(true).setTags(false).call();
+
+			Set<String> possibleTicketIds = branches.stream().//
+					filter(branch -> pattern.matcher(branch.getName()).find()).//
+					map(branch -> {
+						Matcher matcher = pattern.matcher(branch.getName());
+						matcher.find();
+						return matcher.group(1);
+					}).//
+					collect(Collectors.toSet());
+
+			Collection<Ticket> tickets = tracker.findTickets(project, possibleTicketIds);
+			Map<String, Ticket> ticketMap = tickets.stream().collect(Collectors.toMap(Ticket::getId, ticket -> ticket));
+
+			Map<Branch, Ticket> ticketBranches = new HashMap<>();
+			branches.stream().//
+					map(branch -> {
+						if (branch.getName().startsWith(Constants.R_HEADS)) {
+							return branch.getName().substring(Constants.R_HEADS.length());
+						}
+
+						if (branch.getName().startsWith(Constants.R_REMOTES)) {
+							return branch.getName().substring(Constants.R_REMOTES.length());
+						}
+						return branch.getName();
+					}).filter(branchName -> {
+						Matcher matcher = pattern.matcher(branchName);
+						return matcher.find();
+					}).//
+					forEach((branchName) -> {
+
+						Matcher matcher = pattern.matcher(branchName);
+						matcher.find();
+						String ticketId = matcher.group(1);
+						ticketBranches.put(Branch.from(branchName), ticketMap.get(ticketId));
+					});
+
+			return TicketBranches.from(ticketBranches);
+		} catch (Exception o_O) {
+			throw new RuntimeException(o_O);
+		}
+	}
+
 	public void tagRelease(TrainIteration iteration) {
 
 		ExecutionUtils.run(iteration, module -> {
@@ -300,7 +365,7 @@ public class GitOperations {
 	/**
 	 * Commits all changes currently made to all modules of the given {@link TrainIteration}. The summary can contain a
 	 * single {@code %s} placeholder which the version of the current module will get replace into.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
 	 * @throws Exception
@@ -328,7 +393,7 @@ public class GitOperations {
 	/**
 	 * Commits the given files for the given {@link ModuleIteration} using the given summary for the commit message. If no
 	 * files are given, all pending changes are committed.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
 	 * @param files can be empty.
@@ -505,7 +570,7 @@ public class GitOperations {
 	 * starting with the release ticket identifier, followed by a dash separated by spaces and the key word
 	 * {@code Release}. To prevent skimming through the entire Git history, we expect such a commit to be found within the
 	 * 50 most recent commits.
-	 * 
+	 *
 	 * @param module
 	 * @return
 	 * @throws Exception

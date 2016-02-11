@@ -6,3 +6,5 @@ target/
 .springBeans
 application-local.properties
 spring-shell.log
+.idea/
+*.iml

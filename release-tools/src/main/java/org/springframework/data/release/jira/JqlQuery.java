@@ -20,7 +20,10 @@ import static org.springframework.data.release.model.Projects.*;
 import lombok.Value;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.TrainIteration;
@@ -33,6 +36,7 @@ import org.springframework.util.StringUtils;
 class JqlQuery {
 
 	private static final String PROJECT_VERSION_TEMPLATE = "project = %s AND fixVersion = \"%s\"";
+	private static final String ISSUE_KEY_IN_TEMPLATE = "issueKey in (%s)";
 
 	private final String query;
 
@@ -49,6 +53,13 @@ class JqlQuery {
 		JiraVersion version = new JiraVersion(iteration);
 
 		return new JqlQuery(String.format(PROJECT_VERSION_TEMPLATE, iteration.getProjectKey(), version));
+	}
+
+	public static JqlQuery from(Collection<String> ticketIds) {
+
+		String joinedTicketIds = ticketIds.stream().collect(Collectors.joining(", "));
+
+		return new JqlQuery(String.format(ISSUE_KEY_IN_TEMPLATE, joinedTicketIds));
 	}
 
 	public static JqlQuery from(TrainIteration iteration) {
