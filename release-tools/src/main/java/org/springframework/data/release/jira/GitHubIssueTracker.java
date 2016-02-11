@@ -18,12 +18,15 @@ package org.springframework.data.release.jira;
 import lombok.RequiredArgsConstructor;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -42,6 +45,8 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriTemplate;
 
@@ -49,19 +54,31 @@ import org.springframework.web.util.UriTemplate;
  * @author Oliver Gierke
  */
 @RequiredArgsConstructor
-class GitHubIssueTracker implements IssueTracker {
+class GitHubIssueTracker implements GitHubConnector {
 
 	private static final String MILESTONE_URI = "https://api.github.com/repos/spring-projects/{repoName}/milestones?state={state}";
-	private static final String URI_TEMPLATE = "https://api.github.com/repos/spring-projects/{repoName}/issues?milestone={id}&state=all";
+	private static final String ISSUES_BY_MILESTONE_URI_TEMPLATE = "https://api.github.com/repos/spring-projects/{repoName}/issues?milestone={id}&state=all";
+	private static final String ISSUE_BY_ID_URI_TEMPLATE = "https://api.github.com/repos/spring-projects/{repoName}/issues/{id}";
 
 	private static final ParameterizedTypeReference<List<GitHubMilestone>> MILESTONES_TYPE = new ParameterizedTypeReference<List<GitHubMilestone>>() {};
 	private static final ParameterizedTypeReference<List<GitHubIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubIssue>>() {};
+	private static final ParameterizedTypeReference<GitHubIssue> ISSUE_TYPE = new ParameterizedTypeReference<GitHubIssue>() {};
 
 	private final RestOperations operations;
 	private final Logger logger;
 	private final GitProperties properties;
 
-	/* 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.JiraConnector#flushTickets()
+	 */
+	@Override
+	@CacheEvict(value = "tickets", allEntries = true)
+	public void reset() {
+
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.IssueTracker#getReleaseTicketFor(org.springframework.data.release.model.ModuleIteration)
 	 */
@@ -72,12 +89,49 @@ class GitHubIssueTracker implements IssueTracker {
 		return getIssuesFor(module).stream().//
 				filter(issue -> issue.isReleaseTicket(module)).//
 				findFirst().//
-				map(issue -> new Ticket(issue.getId(), issue.getTitle())).//
+				map(issue -> toTicket(issue)).//
 				orElseThrow(
 						() -> new IllegalArgumentException(String.format("Could not find a release ticket for %s!", module)));
 	}
 
-	/* 
+	private Ticket toTicket(GitHubIssue issue) {
+		return new Ticket(issue.getId(), issue.getTitle(), new GithubTicketStatus(issue.getState()));
+	}
+
+	/**
+	 * (non-Javadoc)
+	 *
+	 * @see IssueTracker#findTickets(Project, Collection)
+	 */
+	@Override
+	@Cacheable("tickets")
+	public Collection<Ticket> findTickets(Project project, Collection<String> ticketIds) {
+
+		String repositoryName = new GitProject(project, new GitServer()).getRepositoryName();
+		List<Ticket> tickets = new ArrayList<>();
+		for (String ticketId : ticketIds) {
+
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("repoName", repositoryName);
+			parameters.put("id", ticketId);
+
+			try {
+				GitHubIssue gitHubIssue = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.GET,
+						new HttpEntity<>(getAuthenticationHeaders()), ISSUE_TYPE, parameters).getBody();
+
+				tickets.add(toTicket(gitHubIssue));
+			} catch (HttpStatusCodeException e) {
+				if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+					continue;
+				}
+				throw e;
+			}
+		}
+
+		return tickets;
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.IssueTracker#getChangelogFor(org.springframework.data.release.model.ModuleIteration)
 	 */
@@ -86,7 +140,7 @@ class GitHubIssueTracker implements IssueTracker {
 	public Changelog getChangelogFor(ModuleIteration module) {
 
 		List<Ticket> tickets = getIssuesFor(module).stream().//
-				map(issue -> new Ticket(issue.getId(), issue.getTitle())).//
+				map(issue -> toTicket(issue)).//
 				collect(Collectors.toList());
 
 		logger.log(module, "Created changelog with %s entries.", tickets.size());
@@ -113,9 +167,8 @@ class GitHubIssueTracker implements IssueTracker {
 		parameters.put("repoName", repositoryName);
 		parameters.put("id", milestone.getNumber());
 
-		return operations
-				.exchange(URI_TEMPLATE, HttpMethod.GET, new HttpEntity<>(getAuthenticationHeaders()), ISSUES_TYPE, parameters)
-				.getBody();
+		return operations.exchange(ISSUES_BY_MILESTONE_URI_TEMPLATE, HttpMethod.GET,
+				new HttpEntity<>(getAuthenticationHeaders()), ISSUES_TYPE, parameters).getBody();
 	}
 
 	private GitHubMilestone findMilestone(ModuleIteration module, String repositoryName) {

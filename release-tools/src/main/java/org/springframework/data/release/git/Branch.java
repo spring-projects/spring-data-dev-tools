@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  */
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-class Branch {
+public class Branch implements Comparable<Branch> {
 
 	public static final Branch MASTER = new Branch("master");
 
@@ -62,19 +62,24 @@ class Branch {
 		return from(version.toString().concat(".x"));
 	}
 
-	private static Branch from(String name) {
+	public static Branch from(String name) {
 
 		int slashIndex = name.lastIndexOf('/');
 
 		return new Branch(slashIndex != -1 ? name.substring(slashIndex + 1) : name);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public int compareTo(Branch o) {
+		return name.compareToIgnoreCase(o.name);
 	}
 }

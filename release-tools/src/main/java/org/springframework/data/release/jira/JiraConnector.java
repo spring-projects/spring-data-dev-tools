@@ -29,8 +29,8 @@ public interface JiraConnector extends IssueTracker {
 	/**
 	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
 	 * 
-	 * @param train must not be {@literal null}.
 	 * @param iteration must not be {@literal null}.
+	 * @param credentials may be {@literal null}.
 	 * @return
 	 */
 	Tickets getTicketsFor(TrainIteration iteration, Credentials credentials);

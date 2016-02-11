@@ -27,6 +27,7 @@ public class Ticket {
 
 	private final String id;
 	private final String summary;
+	private final TicketStatus ticketStatus;
 
 	/*
 	 * (non-Javadoc)
