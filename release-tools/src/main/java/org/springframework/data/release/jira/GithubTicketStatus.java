@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 
 /**
  * Value object for a GitHub ticket status.
+ * 
  * @author Mark Paluch
  */
 @AllArgsConstructor

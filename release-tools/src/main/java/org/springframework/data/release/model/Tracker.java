@@ -20,8 +20,7 @@ package org.springframework.data.release.model;
  */
 public enum Tracker {
 
-	JIRA("(([A-Z]{1,10})+-\\d+)"),
-	GITHUB("((#)?\\d+)");
+	JIRA("(([A-Z]{1,10})+-\\d+)"), GITHUB("((#)?\\d+)");
 
 	private String ticketPattern;
 
@@ -29,8 +28,7 @@ public enum Tracker {
 		this.ticketPattern = ticketPattern;
 	}
 
-	public String getTicketPattern()
-	{
+	public String getTicketPattern() {
 		return ticketPattern;
 	}
 

@@ -90,6 +90,7 @@ class Jira implements JiraConnector {
 
 	/**
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.data.release.jira.IssueTracker#findTickets(Project, Collection)
 	 */
 	@Override

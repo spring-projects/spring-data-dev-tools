@@ -48,7 +48,6 @@ public class Branches implements Iterable<Branch> {
 				sorted().collect(Collectors.toList());
 	}
 
-
 	/**
 	 * Returns all {@link Branch}es as {@link List}.
 	 * 
