@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.release.jira;
 
-import lombok.Data;
-
-import org.springframework.data.release.model.ModuleIteration;
+import lombok.AllArgsConstructor;
 
 /**
- * @author Oliver Gierke
+ * Value object for a GitHub ticket status.
+ * @author Mark Paluch
  */
-@Data
-class GitHubIssue {
+@AllArgsConstructor
+class GithubTicketStatus implements TicketStatus {
 
-	private String number;
-	private String title;
-	private String state;
+	private final String status;
 
-	public String getId() {
-		return "#".concat(number);
+	@Override
+	public String getLabel() {
+		return status;
 	}
 
-	public boolean isReleaseTicket(ModuleIteration module) {
-		return title.contains("Release") && title.contains(module.getShortVersionString());
+	@Override
+	public boolean isResolved() {
+		return "closed".equalsIgnoreCase(status);
 	}
 }

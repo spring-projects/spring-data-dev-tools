@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.jira;
 
+import java.util.Collection;
+
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.plugin.core.Plugin;
@@ -25,6 +27,11 @@ import org.springframework.plugin.core.Plugin;
 public interface IssueTracker extends Plugin<Project> {
 
 	/**
+	 * Reset internal state (cache, ...).
+	 */
+	void reset();
+
+	/**
 	 * Returns the {@link Ticket} that tracks modifications in the context of a release.
 	 * 
 	 * @param module the module to lookup the {@link Ticket} for.
@@ -32,5 +39,16 @@ public interface IssueTracker extends Plugin<Project> {
 	 */
 	Ticket getReleaseTicketFor(ModuleIteration module);
 
+	/**
+	 * Query the issue tracker for multiple {@link Ticket#id ticket Ids}. Tickets that are not found are not returned
+	 * within the result.
+	 *
+	 * @param project
+	 * @param ticketIds collection of {@link Ticket#id ticket Ids}
+	 * @return
+	 */
+	Collection<Ticket> findTickets(Project project, Collection<String> ticketIds);
+
 	Changelog getChangelogFor(ModuleIteration iteration);
+
 }

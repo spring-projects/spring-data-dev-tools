@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,13 @@
  */
 package org.springframework.data.release.jira;
 
-import lombok.Data;
-
-import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Iteration;
+import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 
 /**
- * @author Oliver Gierke
+ * @author Mark Paluch
  */
-@Data
-class GitHubIssue {
+public interface GitHubConnector extends IssueTracker {
 
-	private String number;
-	private String title;
-	private String state;
-
-	public String getId() {
-		return "#".concat(number);
-	}
-
-	public boolean isReleaseTicket(ModuleIteration module) {
-		return title.contains("Release") && title.contains(module.getShortVersionString());
-	}
 }

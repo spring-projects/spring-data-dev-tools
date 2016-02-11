@@ -54,4 +54,9 @@ public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 	public void obtainsVersionTagsForRepoThatAlsoHasOtherTags() {
 		gitOperations.getTags(MONGO_DB);
 	}
+
+	@Test
+	public void getResolvedBranches() {
+		gitOperations.listTicketBranches(REDIS);
+	}
 }

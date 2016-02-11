@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.release.jira;
 
-import lombok.Data;
-
-import org.springframework.data.release.model.ModuleIteration;
+import lombok.AllArgsConstructor;
 
 /**
- * @author Oliver Gierke
+ * @author Mark Paluch
  */
-@Data
-class GitHubIssue {
+@AllArgsConstructor
+public class JiraTicketStatus implements TicketStatus {
 
-	private String number;
-	private String title;
-	private String state;
+	public static final JiraTicketStatus UNKNOWN = new JiraTicketStatus(false, "unknown", null);
 
-	public String getId() {
-		return "#".concat(number);
+	private final boolean resolved;
+	private final String status;
+	private final String resolution;
+
+	@Override
+	public String getLabel() {
+		return resolution == null ? status : status + "/" + resolution;
 	}
 
-	public boolean isReleaseTicket(ModuleIteration module) {
-		return title.contains("Release") && title.contains(module.getShortVersionString());
+	@Override
+	public boolean isResolved() {
+		return resolved;
 	}
 }

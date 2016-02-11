@@ -34,7 +34,7 @@ public class Project implements Comparable<Project> {
 	private final @Getter ProjectKey key;
 	private final @Getter String name;
 	private final @Getter List<Project> dependencies;
-	private final Tracker tracker;
+	private final @Getter Tracker tracker;
 	private final @Getter ArtifactCoordinates additionalArtifacts;
 
 	Project(String key, String name, List<Project> dependencies) {
