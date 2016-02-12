@@ -132,12 +132,16 @@ public class ReleaseCommands implements CommandMarker {
 		git.commit(iteration, "After release cleanups.");
 
 		// Prepare maintenance branches
-		git.checkout(iteration);
-		git.createMaintenanceBranches(iteration);
+		if (iteration.getIteration().isGAIteration()) {
 
-		build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
-		build.prepareVersions(iteration, Phase.MAINTENANCE);
-		git.commit(iteration, "Prepare next development iteration.");
+			git.createMaintenanceBranches(iteration);
+
+			build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
+			build.prepareVersions(iteration, Phase.MAINTENANCE);
+			git.commit(iteration, "Prepare next development iteration.");
+
+			git.checkout(iteration);
+		}
 	}
 
 	/**
