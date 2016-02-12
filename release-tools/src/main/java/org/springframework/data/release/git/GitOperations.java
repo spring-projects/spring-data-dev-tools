@@ -144,12 +144,8 @@ public class GitOperations {
 			Project project = module.getProject();
 			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
 
-			Tag tag = findTagFor(project, artifactVersion);
-
-			if (tag == null) {
-				throw new IllegalStateException(
-						String.format("No tag found for version %s of project %s, aborting.", artifactVersion, project));
-			}
+			Tag tag = findTagFor(project, artifactVersion).orElseThrow(() -> new IllegalStateException(
+					String.format("No tag found for version %s of project %s, aborting.", artifactVersion, project)));
 
 			try (Git git = new Git(getRepository(module.getProject()))) {
 
@@ -397,6 +393,29 @@ public class GitOperations {
 		});
 	}
 
+	public void removeTags(TrainIteration iteration) {
+
+		ExecutionUtils.run(iteration, module -> {
+
+			Project project = module.getProject();
+			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
+
+			Optional<Tag> tag = findTagFor(project, artifactVersion);
+
+			if (!tag.isPresent()) {
+				logger.log(module, "No tag %s found project %s, skipping.", artifactVersion, project);
+				return;
+			}
+
+			try (Git git = new Git(getRepository(module.getProject()))) {
+
+				logger.log(module, "git tag -D %s", tag.get());
+
+				git.tagDelete().setTags(tag.get().toString()).call();
+			}
+		});
+	}
+
 	private Branch createMaintenanceBranch(ModuleIteration module) throws Exception {
 
 		try (Git git = new Git(getRepository(module.getProject()))) {
@@ -447,12 +466,11 @@ public class GitOperations {
 	 * @return
 	 * @throws IOException
 	 */
-	private Tag findTagFor(Project project, ArtifactVersion version) {
+	private Optional<Tag> findTagFor(Project project, ArtifactVersion version) {
 
 		return getTags(project).stream().//
 				filter(tag -> tag.toArtifactVersion().map(it -> it.equals(version)).orElse(false)).//
-				findFirst().orElseThrow(() -> new IllegalArgumentException(
-						String.format("No tag found for version %s of project %s!", version, project)));
+				findFirst();
 	}
 
 	private Repository getRepository(Project project) throws IOException {

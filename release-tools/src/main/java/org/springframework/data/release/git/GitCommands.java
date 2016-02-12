@@ -99,4 +99,9 @@ public class GitCommands implements CommandMarker {
 			git.push(iteration);
 		}
 	}
+
+	@CliCommand("git remove tags")
+	public void removeTags(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		git.removeTags(iteration);
+	}
 }
