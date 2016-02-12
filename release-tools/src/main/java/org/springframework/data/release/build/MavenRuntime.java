@@ -18,7 +18,6 @@ package org.springframework.data.release.build;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,9 +86,9 @@ class MavenRuntime {
 		request.setShellEnvironmentInherited(true);
 		request.setBaseDirectory(workspace.getProjectDirectory(project));
 
-		List<String> goals = new ArrayList<>();
-		goals.add(properties.getFullyQualifiedPlugin(arguments.get(0)));
-		goals.addAll(arguments.subList(1, arguments.size()));
+		List<String> goals = arguments.stream()//
+				.map(argument -> properties.getFullyQualifiedPlugin(argument))//
+				.collect(Collectors.toList());
 
 		request.setGoals(goals);
 

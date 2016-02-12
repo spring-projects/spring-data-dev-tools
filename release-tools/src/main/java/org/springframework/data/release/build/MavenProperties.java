@@ -68,6 +68,17 @@ class MavenProperties {
 	public String getFullyQualifiedPlugin(String goal) {
 
 		Assert.hasText(goal, "Goal must not be null or empty!");
-		return plugins.containsKey(goal) ? plugins.get(goal) : goal;
+
+		if (goal.startsWith("-")) {
+			return goal;
+		}
+
+		String[] parts = goal.split(":");
+
+		if (parts.length != 2 || !plugins.containsKey(parts[0])) {
+			return goal;
+		}
+
+		return plugins.get(parts[0]).concat(":").concat(parts[1]);
 	}
 }

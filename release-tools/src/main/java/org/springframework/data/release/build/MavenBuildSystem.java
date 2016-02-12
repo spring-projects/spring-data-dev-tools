@@ -219,12 +219,12 @@ class MavenBuildSystem implements BuildSystem {
 		Project project = module.getProject();
 		UpdateInformation information = new UpdateInformation(module.getTrainIteration(), phase);
 
-		mvn.execute(project, "versions-set",
+		mvn.execute(project, "versions:set", "versions:commit",
 				"-DnewVersion=".concat(information.getProjectVersionToSet(project).toString()));
 
 		if (BUILD.equals(project)) {
 
-			mvn.execute(project, "versions-set", //
+			mvn.execute(project, "versions:set", //
 					"-DnewVersion=".concat(information.getReleaseTrainVersion()), //
 					"-DgroupId=org.springframework.data", //
 					"-DartifactId=spring-data-releasetrain");
@@ -270,13 +270,6 @@ class MavenBuildSystem implements BuildSystem {
 	@Override
 	public boolean supports(Project project) {
 		return isMavenProject(project);
-	}
-
-	private void updateVersion(ModuleIteration iteration, File workingDirectory) {
-
-		ArtifactVersion version = ArtifactVersion.of(iteration);
-
-		mvn.execute(iteration.getProject(), "versions-set", "-DnewVersion=".concat(version.toString()));
 	}
 
 	private boolean isMavenProject(Project project) {
