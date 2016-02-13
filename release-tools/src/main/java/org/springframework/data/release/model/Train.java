@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,12 +78,33 @@ public class Train implements Streamable<Module> {
 				orElseThrow(() -> new IllegalArgumentException(String.format("No Module found with name %s!", name)));
 	}
 
+	/**
+	 * Returns the {@link Module} for the given {@link Project} in the current release {@link Train}.
+	 * 
+	 * @param project must not be {@literal null}.
+	 * @return
+	 * @throws IllegalArgumentException in case no {@link Module} can be found for the given {@link Project} in the
+	 *           current release {@link Train}.
+	 */
 	public Module getModule(Project project) {
 
-		return modules.stream().//
-				filter(module -> module.getProject().equals(project)).//
-				findFirst().orElseThrow(
-						() -> new IllegalArgumentException(String.format("No module found for project %s!", project.getName())));
+		Assert.notNull(project, "Project must not be null!");
+
+		return getModuleIfAvailable(project).orElseThrow(() -> new IllegalArgumentException(
+				String.format("No module found for project %s in release train %s!", project.getName(), this.name)));
+	}
+
+	/**
+	 * Returns the {@link Module} for the given {@link Project} in the current release {@link Train}.
+	 * 
+	 * @param project must not be {@literal null}.
+	 * @return the {@link Module} wrapped into an {@link Optional} if present, {@link Optional#empty()} otherwise.
+	 */
+	public Optional<Module> getModuleIfAvailable(Project project) {
+
+		Assert.notNull(project, "Project must not be null!");
+
+		return modules.stream().filter(module -> module.getProject().equals(project)).findFirst();
 	}
 
 	public Train next(String name, Transition transition, Module... additionalModules) {

@@ -17,6 +17,10 @@ package org.springframework.data.release.git;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.model.Project;
@@ -103,5 +107,15 @@ public class GitCommands implements CommandMarker {
 	@CliCommand("git remove tags")
 	public void removeTags(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 		git.removeTags(iteration);
+	}
+
+	@CliCommand("git backport changelog")
+	public void backportChangelogs(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "target", mandatory = true) String trains) {
+
+		List<Train> targets = Stream.of(trains.split(",")).map(it -> ReleaseTrains.getTrainByName(it))
+				.collect(Collectors.toList());
+
+		git.backportChangelogs(iteration, targets);
 	}
 }

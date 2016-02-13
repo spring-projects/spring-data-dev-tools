@@ -30,7 +30,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.release.git.GitProject;
 import org.springframework.data.release.git.GitProperties;
-import org.springframework.data.release.git.GitServer;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -105,7 +104,7 @@ class GitHubIssueTracker implements IssueTracker {
 
 	private List<GitHubIssue> getIssuesFor(ModuleIteration module) {
 
-		String repositoryName = new GitProject(module.getProject(), new GitServer()).getRepositoryName();
+		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
 
 		GitHubMilestone milestone = findMilestone(module, repositoryName);
 

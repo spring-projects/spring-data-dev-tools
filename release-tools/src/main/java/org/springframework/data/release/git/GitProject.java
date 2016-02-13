@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
@@ -24,13 +25,17 @@ import org.springframework.data.release.model.Project;
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class GitProject {
 
 	private static final String PROJECT_PREFIX = "spring-data";
 
 	private final Project project;
 	private final GitServer server;
+
+	public static GitProject of(Project project) {
+		return new GitProject(project, GitServer.INSTANCE);
+	}
 
 	/**
 	 * Returns the name of the repository the project is using.

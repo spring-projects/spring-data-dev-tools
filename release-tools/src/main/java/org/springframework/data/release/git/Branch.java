@@ -62,11 +62,15 @@ class Branch {
 		return from(version.toString().concat(".x"));
 	}
 
-	private static Branch from(String name) {
+	public static Branch from(String name) {
 
 		int slashIndex = name.lastIndexOf('/');
 
 		return new Branch(slashIndex != -1 ? name.substring(slashIndex + 1) : name);
+	}
+
+	public boolean isMasterBranch() {
+		return MASTER.equals(this);
 	}
 
 	/* 
