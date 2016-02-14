@@ -16,12 +16,12 @@
 
 package org.springframework.data.release.jira;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Mark Paluch
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JiraTicketStatus implements TicketStatus {
 
 	public static final JiraTicketStatus UNKNOWN = new JiraTicketStatus(false, "unknown", null);
@@ -30,11 +30,19 @@ public class JiraTicketStatus implements TicketStatus {
 	private final String status;
 	private final String resolution;
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.TicketStatus#getLabel()
+	 */
 	@Override
 	public String getLabel() {
 		return resolution == null ? status : status + "/" + resolution;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.TicketStatus#isResolved()
+	 */
 	@Override
 	public boolean isResolved() {
 		return resolved;

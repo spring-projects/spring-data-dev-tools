@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.release.model.IterationVersion;
+import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.Version;
 import org.springframework.data.release.model.VersionAware;
 import org.springframework.util.Assert;
@@ -71,6 +72,18 @@ public class Branch implements Comparable<Branch> {
 
 	public boolean isMasterBranch() {
 		return MASTER.equals(this);
+	}
+
+	/**
+	 * Returns whether the current branch is an issue branch for the given {@link Tracker}.
+	 * 
+	 * @param tracker must not be {@literal null}.
+	 * @return
+	 */
+	public boolean isIssueBranch(Tracker tracker) {
+
+		Assert.notNull(tracker, "Tracker must not be null!");
+		return name.matches(tracker.getTicketPattern());
 	}
 
 	/*

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,19 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Oliver Gierke
  */
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public enum Tracker {
 
-	JIRA("(([A-Z]{1,10})+-\\d+)"),
+	JIRA("(([A-Z]{1,10})+-\\d+)"), //
 	GITHUB("((#)?\\d+)");
 
-	private String ticketPattern;
-
-	Tracker(String ticketPattern) {
-		this.ticketPattern = ticketPattern;
-	}
-
-	public String getTicketPattern()
-	{
-		return ticketPattern;
-	}
-
+	private final String ticketPattern;
 }

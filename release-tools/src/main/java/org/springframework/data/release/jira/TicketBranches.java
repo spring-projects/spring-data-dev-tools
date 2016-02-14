@@ -13,57 +13,81 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.release.jira;
+
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.stream.Collectors;
 
-import lombok.EqualsAndHashCode;
-
+import org.springframework.data.release.Streamable;
 import org.springframework.data.release.git.Branch;
 import org.springframework.util.Assert;
 
 /**
- * Value object to represent a collection of {@link Branch}es with optionally assigned tickets.
+ * Value object to represent a collection of {@link Branch}es with assigned tickets.
  * 
  * @author Mark Paluch
+ * @author Oliver Gierke
  */
 @EqualsAndHashCode
-public class TicketBranches implements Iterable<Branch> {
+@RequiredArgsConstructor(staticName = "from")
+public class TicketBranches implements Streamable<Branch> {
 
-	private Map<Branch, Ticket> ticketBranches;
+	private final @NonNull Map<Branch, Ticket> ticketBranches;
 
 	/**
-	 * Creates a new {@link TicketBranches} instance for the given {@link Map} of {@link Branch}es and {@link Ticket}s.
-	 *
-	 * @param ticketBranches must not be {@literal null}.
+	 * Returns whether there's a ticket available for the given {@link Branch}. If {@code requireResolved} is set to
+	 * {@literal true} the answer will only be true if the available ticket is marked resolved.
+	 * 
+	 * @param branch must not be {@literal null}.
+	 * @param requireResolved whether the {@link Ticket} we look for is required to be resolved.
+	 * @return
 	 */
-	TicketBranches(Map<Branch, Ticket> ticketBranches) {
+	public boolean hasTicketFor(Branch branch, boolean requireResolved) {
 
-		Assert.notNull(ticketBranches, "TicketBranches must not be null!");
-		this.ticketBranches = ticketBranches;
+		Assert.notNull(branch, "Branch must not be null!");
+
+		return getTicket(branch).//
+				map(ticket -> requireResolved ? ticket.getTicketStatus().isResolved() : true).//
+				orElse(false);
 	}
 
-	public static TicketBranches from(Map<Branch, Ticket> ticketBranches) {
+	/**
+	 * Returns a {@link TicketBranches} containing only the branches for which resolved {@link Ticket}s are found.
+	 * 
+	 * @return
+	 */
+	public TicketBranches getResolvedTickets() {
 
-		return new TicketBranches(ticketBranches);
+		return new TicketBranches(ticketBranches.entrySet().stream().//
+				filter(entry -> entry.getValue().getTicketStatus().isResolved()).//
+				collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
 	}
 
+	/**
+	 * Returns the ticket for the given {@link Branch}.
+	 * 
+	 * @param branch must not be {@literal null}.
+	 * @return
+	 */
+	public Optional<Ticket> getTicket(Branch branch) {
+
+		Assert.notNull(branch, "Branch must not be null!");
+		return Optional.ofNullable(ticketBranches.get(branch));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Iterable#iterator()
+	 */
 	@Override
 	public Iterator<Branch> iterator() {
 		return ticketBranches.keySet().iterator();
-	}
-
-	public Stream<Branch> stream() {
-		return StreamSupport.stream(spliterator(), false);
-	}
-
-	public Optional<Ticket> getTicket(Branch branch) {
-		Assert.notNull(branch, "Branch must not be null!");
-		return Optional.ofNullable(ticketBranches.get(branch));
 	}
 }

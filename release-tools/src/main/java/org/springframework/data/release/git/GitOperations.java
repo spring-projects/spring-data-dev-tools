@@ -15,26 +15,22 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.RequiredArgsConstructor;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Stream;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -280,58 +276,43 @@ public class GitOperations {
 	/**
 	 * Retrieve a list of remote branches where their related ticket is resolved.
 	 * 
-	 * @param project
+	 * @param project must not be {@literal null}.
 	 * @return
 	 */
 	public TicketBranches listTicketBranches(Project project) {
 
+		Assert.notNull(project, "Project must not be null!");
+
 		IssueTracker tracker = issueTracker.getPluginFor(project);
 
-		try (Git git = new Git(getRepository(project))) {
+		return doWithGit(project, git -> {
+
 			update(project);
-			Pattern pattern = Pattern.compile(project.getTracker().getTicketPattern());
 
-			Collection<Ref> branches = git.lsRemote().setHeads(true).setTags(false).call();
+			Map<String, Branch> ticketIds = getRemoteBranches(project).//
+					filter(branch -> branch.isIssueBranch(project.getTracker())).//
+					collect(Collectors.toMap(Branch::toString, branch -> branch));
 
-			Set<String> possibleTicketIds = branches.stream().//
-					filter(branch -> pattern.matcher(branch.getName()).find()).//
-					map(branch -> {
-						Matcher matcher = pattern.matcher(branch.getName());
-						matcher.find();
-						return matcher.group(1);
-					}).//
-					collect(Collectors.toSet());
+			Collection<Ticket> tickets = tracker.findTickets(project, ticketIds.keySet());
 
-			Collection<Ticket> tickets = tracker.findTickets(project, possibleTicketIds);
-			Map<String, Ticket> ticketMap = tickets.stream().collect(Collectors.toMap(Ticket::getId, ticket -> ticket));
+			return TicketBranches.from(tickets.stream()
+					.collect(Collectors.toMap(ticket -> ticketIds.get(ticket.getId()), ticket -> ticket)));
+		});
+	}
 
-			Map<Branch, Ticket> ticketBranches = new HashMap<>();
-			branches.stream().//
-					map(branch -> {
-						if (branch.getName().startsWith(Constants.R_HEADS)) {
-							return branch.getName().substring(Constants.R_HEADS.length());
-						}
+	private Stream<Branch> getRemoteBranches(Project project) {
 
-						if (branch.getName().startsWith(Constants.R_REMOTES)) {
-							return branch.getName().substring(Constants.R_REMOTES.length());
-						}
-						return branch.getName();
-					}).filter(branchName -> {
-						Matcher matcher = pattern.matcher(branchName);
-						return matcher.find();
-					}).//
-					forEach((branchName) -> {
+		return doWithGit(project, git -> {
 
-						Matcher matcher = pattern.matcher(branchName);
-						matcher.find();
-						String ticketId = matcher.group(1);
-						ticketBranches.put(Branch.from(branchName), ticketMap.get(ticketId));
-					});
+			Collection<Ref> refs = git.lsRemote().//
+					setHeads(true).//
+					setTags(false).//
+					call();
 
-			return TicketBranches.from(ticketBranches);
-		} catch (Exception o_O) {
-			throw new RuntimeException(o_O);
-		}
+			return refs.stream().//
+					map(Ref::getName).//
+					map(Branch::from);//
+		});
 	}
 
 	public void tagRelease(TrainIteration iteration) {

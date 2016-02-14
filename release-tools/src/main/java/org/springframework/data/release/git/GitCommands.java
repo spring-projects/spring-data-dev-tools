@@ -15,9 +15,10 @@
  */
 package org.springframework.data.release.git;
 
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,8 +36,6 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.table.Table;
 import org.springframework.shell.support.table.TableHeader;
 import org.springframework.util.StringUtils;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Oliver Gierke
@@ -133,32 +132,27 @@ public class GitCommands implements CommandMarker {
 	 * @throws Exception
 	 */
 	@CliCommand("git issuebranches")
+	@SuppressWarnings("deprecation")
 	public Table issuebranches(@CliOption(key = { "" }, mandatory = true) String projectName,
-			@CliOption(key = "resolved") Boolean resolved) throws Exception {
+			@CliOption(key = "resolved", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") Boolean resolved)
+					throws Exception {
 
 		Project project = ReleaseTrains.getProjectByName(projectName);
-
-		Table table = new Table();
 		TicketBranches ticketBranches = git.listTicketBranches(project);
 
+		Table table = new Table();
 		table.addHeader(1, new TableHeader("Branch"));
 		table.addHeader(2, new TableHeader("Status"));
 		table.addHeader(3, new TableHeader("Description"));
 
 		ticketBranches.stream().sorted().//
-				filter(branch -> {
-					Optional<Ticket> ticket = ticketBranches.getTicket(branch);
-					if (resolved != null && resolved) {
-						if (!ticket.isPresent() || (ticket.isPresent() && ticket.get().getTicketStatus().isResolved())) {
-							return false;
-						}
-					}
-
-					return true;
-				}).//
+				filter(branch -> ticketBranches.hasTicketFor(branch, resolved)).//
 				forEachOrdered(branch -> {
+
 					Optional<Ticket> ticket = ticketBranches.getTicket(branch);
-					table.addRow(branch.toString(), ticket.map(t -> t.getTicketStatus().getLabel()).orElse(""),
+
+					table.addRow(branch.toString(), //
+							ticket.map(t -> t.getTicketStatus().getLabel()).orElse(""), //
 							ticket.map(t -> t.getSummary()).orElse(""));
 				});
 

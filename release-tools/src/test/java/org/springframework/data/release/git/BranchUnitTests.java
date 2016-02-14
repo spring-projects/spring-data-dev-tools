@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.IterationVersion;
 import org.springframework.data.release.model.SimpleIterationVersion;
+import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.Version;
 
 /**
@@ -41,5 +42,17 @@ public class BranchUnitTests {
 
 		IterationVersion iterationVersion = new SimpleIterationVersion(Version.of(1, 4), Iteration.SR1);
 		assertThat(Branch.from(iterationVersion).toString(), is("1.4.x"));
+	}
+
+	/**
+	 * @see #2
+	 */
+	@Test
+	public void detectsIssueBranches() {
+
+		Branch branch = Branch.from("issue/DATACMNS-4711");
+
+		assertThat(branch.isIssueBranch(Tracker.JIRA), is(true));
+		assertThat(branch.isIssueBranch(Tracker.GITHUB), is(false));
 	}
 }
