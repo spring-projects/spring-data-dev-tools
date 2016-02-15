@@ -24,17 +24,19 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
-import org.springframework.data.release.jira.Ticket;
 import org.springframework.data.release.jira.TicketBranches;
+import org.springframework.data.release.misc.CodeWorkflowOperations;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ListTableModel;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
-import org.springframework.shell.support.table.Table;
-import org.springframework.shell.support.table.TableHeader;
+import org.springframework.shell.table.BorderStyle;
+import org.springframework.shell.table.Table;
+import org.springframework.shell.table.TableBuilder;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,6 +47,7 @@ import org.springframework.util.StringUtils;
 public class GitCommands implements CommandMarker {
 
 	private final GitOperations git;
+	private final CodeWorkflowOperations codeWorkflowOperations;
 
 	@CliCommand("git co train")
 	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
@@ -127,35 +130,58 @@ public class GitCommands implements CommandMarker {
 	/**
 	 * List the branches with their tickets of the git repository.
 	 *
-	 * @param projectName
+	 * @param argument a {@link Project} name or a {@link Train} name.
 	 * @return
 	 * @throws Exception
 	 */
-	@CliCommand("git issuebranches")
-	@SuppressWarnings("deprecation")
-	public Table issuebranches(@CliOption(key = { "" }, mandatory = true) String projectName,
-			@CliOption(key = "resolved", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") Boolean resolved)
-					throws Exception {
+	@CliCommand("git ticketbranches")
+	public Table ticketbranches(@CliOption(key = { "" }, mandatory = true) String argument,
+			@CliOption(key = "resolved") Boolean resolved) throws Exception {
 
-		Project project = ReleaseTrains.getProjectByName(projectName);
-		TicketBranches ticketBranches = git.listTicketBranches(project);
+		boolean requireResolved = Optional.ofNullable(resolved).orElse(false);
+		List<TicketBranch> ticketBranches = getTicketBranches(argument).stream().//
+				map(branches -> {
+					if (requireResolved) {
+						return branches.getResolvedTickets();
+					}
+					return branches;
+				}).//
+				flatMap(branches -> branches.stream().//
+						map(branch -> TicketBranch.of(branch.toString(), branches.getTicket(branch))))
+				.collect(Collectors.toList());
 
-		Table table = new Table();
-		table.addHeader(1, new TableHeader("Branch"));
-		table.addHeader(2, new TableHeader("Status"));
-		table.addHeader(3, new TableHeader("Description"));
+		ListTableModel<TicketBranch> tableModel = new ListTableModel<>(ticketBranches, (column, ticketBranch) -> {
+			switch (column) {
+				case 0:
+					return ticketBranch.getBranch();
+				case 1:
+					return ticketBranch.getStatus();
+				case 2:
+					return ticketBranch.getSummary();
+			}
 
-		ticketBranches.stream().sorted().//
-				filter(branch -> ticketBranches.hasTicketFor(branch, resolved)).//
-				forEachOrdered(branch -> {
+			throw new UnsupportedOperationException("Column " + column + " not available");
+		}).withHeader("Branch", "Status", "Summary");
 
-					Optional<Ticket> ticket = ticketBranches.getTicket(branch);
-
-					table.addRow(branch.toString(), //
-							ticket.map(t -> t.getTicketStatus().getLabel()).orElse(""), //
-							ticket.map(t -> t.getSummary()).orElse(""));
-				});
-
+		Table table = new TableBuilder(tableModel).//
+				addOutlineBorder(BorderStyle.fancy_light).//
+				addInnerBorder(BorderStyle.fancy_light).//
+				addHeaderBorder(BorderStyle.fancy_double).build();
 		return table;
+	}
+
+	private List<TicketBranches> getTicketBranches(String argument) {
+
+		Project project = ReleaseTrains.getProjectByName(argument);
+		if (project != null) {
+			return codeWorkflowOperations.ticketBranches(project);
+		}
+
+		Train train = ReleaseTrains.getTrainByName(argument);
+		if (train != null) {
+			return codeWorkflowOperations.ticketBranches(train);
+		}
+
+		throw new IllegalArgumentException("ReleaseTrain or Project " + argument + " unknown");
 	}
 }
