@@ -49,7 +49,7 @@ public class JiraVersionUnitTests {
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString(), is("1.0 M2 (Dijkstra)"));
+		assertThat(version.toString(), is("1.0 M1 (Dijkstra)"));
 	}
 
 	@Test
