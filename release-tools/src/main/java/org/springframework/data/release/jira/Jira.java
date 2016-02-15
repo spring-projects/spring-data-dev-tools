@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.release.Application;
+import org.springframework.data.release.jira.JiraIssue.Fields;
+import org.springframework.data.release.jira.JiraIssue.Resolution;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -58,7 +61,7 @@ class Jira implements JiraConnector {
 	private final RestOperations operations;
 	private final Logger logger;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.JiraConnector#flushTickets()
 	 */
@@ -90,7 +93,7 @@ class Jira implements JiraConnector {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.data.release.jira.IssueTracker#findTickets(Project, Collection)
 	 */
 	@Override
@@ -101,7 +104,8 @@ class Jira implements JiraConnector {
 			return Collections.emptyList();
 		}
 
-		JqlQuery query = JqlQuery.from(ticketIds).and(" resolution is not EMPTY");
+		logger.log(project, "Retrieving {} tickets…", ticketIds.size());
+		JqlQuery query = JqlQuery.from(ticketIds);
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("jql", query);
@@ -171,15 +175,16 @@ class Jira implements JiraConnector {
 
 	private Ticket toTicket(JiraIssue issue) {
 
-		JiraIssue.Fields fields = issue.getFields();
+		Fields fields = issue.getFields();
 
 		JiraTicketStatus jiraTicketStatus;
-		if (fields.getStatus() != null && fields.getResolution() != null) {
+		if (fields.getStatus() != null) {
 			JiraIssue.Status status = fields.getStatus();
 			boolean resolved = status.getStatusCategory().getKey().equals("done");
-			JiraIssue.Resolution resolution = fields.getResolution();
+			Optional<Resolution> resolution = Optional.ofNullable(fields.getResolution());
 
-			jiraTicketStatus = new JiraTicketStatus(resolved, status.getName(), resolution.getName());
+			jiraTicketStatus = new JiraTicketStatus(resolved, status.getName(),
+					resolution.map(Resolution::getName).orElse(null));
 		} else {
 			jiraTicketStatus = JiraTicketStatus.UNKNOWN;
 		}
@@ -187,7 +192,7 @@ class Jira implements JiraConnector {
 		return new Ticket(issue.getKey(), fields.getSummary(), jiraTicketStatus);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.JiraConnector#verifyBeforeRelease(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration)
 	 */
@@ -200,7 +205,7 @@ class Jira implements JiraConnector {
 	}
 
 	/*
-	 * 
+	 *
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.JiraConnector#closeIteration(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration, org.springframework.data.release.jira.Credentials)
 	 */
@@ -218,7 +223,7 @@ class Jira implements JiraConnector {
 		// - if no next version exists, create
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.JiraConnector#getChangelogFor(org.springframework.data.release.model.Module, org.springframework.data.release.model.Iteration)
 	 */
@@ -247,7 +252,7 @@ class Jira implements JiraConnector {
 		return new Changelog(module, new Tickets(tickets, tickets.size()));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.plugin.core.Plugin#supports(java.lang.Object)
 	 */
