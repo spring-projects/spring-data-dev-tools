@@ -17,7 +17,7 @@ package org.springframework.data.release.utils;
 
 import lombok.Value;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -35,7 +35,7 @@ public class HttpBasicCredentials {
 	public String toString() {
 
 		String header = username.concat(":").concat(password);
-		byte[] encodedAuth = Base64.getEncoder().encode(header.getBytes(Charset.forName("US-ASCII")));
+		byte[] encodedAuth = Base64.getEncoder().encode(header.getBytes(StandardCharsets.US_ASCII));
 
 		return "Basic ".concat(new String(encodedAuth));
 	}
