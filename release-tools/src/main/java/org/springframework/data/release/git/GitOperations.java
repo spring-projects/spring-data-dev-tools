@@ -183,6 +183,8 @@ public class GitOperations {
 						call();
 			});
 		});
+
+		reset(iteration);
 	}
 
 	public void update(Train train) {
