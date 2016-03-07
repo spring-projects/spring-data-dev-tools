@@ -17,17 +17,16 @@ package org.springframework.data.release.jira;
 
 import static org.springframework.data.release.model.Projects.*;
 
-import lombok.Value;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.util.StringUtils;
+
+import lombok.Value;
 
 /**
  * @author Oliver Gierke
@@ -35,7 +34,7 @@ import org.springframework.util.StringUtils;
 @Value
 class JqlQuery {
 
-	private static final String PROJECT_VERSION_TEMPLATE = "project = %s AND fixVersion = \"%s\"";
+	private static final String PROJECT_VERSION_TEMPLATE = "(project = %s AND fixVersion = \"%s\" )";
 	private static final String ISSUE_KEY_IN_TEMPLATE = "issueKey in (%s)";
 
 	private final String query;
@@ -66,7 +65,7 @@ class JqlQuery {
 
 		List<String> parts = new ArrayList<>();
 
-		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
+		for (ModuleIteration module : iteration.getModulesExcept(BUILD, ENVERS)) {
 
 			JiraVersion version = new JiraVersion(module);
 			parts.add(String.format(PROJECT_VERSION_TEMPLATE, module.getProjectKey(), version));

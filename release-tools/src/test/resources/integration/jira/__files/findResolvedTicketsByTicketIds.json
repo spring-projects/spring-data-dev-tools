@@ -1,0 +1,66 @@
+{
+  "expand": "schema,names",
+  "startAt": 0,
+  "maxResults": 50,
+  "total": 2,
+  "issues": [
+    {
+      "expand": "operations,editmeta,changelog,transitions,renderedFields",
+      "id": "35482",
+      "self": "https://jira.spring.io/rest/api/2/issue/35482",
+      "key": "DATAREDIS-1",
+      "fields": {
+        "summary": "Connections obtained from pool are never returned",
+        "resolution": {
+          "self": "https://jira.spring.io/rest/api/2/resolution/8",
+          "id": "8",
+          "description": "",
+          "name": "Complete"
+        },
+        "status": {
+          "self": "https://jira.spring.io/rest/api/2/status/5",
+          "description": "A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",
+          "iconUrl": "https://jira.spring.io/images/icons/statuses/resolved.png",
+          "name": "Resolved",
+          "id": "5",
+          "statusCategory": {
+            "self": "https://jira.spring.io/rest/api/2/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "operations,editmeta,changelog,transitions,renderedFields",
+      "id": "35060",
+      "self": "https://jira.spring.io/rest/api/2/issue/35060",
+      "key": "DATAJPA-1",
+      "fields": {
+        "summary": "Move JPA parts of Hades library into Spring JPA",
+        "resolution": {
+          "self": "https://jira.spring.io/rest/api/2/resolution/1",
+          "id": "1",
+          "description": "A fix for this issue is checked into the tree and tested.",
+          "name": "Fixed"
+        },
+        "status": {
+          "self": "https://jira.spring.io/rest/api/2/status/6",
+          "description": "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+          "iconUrl": "https://jira.spring.io/images/icons/statuses/closed.png",
+          "name": "Closed",
+          "id": "6",
+          "statusCategory": {
+            "self": "https://jira.spring.io/rest/api/2/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.data.release.jira.Changelog;
 import org.springframework.data.release.jira.Credentials;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.JiraConnector;
+import org.springframework.data.release.jira.Tickets;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
@@ -36,6 +37,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @CliComponent
 public class IssueTrackerCommands implements CommandMarker {
@@ -76,6 +78,33 @@ public class IssueTrackerCommands implements CommandMarker {
 		}
 
 		return jira.getTicketsFor(iteration, forCurrentUser ? credentials : null).toString();
+	}
+
+	@CliCommand(value = "jira releasetickets")
+	public String jiraReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		return jira.getTicketsFor(iteration, null).getReleaseTickets(iteration).toString();
+	}
+	
+	@CliCommand(value = "jira self-assign releasetickets")
+	public String jiraSelfAssignReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		Tickets releaseTickets = jira.getTicketsFor(iteration, null).getReleaseTickets(iteration);
+		releaseTickets.forEach(ticket -> jira.assignTicketToMe(ticket, credentials));
+		return jiraReleaseTickets(iteration);
+	}
+
+	@CliCommand(value = "jira create releaseversions")
+	public void jiraCreateReleaseVersions(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		jira.createReleaseVersions(iteration, credentials);
+	}
+	
+	@CliCommand(value = "jira create releasetickets")
+	public String jiraCreateReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		jira.createReleaseTickets(iteration, credentials);
+
+		jira.reset();
+		return jiraReleaseTickets(iteration);
 	}
 
 	@CliCommand("tracker changelog")

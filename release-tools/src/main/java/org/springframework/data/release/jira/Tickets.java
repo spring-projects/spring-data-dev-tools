@@ -15,18 +15,27 @@
  */
 package org.springframework.data.release.jira;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Tracker;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
-import org.springframework.util.StringUtils;
-
 /**
  * Value object to represent a list of {@link Ticket}s.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value
 @RequiredArgsConstructor
@@ -39,13 +48,55 @@ public class Tickets implements Iterable<Ticket> {
 		this(tickets, tickets.size());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
 	public Iterator<Ticket> iterator() {
 		return tickets.iterator();
+	}
+
+	public boolean hasReleaseTicket(ModuleIteration moduleIteration) {
+		return releaseTicketStream(Collections.singleton(Tracker.releaseTicketSummary(moduleIteration))).findFirst()
+				.isPresent();
+	}
+
+	public Ticket getReleaseTicket(ModuleIteration moduleIteration) {
+
+		Optional<Ticket> releaseTicket = releaseTicketStream(
+				Collections.singleton(Tracker.releaseTicketSummary(moduleIteration))).findFirst();
+
+		if (releaseTicket.isPresent()) {
+
+			Ticket ticket = releaseTicket.get();
+			if (ticket.getTicketStatus().isResolved()) {
+				throw new IllegalStateException(
+						String.format("Release ticket %s for %s is resolved!", ticket.getId(), moduleIteration));
+			}
+			return ticket;
+		}
+
+		throw new IllegalStateException(String.format("Did not find a release ticket for %s!", moduleIteration));
+	}
+
+	public Tickets getIssueTickets(ModuleIteration moduleIteration) {
+		return new Tickets(tickets.stream(). //
+				filter(ticket -> !ticket.getSummary().equals(Tracker.releaseTicketSummary(moduleIteration))).//
+				collect(Collectors.toList()));
+	}
+
+	public Tickets getReleaseTickets(TrainIteration iteration) {
+
+		Set<String> releaseTicketSummary = iteration.stream()
+				.map(moduleIteration -> Tracker.releaseTicketSummary(moduleIteration)).collect(Collectors.toSet());
+
+		return new Tickets(releaseTicketStream(releaseTicketSummary).collect(Collectors.toList()));
+
+	}
+
+	private Stream<Ticket> releaseTicketStream(Set<String> releaseTicketSummary) {
+		return tickets.stream().filter(ticket -> releaseTicketSummary.contains(ticket.getSummary()));
 	}
 
 	@Override
@@ -58,4 +109,5 @@ public class Tickets implements Iterable<Ticket> {
 
 		return builder.toString();
 	}
+
 }

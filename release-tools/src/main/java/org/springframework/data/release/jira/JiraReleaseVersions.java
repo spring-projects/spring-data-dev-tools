@@ -13,31 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.release.jira;
 
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertThat;
+import java.util.Iterator;
+import java.util.List;
 
-import java.util.Arrays;
-import java.util.Collection;
+import org.springframework.data.release.Streamable;
 
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.AbstractIntegrationTests;
-import org.springframework.data.release.model.Projects;
+import lombok.Data;
 
 /**
+ * Value object to bind REST responses to.
+ * 
  * @author Mark Paluch
  */
-public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
+@Data
+class JiraReleaseVersions implements Iterable<JiraReleaseVersion>, Streamable<JiraReleaseVersion> {
 
-	@Autowired GitHubConnector gitHubIssueTracker;
+	private int startAt;
+	private int maxResults;
+	private int total;
 
-	@Test
-	public void getTickets() throws Exception {
+	private List<JiraReleaseVersion> values;
 
-		Collection<Ticket> tickets = gitHubIssueTracker.findTickets(Projects.BUILD, Arrays.asList("1", "2", "-1"));
-		assertThat(tickets, hasSize(2));
+	public int getNextStartAt() {
+		return startAt + values.size();
 	}
+
+	public boolean hasMoreResults() {
+		return startAt + values.size() < total;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Iterable#iterator()
+	 */
+	@Override
+	public Iterator<JiraReleaseVersion> iterator() {
+		return values.iterator();
+	}
+
 }

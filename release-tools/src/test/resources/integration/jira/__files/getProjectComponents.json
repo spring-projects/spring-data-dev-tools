@@ -1,0 +1,146 @@
+[
+  {
+    "self": "https://jira.spring.io/rest/api/2/component/12775",
+    "id": "12775",
+    "name": "Infrastructure",
+    "assigneeType": "PROJECT_DEFAULT",
+    "assignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "realAssignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "isAssigneeTypeValid": true,
+    "project": "DATAREST",
+    "projectId": 10901
+  },
+  {
+    "self": "https://jira.spring.io/rest/api/2/component/12748",
+    "id": "12748",
+    "name": "Content negotiation",
+    "assigneeType": "PROJECT_DEFAULT",
+    "assignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "realAssignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "isAssigneeTypeValid": true,
+    "project": "DATAREST",
+    "projectId": 10901
+  },
+  {
+    "self": "https://jira.spring.io/rest/api/2/component/12747",
+    "id": "12747",
+    "name": "Documentation",
+    "assigneeType": "PROJECT_DEFAULT",
+    "assignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "realAssignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "isAssigneeTypeValid": true,
+    "project": "DATAREST",
+    "projectId": 10901
+  },
+  {
+    "self": "https://jira.spring.io/rest/api/2/component/12746",
+    "id": "12746",
+    "name": "Repositories",
+    "assigneeType": "PROJECT_DEFAULT",
+    "assignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "realAssigneeType": "PROJECT_DEFAULT",
+    "realAssignee": {
+      "self": "https://jira.spring.io/rest/api/2/user?username=olivergierke",
+      "key": "olivergierke",
+      "name": "olivergierke",
+      "avatarUrls": {
+        "16x16": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=16",
+        "24x24": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=24",
+        "32x32": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=32",
+        "48x48": "https://secure.gravatar.com/avatar/27320c872264d5db7a38f65137d423db?d=mm&s=48"
+      },
+      "displayName": "Oliver Gierke",
+      "active": true
+    },
+    "isAssigneeTypeValid": true,
+    "project": "DATAREST",
+    "projectId": 10901
+  }
+]

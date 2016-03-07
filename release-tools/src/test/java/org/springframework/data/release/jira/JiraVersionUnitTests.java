@@ -25,7 +25,7 @@ import org.springframework.data.release.model.ReleaseTrains;
 
 /**
  * Unit tests for {@link JiraVersion}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class JiraVersionUnitTests {
@@ -59,6 +59,15 @@ public class JiraVersionUnitTests {
 
 		JiraVersion version = new JiraVersion(module);
 		assertThat(version.toString(), is("1.0 RC1 (Dijkstra)"));
+	}
+
+	@Test
+	public void rendersDescriptionCorrectly() {
+
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
+
+		JiraVersion version = new JiraVersion(module);
+		assertThat(version.getDescription(), is("Dijkstra M2"));
 	}
 
 	private void assertIterationVersion(Iteration iteration, String expected) {
