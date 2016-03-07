@@ -3,6 +3,7 @@ git.username=
 git.author=
 git.email=
 git.password=
+github.api.url=https://api.github.com
 
 # Maven
 maven.mavenHome=
@@ -11,6 +12,11 @@ maven.mavenHome=
 deployment.repository-prefix=
 deployment.password=
 deployment.api-key=
+
+# Jira
+jira.username=
+jira.password=
+jira.url=https://jira.spring.io
 
 # GPG
 deployment.gpg.keyname=

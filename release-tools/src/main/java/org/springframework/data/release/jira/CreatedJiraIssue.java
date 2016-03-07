@@ -13,34 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.release.jira;
 
-import org.springframework.data.release.model.ModuleIteration;
-
-import lombok.Value;
+import lombok.Data;
 
 /**
+ * Value object for a created Jira issue.
+ *
  * @author Mark Paluch
  */
-@Value
-class GithubMilestone {
+@Data
+public class CreatedJiraIssue {
 
-	private ModuleIteration module;
+	private String id;
+	private String key;
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return module.getMediumVersionString();
-	}
-
-	public String getDescription() {
-		return module.getTrain().getName() + " " + module.getIteration().getName();
-	}
-
-	public GitHubIssue.Milestone toMilestone() {
-		return new GitHubIssue.Milestone(toString(), getDescription());
-	}
 }

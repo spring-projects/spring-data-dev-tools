@@ -15,27 +15,25 @@
  */
 package org.springframework.data.release.jira;
 
-import static org.springframework.data.release.model.Projects.*;
-
-import lombok.Value;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.TrainIteration;
 import org.springframework.util.StringUtils;
+
+import lombok.Value;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value
 class JqlQuery {
 
-	private static final String PROJECT_VERSION_TEMPLATE = "project = %s AND fixVersion = \"%s\"";
+	private static final String PROJECT_VERSION_TEMPLATE = "(project = %s AND fixVersion = \"%s\" )";
 	private static final String ISSUE_KEY_IN_TEMPLATE = "issueKey in (%s)";
 
 	private final String query;
@@ -62,15 +60,14 @@ class JqlQuery {
 		return new JqlQuery(String.format(ISSUE_KEY_IN_TEMPLATE, joinedTicketIds));
 	}
 
-	public static JqlQuery from(TrainIteration iteration) {
+	public static JqlQuery from(Stream<ModuleIteration> stream) {
 
 		List<String> parts = new ArrayList<>();
 
-		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
-
-			JiraVersion version = new JiraVersion(module);
-			parts.add(String.format(PROJECT_VERSION_TEMPLATE, module.getProjectKey(), version));
-		}
+		stream.forEach(moduleIteration -> {
+			JiraVersion version = new JiraVersion(moduleIteration);
+			parts.add(String.format(PROJECT_VERSION_TEMPLATE, moduleIteration.getProjectKey(), version));
+		});
 
 		return new JqlQuery(StringUtils.collectionToDelimitedString(parts, " OR "));
 	}

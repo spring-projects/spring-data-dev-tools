@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.release.jira;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
@@ -32,11 +33,13 @@ import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Configuration
 @EnableCaching
@@ -57,6 +60,7 @@ class IssueTrackerConfiguration {
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.setSerializationInclusion(Include.NON_NULL);
 
 		return mapper;
 	}
@@ -77,8 +81,8 @@ class IssueTrackerConfiguration {
 	}
 
 	@Bean
-	public Jira jira(Logger logger) {
-		return new Jira(restTemplate(), logger);
+	public Jira jira(Logger logger, JiraProperties jiraProperties) {
+		return new Jira(restTemplate(), logger, jiraProperties);
 	}
 
 	@Bean

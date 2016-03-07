@@ -15,10 +15,6 @@
  */
 package org.springframework.data.release.jira;
 
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +24,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.release.Streamable;
 import org.springframework.data.release.git.Branch;
 import org.springframework.util.Assert;
+
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Value object to represent a collection of {@link Branch}es with assigned tickets.

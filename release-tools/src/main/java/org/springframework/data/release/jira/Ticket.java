@@ -15,6 +15,10 @@
  */
 package org.springframework.data.release.jira;
 
+import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Tracker;
+import org.springframework.data.release.model.TrainIteration;
+
 import lombok.Value;
 
 /**
@@ -36,5 +40,17 @@ public class Ticket {
 	@Override
 	public String toString() {
 		return String.format("%13s - %s", id, summary);
+	}
+
+	public boolean isResolved() {
+		return ticketStatus.isResolved();
+	}
+
+	public boolean isReleaseTicketFor(ModuleIteration moduleIteration) {
+		return summary.equals(Tracker.releaseTicketSummary(moduleIteration));
+	}
+
+	public boolean isReleaseTicketFor(TrainIteration iteration) {
+		return iteration.stream().filter(this::isReleaseTicketFor).findFirst().isPresent();
 	}
 }

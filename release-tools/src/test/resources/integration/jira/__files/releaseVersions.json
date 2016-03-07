@@ -1,0 +1,446 @@
+{
+  "self": "https://jira.spring.io/rest/api/2/project/DATAREST/version?maxResults=50&startAt=0",
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 44,
+  "isLast": true,
+  "values": [
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/12843",
+      "id": "12843",
+      "name": "1.0 - M1",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2012-04-24",
+      "userReleaseDate": "24/Apr/12",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/12844",
+      "id": "12844",
+      "name": "1.0 - M2",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2012-05-16",
+      "userReleaseDate": "16/May/12",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/12845",
+      "id": "12845",
+      "name": "1.0.0.RC1",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2012-06-26",
+      "userReleaseDate": "26/Jun/12",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/13203",
+      "id": "13203",
+      "name": "1.0.0.RC2",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2012-07-31",
+      "userReleaseDate": "31/Jul/12",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/13598",
+      "id": "13598",
+      "name": "1.0.0.RC3",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2012-09-14",
+      "userReleaseDate": "14/Sep/12",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/12846",
+      "id": "12846",
+      "name": "1.0.0 GA",
+      "archived": true,
+      "released": true,
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14009",
+      "id": "14009",
+      "name": "1.1.0.M1",
+      "archived": true,
+      "released": true,
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/13003",
+      "id": "13003",
+      "name": "2.0 M1 (Codd)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2013-11-21",
+      "userReleaseDate": "21/Nov/13",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14259",
+      "id": "14259",
+      "name": "2.0 RC1 (Codd)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-01-29",
+      "userReleaseDate": "29/Jan/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14260",
+      "id": "14260",
+      "name": "2.0 GA (Codd)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-02-24",
+      "userReleaseDate": "24/Feb/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14384",
+      "id": "14384",
+      "name": "2.0.1 (Codd SR1)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-03-13",
+      "userReleaseDate": "13/Mar/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14385",
+      "id": "14385",
+      "name": "2.1 M1 (Dijkstra)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-04-01",
+      "userReleaseDate": "01/Apr/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14412",
+      "id": "14412",
+      "name": "2.0.2 (Codd SR2)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-04-15",
+      "userReleaseDate": "15/Apr/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14386",
+      "id": "14386",
+      "name": "2.1 RC1 (Dijkstra)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-05-02",
+      "userReleaseDate": "02/May/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14520",
+      "id": "14520",
+      "name": "2.0.3 (Codd SR3)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-06-18",
+      "userReleaseDate": "18/Jun/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14387",
+      "id": "14387",
+      "name": "2.1 GA (Dijkstra)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-05-20",
+      "userReleaseDate": "20/May/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14607",
+      "id": "14607",
+      "name": "2.1.1 (Dijkstra SR1)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-06-30",
+      "userReleaseDate": "30/Jun/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14614",
+      "id": "14614",
+      "name": "2.2 M1 (Evans)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-07-10",
+      "userReleaseDate": "10/Jul/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14656",
+      "id": "14656",
+      "name": "2.1.2 (Dijkstra SR2)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-07-28",
+      "userReleaseDate": "28/Jul/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14675",
+      "id": "14675",
+      "name": "2.2 RC1 (Evans)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-08-13",
+      "userReleaseDate": "13/Aug/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14695",
+      "id": "14695",
+      "name": "2.1.4 (Dijkstra SR4)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-08-27",
+      "userReleaseDate": "27/Aug/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14710",
+      "id": "14710",
+      "name": "2.2 GA (Evans)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-09-05",
+      "userReleaseDate": "05/Sep/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14731",
+      "id": "14731",
+      "name": "2.2.1 (Evans SR1)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-10-31",
+      "userReleaseDate": "31/Oct/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14732",
+      "id": "14732",
+      "name": "2.3 M1 (Fowler)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2014-12-01",
+      "userReleaseDate": "01/Dec/14",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14721",
+      "id": "14721",
+      "name": "2.1.5 (Dijkstra SR5)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-01-27",
+      "userReleaseDate": "27/Jan/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14819",
+      "id": "14819",
+      "name": "2.2.2 (Evans SR2)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-01-28",
+      "userReleaseDate": "28/Jan/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14852",
+      "id": "14852",
+      "name": "2.3 RC1 (Fowler)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-03-05",
+      "userReleaseDate": "05/Mar/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14949",
+      "id": "14949",
+      "name": "2.3 GA (Fowler)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-03-23",
+      "userReleaseDate": "23/Mar/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14981",
+      "id": "14981",
+      "name": "2.4 M1 (Gosling)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-06-02",
+      "userReleaseDate": "02/Jun/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14970",
+      "id": "14970",
+      "name": "2.3.1 (Fowler SR1)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-07-01",
+      "userReleaseDate": "01/Jul/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14925",
+      "id": "14925",
+      "name": "2.2.3 (Evans SR3)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-07-01",
+      "userReleaseDate": "01/Jul/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/14912",
+      "id": "14912",
+      "name": "2.1.6 (Dijkstra SR6)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-07-01",
+      "userReleaseDate": "01/Jul/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15240",
+      "id": "15240",
+      "name": "2.3.2 (Fowler SR2)",
+      "archived": false,
+      "released": true,
+      "releaseDate": "2015-07-28",
+      "userReleaseDate": "28/Jul/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15205",
+      "id": "15205",
+      "name": "2.4 RC1 (Gosling)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-08-04",
+      "userReleaseDate": "04/Aug/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15279",
+      "id": "15279",
+      "name": "2.4 GA (Gosling)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-09-01",
+      "userReleaseDate": "01/Sep/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15348",
+      "id": "15348",
+      "description": "Evans SR4",
+      "name": "2.2.4 (Evans SR4)",
+      "archived": false,
+      "released": true,
+      "releaseDate": "2015-10-14",
+      "userReleaseDate": "14/Oct/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15310",
+      "id": "15310",
+      "description": "Gosling SR1",
+      "name": "2.4.1 (Gosling SR1)",
+      "archived": true,
+      "released": true,
+      "releaseDate": "2015-11-15",
+      "userReleaseDate": "15/Nov/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15416",
+      "id": "15416",
+      "description": "Gosling SR2",
+      "name": "2.4.2 (Gosling SR2)",
+      "archived": false,
+      "released": true,
+      "releaseDate": "2015-12-18",
+      "userReleaseDate": "18/Dec/15",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15311",
+      "id": "15311",
+      "description": "Hopper M1",
+      "name": "2.5 M1 (Hopper)",
+      "archived": false,
+      "released": true,
+      "releaseDate": "2016-02-12",
+      "userReleaseDate": "12/Feb/16",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15455",
+      "id": "15455",
+      "description": "Gosling SR4",
+      "name": "2.4.4 (Gosling SR4)",
+      "archived": false,
+      "released": true,
+      "releaseDate": "2016-02-23",
+      "userReleaseDate": "23/Feb/16",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15475",
+      "id": "15475",
+      "description": "Hopper RC1",
+      "name": "2.5 RC1 (Hopper)",
+      "archived": false,
+      "released": true,
+      "releaseDate": "2016-03-18",
+      "userReleaseDate": "18/Mar/16",
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15260",
+      "id": "15260",
+      "description": "Fowler SR3",
+      "name": "2.3.3 (Fowler SR3)",
+      "archived": false,
+      "released": false,
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15512",
+      "id": "15512",
+      "name": "2.4.5 (Gosling SR5)",
+      "archived": false,
+      "released": false,
+      "projectId": 10901
+    },
+    {
+      "self": "https://jira.spring.io/rest/api/2/version/15513",
+      "id": "15513",
+      "name": "2.5 GA (Hopper)",
+      "archived": false,
+      "released": false,
+      "projectId": 10901
+    }
+  ]
+}

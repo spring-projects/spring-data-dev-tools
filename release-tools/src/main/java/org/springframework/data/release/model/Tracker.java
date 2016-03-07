@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
@@ -30,4 +31,8 @@ public enum Tracker {
 	GITHUB("((#)?\\d+)");
 
 	private final String ticketPattern;
+
+	public static final String releaseTicketSummary(ModuleIteration moduleIteration) {
+		return "Release " + moduleIteration.getMediumVersionString();
+	}
 }

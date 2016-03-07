@@ -15,9 +15,10 @@
  */
 package org.springframework.data.release.jira;
 
-import lombok.Value;
-
+import org.springframework.data.release.jira.JiraIssue.FixVersions;
 import org.springframework.data.release.model.ModuleIteration;
+
+import lombok.Value;
 
 /**
  * @author Oliver Gierke
@@ -34,5 +35,13 @@ class JiraVersion {
 	@Override
 	public String toString() {
 		return module.getMediumVersionString();
+	}
+
+	public String getDescription() {
+		return module.getTrain().getName() + " " + module.getIteration().getName();
+	}
+
+	public FixVersions toFixVersions() {
+		return new FixVersions(null, toString());
 	}
 }
