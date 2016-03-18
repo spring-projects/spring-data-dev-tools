@@ -50,14 +50,14 @@ public class Projects {
 		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS),
 				ArtifactCoordinates.NONE.artifacts("spring-cql"));
 		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
-		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS));
+		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
+		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS, KEY_VALUE));
 		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS));
 
-		REST = new Project("DATAREST", "REST", Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA),
-				ArtifactCoordinates.NONE.artifacts("spring-data-rest-core", "spring-data-rest-core",
-						"spring-data-rest-hal-browser"));
+		REST = new Project("DATAREST", "REST",
+				Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE), ArtifactCoordinates.NONE
+						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser"));
 
-		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
 		ENVERS = new Project("DATAENV", "Envers", Tracker.GITHUB, Arrays.asList(JPA, COMMONS), ArtifactCoordinates.NONE);
 
 		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
@@ -70,6 +70,7 @@ public class Projects {
 			graph.addVertex(project);
 
 			project.getDependencies().forEach(dependency -> {
+				graph.addVertex(dependency);
 				graph.addEdge(project, dependency);
 			});
 		});
