@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Configurable properties for Git.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Data
 @Component
@@ -45,9 +46,9 @@ public class GitProperties {
 	public void init() {
 
 		Assert.hasText(username, "No GitHub username (git.username) configured!");
-		Assert.hasText(username, "No GitHub password (git.password) configured!");
-		Assert.hasText(username, "No Git author (git.author) configured!");
-		Assert.hasText(username, "No Git email (git.email) configured!");
+		Assert.hasText(password, "No GitHub password (git.password) configured!");
+		Assert.hasText(author, "No Git author (git.author) configured!");
+		Assert.hasText(email, "No Git email (git.email) configured!");
 	}
 
 	/**
