@@ -49,39 +49,7 @@ public interface JiraConnector extends IssueTracker {
 	void verifyBeforeRelease(TrainIteration iteration);
 
 	void closeIteration(TrainIteration iteration, Credentials credentials);
-
-	/**
-	 * Create release tickets if release tickets are missing.
-	 * 
-	 * @param iteration must not be {@literal null}.
-	 * @param credentials must not be {@literal null}.
-	 */
-	void createReleaseTickets(TrainIteration iteration, Credentials credentials);
-
-	/**
-	 * Create release ticket if release ticket is missing.
-	 * 
-	 * @param iteration must not be {@literal null}.
-	 * @param credentials must not be {@literal null}.
-	 */
-	void createReleaseTicket(ModuleIteration moduleIteration, Credentials credentials);
-
-	/**
-	 * Creates release versions if release versions are missing.
-	 * 
-	 * @param iteration must not be {@literal null}.
-	 * @param credentials must not be {@literal null}.
-	 */
-	void createReleaseVersions(TrainIteration iteration, Credentials credentials);
-
-	/**
-	 * Creates a release version if release version is missing.
-	 * 
-	 * @param moduleIteration must not be {@literal null}.
-	 * @param credentials must not be {@literal null}.
-	 */
-	void createReleaseVersion(ModuleIteration moduleIteration, Credentials credentials);
-
+	
 	/**
 	 * Lookup a Jira release version.
 	 * 
@@ -89,7 +57,7 @@ public interface JiraConnector extends IssueTracker {
 	 * @return
 	 */
 	Optional<JiraReleaseVersion> findJiraReleaseVersion(ModuleIteration moduleIteration);
-
+	
 	/**
 	 * Assigns the ticket to the current user.
 	 *
@@ -97,4 +65,5 @@ public interface JiraConnector extends IssueTracker {
 	 * @param credentials must not be {@literal null}.
 	 */
 	void assignTicketToMe(Ticket ticket, Credentials credentials);
+
 }

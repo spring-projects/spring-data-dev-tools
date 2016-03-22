@@ -39,8 +39,8 @@ import org.springframework.util.Assert;
 @ConfigurationProperties(prefix = "git")
 public class GitProperties {
 
-	private @Getter(AccessLevel.PRIVATE) String username, password;
-	private String author, email;
+	private @Getter(AccessLevel.PRIVATE) String password;
+	private String username, author, email;
 
 	@PostConstruct
 	public void init() {

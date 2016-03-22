@@ -16,13 +16,18 @@
 package org.springframework.data.release.jira;
 
 import java.util.Collection;
+import java.util.Optional;
 
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.plugin.core.Plugin;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public interface IssueTracker extends Plugin<Project> {
 
@@ -48,6 +53,38 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @return
 	 */
 	Collection<Ticket> findTickets(Project project, Collection<String> ticketIds);
+
+	/**
+	 * Creates release versions if release versions are missing.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param credentials must not be {@literal null}.
+	 */
+	void createReleaseVersions(TrainIteration iteration, Credentials credentials);
+
+	/**
+	 * Creates a release version if release version is missing.
+	 * 
+	 * @param moduleIteration must not be {@literal null}.
+	 * @param credentials must not be {@literal null}.
+	 */
+	void createReleaseVersion(ModuleIteration moduleIteration, Credentials credentials);
+
+	/**
+	 * Create release tickets if release tickets are missing.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param credentials must not be {@literal null}.
+	 */
+	void createReleaseTickets(TrainIteration iteration, Credentials credentials);
+
+	/**
+	 * Create release ticket if release ticket is missing.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param credentials must not be {@literal null}.
+	 */
+	void createReleaseTicket(ModuleIteration moduleIteration, Credentials credentials);
 
 	Changelog getChangelogFor(ModuleIteration iteration);
 }

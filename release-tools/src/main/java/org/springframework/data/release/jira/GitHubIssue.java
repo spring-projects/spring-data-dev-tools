@@ -15,25 +15,61 @@
  */
 package org.springframework.data.release.jira;
 
-import lombok.Data;
-
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import lombok.Data;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Data
+@JsonInclude(Include.NON_NULL)
 class GitHubIssue {
 
 	private String number;
 	private String title;
 	private String state;
+	private Object milestone;
 
 	public String getId() {
+		if (number == null) {
+			return null;
+		}
 		return "#".concat(number);
 	}
 
 	public boolean isReleaseTicket(ModuleIteration module) {
 		return title.contains("Release") && title.contains(module.getShortVersionString());
+	}
+
+	/**
+	 * Sets the title.
+	 * 
+	 * @param title must not be empty and not {@literal null}.
+	 * @return
+	 */
+	public GitHubIssue title(String title) {
+
+		Assert.hasText(title, "Title must not be empty!");
+		setTitle(title);
+		return this;
+	}
+
+	/**
+	 * Sets the milestone.
+	 * 
+	 * @param milestone must not be {@literal null}.
+	 * @return
+	 */
+	public GitHubIssue milestone(GitHubMilestone milestone) {
+
+		Assert.notNull(milestone, "GitHubMilestone must not be null!");
+		setMilestone(milestone.getNumber());
+		return this;
 	}
 }

@@ -3,6 +3,7 @@ git.username=
 git.author=
 git.email=
 git.password=
+github.api.url=https://api.github.com
 
 # Maven
 maven.mavenHome=

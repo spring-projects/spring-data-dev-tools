@@ -52,6 +52,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 	public static final Credentials CREDENTIALS = new Credentials("dummy", "dummy");
+	
 	@Rule public WireMockRule mockService = new WireMockRule(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/jira")));
 
@@ -116,7 +117,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void noReleaseTicketFound() throws Exception {
 
-		expectedException.expect(IllegalStateException.class);
+		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("Did not find a release ticket for Spring Data REST 2.5 RC1");
 
 		prepareSearchAndReturn("noReleaseTicketFound.json");

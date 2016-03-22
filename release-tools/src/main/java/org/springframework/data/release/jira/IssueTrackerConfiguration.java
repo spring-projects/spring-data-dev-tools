@@ -84,7 +84,8 @@ class IssueTrackerConfiguration {
 	}
 
 	@Bean
-	public GitHubIssueTracker github(Logger logger, GitProperties properties) {
-		return new GitHubIssueTracker(restTemplate(), logger, properties);
+	public GitHubIssueTracker github(Logger logger, GitProperties properties,
+			@Value("${github.api.url}") String githubUrl) {
+		return new GitHubIssueTracker(restTemplate(), logger, properties, githubUrl);
 	}
 }

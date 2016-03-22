@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.release.jira;
 
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.springframework.data.release.model.Iteration;
+import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.TrainIteration;
 
 /**
- * @author Oliver Gierke
  * @author Mark Paluch
  */
-@Data
-@JsonInclude(Include.NON_NULL)
-class GitHubMilestone {
+public interface GitHubIssueConnector extends IssueTracker {
 
-	private String title;
-	private Long number;
-	private String description;
+	/**
+	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
+	 *
+	 * @param iteration must not be {@literal null}.
+	 * @param forCurrentUser
+	 * @return
+	 */
+	Tickets getTicketsFor(TrainIteration iteration, boolean forCurrentUser);
+
 }

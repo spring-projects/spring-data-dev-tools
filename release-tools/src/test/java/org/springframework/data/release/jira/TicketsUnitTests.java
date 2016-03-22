@@ -80,15 +80,13 @@ public class TicketsUnitTests {
 	}
 
 	@Test
-	public void getReleaseTicketThrowsExceptionIfTicketIsResolved() throws Exception {
-
-		expectedException.expect(IllegalStateException.class);
+	public void getResolvedReleaseTicket() throws Exception {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", new JiraTicketStatus(true, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
-		fail("Missing IllegalStateException");
+		Ticket releaseTicket = tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
+		assertThat(releaseTicket, is(ticket));
 	}
 
 	@Test

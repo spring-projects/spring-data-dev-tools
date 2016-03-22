@@ -22,6 +22,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.jira.Changelog;
 import org.springframework.data.release.jira.Credentials;
+import org.springframework.data.release.jira.GitHubIssueConnector;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.JiraConnector;
 import org.springframework.data.release.jira.Tickets;
@@ -44,6 +45,7 @@ public class IssueTrackerCommands implements CommandMarker {
 
 	private final PluginRegistry<IssueTracker, Project> tracker;
 	private final JiraConnector jira;
+	private final GitHubIssueConnector gitHub;
 	private final Credentials credentials;
 
 	/**
@@ -52,7 +54,7 @@ public class IssueTrackerCommands implements CommandMarker {
 	 * @param environment must not be {@literal null}.
 	 */
 	@Autowired
-	public IssueTrackerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira,
+	public IssueTrackerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira, GitHubIssueConnector gitHub,
 			Environment environment) {
 
 		String username = environment.getProperty("jira.username", (String) null);
@@ -60,12 +62,18 @@ public class IssueTrackerCommands implements CommandMarker {
 
 		this.tracker = tracker;
 		this.jira = jira;
+		this.gitHub = gitHub;
 		this.credentials = StringUtils.hasText(username) ? new Credentials(username, password) : null;
 	}
 
 	@CliCommand("jira evict")
 	public void jiraEvict() {
 		jira.reset();
+	}
+	
+	@CliCommand("github evict")
+	public void githubEvict() {
+		gitHub.reset();
 	}
 
 	@CliCommand(value = "jira tickets")
@@ -105,6 +113,32 @@ public class IssueTrackerCommands implements CommandMarker {
 
 		jira.reset();
 		return jiraReleaseTickets(iteration);
+	}
+	
+	@CliCommand(value = "github tickets")
+	public String gitHub(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "for-current-user", specifiedDefaultValue = "true",
+					unspecifiedDefaultValue = "false") boolean forCurrentUser) {
+		return gitHub.getTicketsFor(iteration, forCurrentUser).toString();
+	}
+
+	@CliCommand(value = "github releasetickets")
+	public String gitHubReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		return gitHub.getTicketsFor(iteration, false).getReleaseTickets(iteration).toString();
+	}
+	
+	@CliCommand(value = "github create releaseversions")
+	public void gitHubCreateReleaseVersions(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		gitHub.createReleaseVersions(iteration, credentials);
+	}
+	
+	@CliCommand(value = "github create releasetickets")
+	public String gitHubCreateReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		gitHub.createReleaseTickets(iteration, credentials);
+
+		gitHub.reset();
+		return gitHubReleaseTickets(iteration);
 	}
 
 	@CliCommand("tracker changelog")

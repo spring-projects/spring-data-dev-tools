@@ -71,7 +71,7 @@ class Jira implements JiraConnector {
 	private final RestOperations operations;
 	private final Logger logger;
 
-	@Value("${jira.url}") private final String jiraBaseUrl;
+	private final String jiraBaseUrl;
 
 	/*
 	 * (non-Javadoc)
@@ -95,7 +95,7 @@ class Jira implements JiraConnector {
 		JiraIssues issues = getJiraIssues(query, new HttpHeaders(), 0);
 
 		if (issues.getIssues().isEmpty()) {
-			throw new IllegalStateException(String.format("Did not find a release ticket for %s!", iteration));
+			throw new IllegalArgumentException(String.format("Did not find a release ticket for %s!", iteration));
 		}
 
 		JiraIssue issue = issues.getIssues().get(0);
@@ -170,21 +170,21 @@ class Jira implements JiraConnector {
 	}
 
 	@Cacheable("tickets")
-	public Tickets getTicketsFor(ModuleIteration iteration) {
+	public Tickets getTicketsFor(ModuleIteration moduleIteration) {
 
-		JqlQuery query = JqlQuery.from(iteration);
+		JqlQuery query = JqlQuery.from(moduleIteration);
 
 		HttpHeaders headers = new HttpHeaders();
 
 		List<Ticket> tickets = new ArrayList<>();
 
-		logger.log(iteration, "Retrieving tickets…");
+		logger.log(moduleIteration, "Retrieving tickets…");
 
 		query = query.orderBy("updatedDate DESC");
 
-		JiraIssues issues = execute(iteration.toString(), query, headers, jiraIssues -> {
+		JiraIssues issues = execute(moduleIteration.toString(), query, headers, jiraIssues -> {
 			for (JiraIssue issue : jiraIssues) {
-				if (!issue.wasBackportedFrom(iteration.getTrain())) {
+				if (!issue.wasBackportedFrom(moduleIteration.getTrain())) {
 					tickets.add(toTicket(issue));
 				}
 			}
@@ -198,12 +198,12 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseVersions(org.springframework.data.release.model.TrainIteration, org.springframework.data.release.jira.Credentials)
 	 */
 	@Override
-	public void createReleaseVersions(TrainIteration iteration, Credentials credentials) {
+	public void createReleaseVersions(TrainIteration trainIteration, Credentials credentials) {
 
-		Assert.notNull(iteration, "TrainIteration must not be null.");
+		Assert.notNull(trainIteration, "TrainIteration must not be null.");
 		Assert.notNull(credentials, "Credentials must not be null.");
 
-		for (ModuleIteration moduleIteration : iteration) {
+		for (ModuleIteration moduleIteration : trainIteration) {
 
 			if (!supports(moduleIteration.getProject())) {
 				continue;
@@ -229,19 +229,20 @@ class Jira implements JiraConnector {
 
 		Optional<JiraReleaseVersion> versionsForModuleIteration = findJiraReleaseVersion(moduleIteration);
 
-		if (!versionsForModuleIteration.isPresent()) {
-
-			JiraVersion jiraVersion = new JiraVersion(moduleIteration);
-			logger.log(moduleIteration, "Creating Jira release version %s", jiraVersion);
-
-			JiraReleaseVersion jiraReleaseVersion = new JiraReleaseVersion();
-			jiraReleaseVersion.setProject(moduleIteration.getProjectKey().getKey());
-			jiraReleaseVersion.setName(jiraVersion.toString());
-			jiraReleaseVersion.setDescription(jiraVersion.getDescription());
-
-			operations.exchange(VERSIONS_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraReleaseVersion, httpHeaders),
-					JiraReleaseVersion.class, parameters).getBody();
+		if (versionsForModuleIteration.isPresent()) {
+			return;
 		}
+		
+		JiraVersion jiraVersion = new JiraVersion(moduleIteration);
+		logger.log(moduleIteration, "Creating Jira release version %s", jiraVersion);
+
+		JiraReleaseVersion jiraReleaseVersion = new JiraReleaseVersion();
+		jiraReleaseVersion.setProject(moduleIteration.getProjectKey().getKey());
+		jiraReleaseVersion.setName(jiraVersion.toString());
+		jiraReleaseVersion.setDescription(jiraVersion.getDescription());
+
+		operations.exchange(VERSIONS_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraReleaseVersion, httpHeaders),
+				JiraReleaseVersion.class, parameters).getBody();
 	}
 
 	/*
@@ -270,12 +271,12 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseTickets(org.springframework.data.release.model.TrainIteration, org.springframework.data.release.jira.Credentials)
 	 */
 	@Override
-	public void createReleaseTickets(TrainIteration iteration, Credentials credentials) {
+	public void createReleaseTickets(TrainIteration trainIteration, Credentials credentials) {
 
-		Assert.notNull(iteration, "TrainIteration must not be null.");
+		Assert.notNull(trainIteration, "TrainIteration must not be null.");
 		Assert.notNull(credentials, "Credentials must not be null.");
 
-		for (ModuleIteration moduleIteration : iteration) {
+		for (ModuleIteration moduleIteration : trainIteration) {
 
 			if (!supports(moduleIteration.getProject())) {
 				continue;
@@ -358,10 +359,10 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#verifyBeforeRelease(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration)
 	 */
 	@Override
-	public void verifyBeforeRelease(TrainIteration iteration) {
+	public void verifyBeforeRelease(TrainIteration trainIteration) {
 
 		// for each module
-		for (ModuleIteration moduleIteration : iteration) {
+		for (ModuleIteration moduleIteration : trainIteration) {
 			Tickets tickets = getTicketsFor(moduleIteration);
 
 			tickets.getReleaseTicket(moduleIteration);

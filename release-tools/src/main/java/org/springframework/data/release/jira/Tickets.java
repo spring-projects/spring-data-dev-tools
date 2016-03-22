@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
@@ -39,7 +40,7 @@ import lombok.Value;
  */
 @Value
 @RequiredArgsConstructor
-public class Tickets implements Iterable<Ticket> {
+public class Tickets implements Iterable<Ticket>, Streamable<Ticket> {
 
 	private final List<Ticket> tickets;
 	private final int overallTotal;
@@ -68,13 +69,7 @@ public class Tickets implements Iterable<Ticket> {
 				Collections.singleton(Tracker.releaseTicketSummary(moduleIteration))).findFirst();
 
 		if (releaseTicket.isPresent()) {
-
-			Ticket ticket = releaseTicket.get();
-			if (ticket.getTicketStatus().isResolved()) {
-				throw new IllegalStateException(
-						String.format("Release ticket %s for %s is resolved!", ticket.getId(), moduleIteration));
-			}
-			return ticket;
+			return releaseTicket.get();
 		}
 
 		throw new IllegalStateException(String.format("Did not find a release ticket for %s!", moduleIteration));
