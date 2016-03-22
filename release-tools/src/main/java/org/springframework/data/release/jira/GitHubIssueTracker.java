@@ -79,7 +79,7 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#flushTickets()
 	 */
 	@Override
-	@CacheEvict(value = { "tickets", "release-tickets" }, allEntries = true)
+	@CacheEvict(value = { "tickets", "release-tickets", "milestone" }, allEntries = true)
 	public void reset() {
 
 	}
@@ -327,7 +327,7 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 	}
 
 	@Cacheable("milestone")
-	private Optional<GitHubMilestone> findMilestone(ModuleIteration module, String repositoryName) {
+	protected Optional<GitHubMilestone> findMilestone(ModuleIteration module, String repositoryName) {
 
 		for (String state : Arrays.asList("close", "open")) {
 

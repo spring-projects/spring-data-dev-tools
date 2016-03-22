@@ -16,12 +16,9 @@
 package org.springframework.data.release.jira;
 
 import java.util.Collection;
-import java.util.Optional;
 
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.plugin.core.Plugin;
 

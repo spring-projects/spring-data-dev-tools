@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.jira;
 
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import lombok.Data;
 
 /**
  * @author Oliver Gierke

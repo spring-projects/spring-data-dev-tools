@@ -52,7 +52,13 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 	public static final Credentials CREDENTIALS = new Credentials("dummy", "dummy");
-	
+	public static final String CREATE_ISSUE_URI = "/rest/api/2/issue";
+	public static final String CREATE_VERSION_URI = "/rest/api/2/version";
+	public static final String SEARCH_URI = "/rest/api/2/search";
+	public static final String PROJECT_VERSION_URI = "/rest/api/2/project/%s/version";
+	public static final String PROJECT_COMPONENTS_URI = "/rest/api/2/project/%s/components";
+	public static final ModuleIteration REST_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+
 	@Rule public WireMockRule mockService = new WireMockRule(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/jira")));
 
@@ -71,7 +77,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void findResolvedTicketsByTicketIds() throws Exception {
 
-		prepareSearchAndReturn("findResolvedTicketsByTicketIds.json");
+		mockSearchWith("DATAREDIS-1andDATAJPA-1.json");
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList("DATAREDIS-1", "DATAJPA-1"));
 		assertThat(tickets, hasSize(2));
@@ -83,7 +89,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void ignoresUnknownTicketsByTicketId() throws Exception {
 
-		prepareSearchAndReturn("ignoresUnknownTicketsByTicketId.json");
+		mockSearchWith("emptyTickets.json");
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList("XYZ-1", "UNKOWN-1"));
 		assertThat(tickets, hasSize(0));
@@ -105,9 +111,9 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void getReleaseTicketForReturnsTheReleaseTicket() throws Exception {
 
-		prepareSearchAndReturn("getReleaseTicketForReturnsTheReleaseTicket.json");
+		mockSearchWith("releaseTickets.json");
 
-		Ticket releaseTicket = jira.getReleaseTicketFor(ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST"));
+		Ticket releaseTicket = jira.getReleaseTicketFor(REST_HOPPER_RC1);
 		assertThat(releaseTicket.getId(), is(Matchers.equalTo("DATAREST-782")));
 	}
 
@@ -120,9 +126,9 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		expectedException.expect(IllegalArgumentException.class);
 		expectedException.expectMessage("Did not find a release ticket for Spring Data REST 2.5 RC1");
 
-		prepareSearchAndReturn("noReleaseTicketFound.json");
+		mockSearchWith("emptyTickets.json");
 
-		jira.getReleaseTicketFor(ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST"));
+		jira.getReleaseTicketFor(REST_HOPPER_RC1);
 
 		fail("Missing IllegalStateException");
 	}
@@ -133,11 +139,9 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void getReleaseVersion() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		mockGetProjectVersionsWith("releaseVersions.json", REST_HOPPER_RC1.getProjectKey());
 
-		prepareProjectVersionsAndReturn("getReleaseVersion.json", moduleIteration.getProjectKey());
-
-		Optional<JiraReleaseVersion> optional = jira.findJiraReleaseVersion(moduleIteration);
+		Optional<JiraReleaseVersion> optional = jira.findJiraReleaseVersion(REST_HOPPER_RC1);
 
 		assertThat(optional.isPresent(), is(true));
 		assertThat(optional.get().getName(), is(Matchers.equalTo("2.5 RC1 (Hopper)")));
@@ -149,14 +153,12 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void createReleaseVersionShouldCreateAVersion() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		mockGetProjectVersionsWith("emptyReleaseVersions.json", REST_HOPPER_RC1.getProjectKey());
+		mockCreateVersionWith("versionCreated.json");
 
-		prepareProjectVersionsAndReturn("noReleaseVersionFound.json", moduleIteration.getProjectKey());
-		preparePostVersionAndReturn("createReleaseVersionShouldCreateAVersion.json");
+		jira.createReleaseVersion(REST_HOPPER_RC1, CREDENTIALS);
 
-		jira.createReleaseVersion(moduleIteration, CREDENTIALS);
-
-		verify(postRequestedFor(urlPathMatching("/rest/api/2/version")).withRequestBody(
+		verify(postRequestedFor(urlPathMatching(CREATE_VERSION_URI)).withRequestBody(
 				equalToJson("{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\"}")));
 	}
 
@@ -168,11 +170,11 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
 
-		prepareProjectVersionsAndReturn("getReleaseVersion.json", moduleIteration.getProjectKey());
+		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 
 		jira.createReleaseVersion(moduleIteration, CREDENTIALS);
 
-		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/version")));
+		verify(0, postRequestedFor(urlPathMatching(CREATE_VERSION_URI)));
 	}
 
 	/**
@@ -183,14 +185,14 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
 
-		prepareProjectVersionsAndReturn("getReleaseVersion.json", moduleIteration.getProjectKey());
-		prepareProjectComponentsAndReturn("getProjectComponents.json", moduleIteration.getProjectKey());
-		prepareSearchAndReturn("noReleaseTicketFound.json");
+		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
+		mockGetProjectComponentsWith("projectComponents.json", moduleIteration.getProjectKey());
+		mockSearchWith("emptyTickets.json");
 		prepareCreateIssueAndReturn("issueCreated.json");
 
 		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
 
-		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue"))
+		verify(postRequestedFor(urlPathMatching(CREATE_ISSUE_URI))
 				.withRequestBody(equalToJson("{\"fields\":{\"project\":{\"key\":\"DATAREST\"},"
 						+ "\"issuetype\":{\"name\":\"Task\"},\"summary\":\"Release 2.5 RC1 (Hopper)\","
 						+ "\"fixVersions\":[{\"name\":\"2.5 RC1 (Hopper)\"}],"
@@ -206,14 +208,14 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
 
-		prepareProjectVersionsAndReturn("getReleaseVersion.json", moduleIteration.getProjectKey());
-		prepareProjectComponentsAndReturn("noProjectComponentsFound.json", moduleIteration.getProjectKey());
-		prepareSearchAndReturn("noReleaseTicketFound.json");
+		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
+		mockGetProjectComponentsWith("emptyProjectComponents.json", moduleIteration.getProjectKey());
+		mockSearchWith("emptyTickets.json");
 		prepareCreateIssueAndReturn("issueCreated.json");
 
 		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
 
-		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue"))
+		verify(postRequestedFor(urlPathMatching(CREATE_ISSUE_URI))
 				.withRequestBody(equalToJson("{\"fields\":{\"project\":{\"key\":\"DATAREST\"},"
 						+ "\"issuetype\":{\"name\":\"Task\"},\"summary\":\"Release 2.5 RC1 (Hopper)\","
 						+ "\"fixVersions\":[{\"name\":\"2.5 RC1 (Hopper)\"}]}}")));
@@ -231,8 +233,8 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
 
-		prepareSearchAndReturn("noReleaseTicketFound.json");
-		prepareProjectVersionsAndReturn("noReleaseVersionFound.json", moduleIteration.getProjectKey());
+		mockSearchWith("emptyTickets.json");
+		mockGetProjectVersionsWith("emptyReleaseVersions.json", moduleIteration.getProjectKey());
 
 		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
 
@@ -247,13 +249,13 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
 
-		prepareProjectVersionsAndReturn("getReleaseVersion.json", moduleIteration.getProjectKey());
-		prepareProjectComponentsAndReturn("getProjectComponents.json", moduleIteration.getProjectKey());
-		prepareSearchAndReturn("getReleaseTicketForReturnsTheReleaseTicket.json");
+		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
+		mockGetProjectComponentsWith("projectComponents.json", moduleIteration.getProjectKey());
+		mockSearchWith("releaseTickets.json");
 
 		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
 
-		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/issue")));
+		verify(0, postRequestedFor(urlPathMatching(CREATE_ISSUE_URI)));
 	}
 
 	/**
@@ -271,28 +273,28 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 				.withRequestBody(equalToJson("{\"fields\":{\"assignee\":{\"name\":\"dummy\"}}}")));
 	}
 
-	private void prepareSearchAndReturn(String fromClassPath) {
-		mockService.stubFor(get(urlPathMatching("/rest/api/2/search")).//
+	private void mockSearchWith(String fromClassPath) {
+		mockService.stubFor(get(urlPathMatching(SEARCH_URI)).//
 				willReturn(json(fromClassPath)));
 	}
 
-	private void prepareProjectVersionsAndReturn(String fromClassPath, ProjectKey projectKey) {
-		mockService.stubFor(get(urlPathMatching("/rest/api/2/project/" + projectKey.getKey() + "/version")).//
+	private void mockGetProjectVersionsWith(String fromClassPath, ProjectKey projectKey) {
+		mockService.stubFor(get(urlPathMatching(String.format(PROJECT_VERSION_URI, projectKey))).//
 				willReturn(json(fromClassPath)));
 	}
 
-	private void prepareProjectComponentsAndReturn(String fromClassPath, ProjectKey projectKey) {
-		mockService.stubFor(get(urlPathMatching("/rest/api/2/project/" + projectKey.getKey() + "/components")).//
+	private void mockGetProjectComponentsWith(String fromClassPath, ProjectKey projectKey) {
+		mockService.stubFor(get(urlPathMatching(String.format(PROJECT_COMPONENTS_URI, projectKey))).//
 				willReturn(json(fromClassPath)));
 	}
 
 	private void prepareCreateIssueAndReturn(String fromClassPath) {
-		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue")).//
+		mockService.stubFor(post(urlPathMatching(CREATE_ISSUE_URI)).//
 				willReturn(json(fromClassPath)));
 	}
 
-	private void preparePostVersionAndReturn(String fromClassPath) {
-		mockService.stubFor(post(urlPathMatching("/rest/api/2/version")).//
+	private void mockCreateVersionWith(String fromClassPath) {
+		mockService.stubFor(post(urlPathMatching(CREATE_VERSION_URI)).//
 				willReturn(json(fromClassPath)));
 	}
 

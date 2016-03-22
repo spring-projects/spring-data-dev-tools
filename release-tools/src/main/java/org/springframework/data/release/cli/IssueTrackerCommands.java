@@ -82,7 +82,7 @@ public class IssueTrackerCommands implements CommandMarker {
 					unspecifiedDefaultValue = "false") boolean forCurrentUser) {
 
 		if (forCurrentUser && credentials == null) {
-			return "No authentication specified! Use 'jira authenticate' first!";
+			return "No authentication specified!";
 		}
 
 		return jira.getTicketsFor(iteration, forCurrentUser ? credentials : null).toString();

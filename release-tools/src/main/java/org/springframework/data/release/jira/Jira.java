@@ -87,15 +87,15 @@ class Jira implements JiraConnector {
 	 */
 	@Override
 	@Cacheable("release-ticket")
-	public Ticket getReleaseTicketFor(ModuleIteration iteration) {
+	public Ticket getReleaseTicketFor(ModuleIteration moduleIteration) {
 
-		JqlQuery query = JqlQuery.from(iteration)
-				.and(String.format("summary ~ \"%s\"", Tracker.releaseTicketSummary(iteration)));
+		JqlQuery query = JqlQuery.from(moduleIteration)
+				.and(String.format("summary ~ \"%s\"", Tracker.releaseTicketSummary(moduleIteration)));
 
 		JiraIssues issues = getJiraIssues(query, new HttpHeaders(), 0);
 
 		if (issues.getIssues().isEmpty()) {
-			throw new IllegalArgumentException(String.format("Did not find a release ticket for %s!", iteration));
+			throw new IllegalArgumentException(String.format("Did not find a release ticket for %s!", moduleIteration));
 		}
 
 		JiraIssue issue = issues.getIssues().get(0);
@@ -137,9 +137,9 @@ class Jira implements JiraConnector {
 	 */
 	@Override
 	@Cacheable("tickets")
-	public Tickets getTicketsFor(TrainIteration iteration, Credentials credentials) {
+	public Tickets getTicketsFor(TrainIteration trainIteration, Credentials credentials) {
 
-		JqlQuery query = JqlQuery.from(iteration);
+		JqlQuery query = JqlQuery.from(trainIteration);
 
 		HttpHeaders headers = new HttpHeaders();
 
@@ -151,16 +151,16 @@ class Jira implements JiraConnector {
 
 			withAuthorization(credentials, headers);
 
-			logger.log(iteration, "Retrieving tickets (for user %s)…", credentials.getUsername());
+			logger.log(trainIteration, "Retrieving tickets (for user %s)…", credentials.getUsername());
 		} else {
-			logger.log(iteration, "Retrieving tickets…");
+			logger.log(trainIteration, "Retrieving tickets…");
 		}
 
 		query = query.orderBy("updatedDate DESC");
 
-		JiraIssues issues = execute(iteration.toString(), query, headers, jiraIssues -> {
+		JiraIssues issues = execute(trainIteration.toString(), query, headers, jiraIssues -> {
 			for (JiraIssue issue : jiraIssues) {
-				if (!issue.wasBackportedFrom(iteration.getTrain())) {
+				if (!issue.wasBackportedFrom(trainIteration.getTrain())) {
 					tickets.add(toTicket(issue));
 				}
 			}
@@ -365,7 +365,12 @@ class Jira implements JiraConnector {
 		for (ModuleIteration moduleIteration : trainIteration) {
 			Tickets tickets = getTicketsFor(moduleIteration);
 
-			tickets.getReleaseTicket(moduleIteration);
+			Ticket releaseTicket = tickets.getReleaseTicket(moduleIteration);
+			
+			if(releaseTicket.getTicketStatus().isResolved()) {
+				throw new IllegalStateException(
+						String.format("Release ticket %s for %s is resolved", releaseTicket, moduleIteration));
+			}
 
 			Tickets issueTickets = tickets.getIssueTickets(moduleIteration);
 
@@ -408,16 +413,16 @@ class Jira implements JiraConnector {
 	 */
 	@Override
 	@Cacheable("changelogs")
-	public Changelog getChangelogFor(ModuleIteration module) {
+	public Changelog getChangelogFor(ModuleIteration moduleIteration) {
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
-		parameters.put("jql", JqlQuery.from(module));
+		parameters.put("jql", JqlQuery.from(moduleIteration));
 		parameters.put("fields", "summary,status,resolution,fixVersions");
 		parameters.put("startAt", 0);
 
 		URI searchUri = new UriTemplate(SEARCH_TEMPLATE).expand(parameters);
 
-		logger.log(module, "Looking up JIRA issues from %s…", searchUri);
+		logger.log(moduleIteration, "Looking up JIRA issues from %s…", searchUri);
 
 		JiraIssues issues = operations.getForObject(searchUri, JiraIssues.class);
 		List<Ticket> tickets = new ArrayList<>();
@@ -426,9 +431,9 @@ class Jira implements JiraConnector {
 			tickets.add(toTicket(issue));
 		}
 
-		logger.log(module, "Created changelog with %s entries.", tickets.size());
+		logger.log(moduleIteration, "Created changelog with %s entries.", tickets.size());
 
-		return new Changelog(module, new Tickets(tickets, tickets.size()));
+		return new Changelog(moduleIteration, new Tickets(tickets, tickets.size()));
 	}
 
 	/*
