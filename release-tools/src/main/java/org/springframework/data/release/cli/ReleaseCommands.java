@@ -95,6 +95,8 @@ public class ReleaseCommands implements CommandMarker {
 
 		if (projectName != null) {
 
+			deployment.verifyAuthentication();
+
 			Project project = Projects.byName(projectName);
 			ModuleIteration module = iteration.getModule(project);
 

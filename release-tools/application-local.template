@@ -8,4 +8,11 @@ git.password=
 maven.mavenHome=
 
 # Deployment
+deployment.repository-prefix=
 deployment.password=
+deployment.api-key=
+
+# GPG
+deployment.gpg.keyname=
+deployment.gpg.password=
+# deployment.gpg.executable=/usr/local/bin/gpg2

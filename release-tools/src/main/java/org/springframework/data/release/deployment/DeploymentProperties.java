@@ -57,6 +57,8 @@ public class DeploymentProperties {
 
 	private String repositoryPrefix = "";
 
+	private Gpg gpg;
+
 	public String getStagingRepository() {
 		return repositoryPrefix.concat(stagingRepository);
 	}
@@ -104,5 +106,10 @@ public class DeploymentProperties {
 		public URI getVerificationResource() {
 			return URI.create(uri.concat(VERIFICATION_RESOURCE));
 		}
+	}
+
+	@Data
+	public static class Gpg {
+		private String keyname, password, executable;
 	}
 }

@@ -57,7 +57,7 @@ public class GitCommands implements CommandMarker {
 	}
 
 	@CliCommand("git update")
-	public void checkout(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
+	public void update(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
 			throws Exception, InterruptedException {
 		git.update(ReleaseTrains.getTrainByName(trainName));
 	}

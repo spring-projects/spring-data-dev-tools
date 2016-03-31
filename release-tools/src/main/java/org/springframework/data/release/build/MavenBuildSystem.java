@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
+import org.springframework.data.release.deployment.DeploymentProperties.Gpg;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
@@ -247,7 +248,7 @@ class MavenBuildSystem implements BuildSystem {
 		List<String> arguments = new ArrayList<>();
 		arguments.add("clean");
 		arguments.add("deploy");
-		arguments.add("-Pci,release");
+		arguments.add("-Pci,release".concat(module.getIteration().isPublic() ? ",central" : ""));
 
 		arguments.add("-DskipTests");
 
@@ -257,6 +258,15 @@ class MavenBuildSystem implements BuildSystem {
 		arguments.add("-Dartifactory.password=".concat(properties.getPassword()));
 		arguments.add("-Dartifactory.build-name=\"".concat(information.getBuildName()).concat("\""));
 		arguments.add("-Dartifactory.build-number=".concat(information.getBuildNumber()));
+
+		if (module.getIteration().isPublic()) {
+
+			Gpg gpg = properties.getGpg();
+
+			arguments.add("-Dgpg.executable=".concat(gpg.getExecutable()));
+			arguments.add("-Dgpg.keyname=".concat(gpg.getKeyname()));
+			arguments.add("-Dgpg.password=".concat(gpg.getPassword()));
+		}
 
 		mvn.execute(module.getProject(), arguments);
 
