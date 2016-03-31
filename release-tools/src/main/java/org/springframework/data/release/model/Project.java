@@ -63,6 +63,10 @@ public class Project implements Comparable<Project> {
 		return "Spring Data ".concat(name);
 	}
 
+	public String getFolderName() {
+		return "spring-data-".concat(name.toLowerCase());
+	}
+
 	public String getDependencyProperty() {
 		return "springdata.".concat(name.toLowerCase());
 	}

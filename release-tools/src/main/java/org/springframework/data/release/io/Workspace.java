@@ -128,7 +128,7 @@ public class Workspace {
 	public File getProjectDirectory(Project project) {
 
 		Assert.notNull(project, "Project must not be null!");
-		return new File(getWorkingDirectory(), project.getName());
+		return new File(getWorkingDirectory(), project.getFolderName());
 	}
 
 	/**
