@@ -90,8 +90,6 @@ public class BuildOperations {
 	 * @return
 	 */
 	public DeploymentInformation performRelease(ModuleIteration module) {
-
-		prepareVersion(module, Phase.PREPARE);
 		return buildAndDeployRelease(module);
 	}
 

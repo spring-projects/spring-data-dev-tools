@@ -82,10 +82,11 @@ public class ReleaseCommands implements CommandMarker {
 
 		misc.prepareChangelogs(iteration);
 		misc.updateResources(iteration);
-
 		build.updateProjectDescriptors(iteration, Phase.PREPARE);
-
 		git.commit(iteration, "Prepare %s.");
+
+		build.prepareVersions(iteration, Phase.PREPARE);
+		git.commit(iteration, "Release version %s.");
 	}
 
 	@CliCommand(value = "release build")
@@ -105,7 +106,7 @@ public class ReleaseCommands implements CommandMarker {
 			deployment.verifyAuthentication();
 
 			List<DeploymentInformation> deploymentInformation = build.performRelease(iteration);
-			git.commit(iteration, "Release version %s.");
+
 			deploymentInformation.forEach(deployment::promote);
 
 			build.prepareVersions(iteration, Phase.CLEANUP);
