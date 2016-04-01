@@ -15,13 +15,15 @@
  */
 package org.springframework.data.release.announcement;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 
@@ -31,13 +33,14 @@ import org.springframework.shell.core.annotation.CliOption;
  * @author Oliver Gierke
  */
 @CliComponent
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class AnnouncementCommands implements CommandMarker {
+class AnnouncementCommands extends TimedCommand {
 
-	private final @NonNull AnnouncementOperations operations;
+	@NonNull AnnouncementOperations operations;
 
 	@CliCommand("announcement")
-	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+	public void announce(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 		System.out.println(operations.getProjectBulletpoints(iteration));
 	}
 }

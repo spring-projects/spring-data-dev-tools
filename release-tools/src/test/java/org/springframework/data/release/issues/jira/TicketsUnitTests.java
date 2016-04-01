@@ -25,7 +25,6 @@ import java.util.Collections;
 import org.junit.Test;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.Tickets;
-import org.springframework.data.release.issues.jira.JiraTicketStatus;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ReleaseTrains;
 
@@ -39,7 +38,7 @@ public class TicketsUnitTests {
 	@Test
 	public void hasReleaseTicketShouldReturnTrue() throws Exception {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", new JiraTicketStatus(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
@@ -49,7 +48,7 @@ public class TicketsUnitTests {
 	@Test
 	public void hasReleaseTickeForTicketWithoutTrainNameShouldReturnFalse() throws Exception {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA", new JiraTicketStatus(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
@@ -59,7 +58,7 @@ public class TicketsUnitTests {
 	@Test
 	public void getReleaseTicketReturnsReleaseTicket() throws Exception {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", new JiraTicketStatus(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Ticket releaseTicket = tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
@@ -69,7 +68,7 @@ public class TicketsUnitTests {
 	@Test(expected = IllegalStateException.class)
 	public void getReleaseTicketThrowsExceptionWithoutAReleaseTicket() throws Exception {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA", new JiraTicketStatus(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
@@ -79,7 +78,7 @@ public class TicketsUnitTests {
 	@Test
 	public void getResolvedReleaseTicket() throws Exception {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", new JiraTicketStatus(true, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(true, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Ticket releaseTicket = tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
@@ -89,7 +88,7 @@ public class TicketsUnitTests {
 	@Test
 	public void getReleaseTicketsReturnsReleaseTickets() throws Exception {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", new JiraTicketStatus(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Tickets result = tickets

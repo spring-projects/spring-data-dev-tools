@@ -15,13 +15,15 @@
  */
 package org.springframework.data.release.build;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -29,13 +31,13 @@ import org.springframework.shell.core.annotation.CliCommand;
 /**
  * @author Oliver Gierke
  */
-@CliComponent
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class BuildCommands {
+class BuildCommands extends TimedCommand {
 
-	private final @NonNull BuildOperations build;
-	private final @NonNull Workspace workspace;
-	private final @NonNull Logger logger;
+	@NonNull BuildOperations build;
+	@NonNull Workspace workspace;
+	@NonNull Logger logger;
 
 	/**
 	 * Removes all Spring Data artifacts from the local repository.

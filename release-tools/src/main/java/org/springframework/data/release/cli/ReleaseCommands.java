@@ -17,12 +17,16 @@ package org.springframework.data.release.cli;
 
 import static org.springframework.data.release.model.Projects.*;
 
+import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.build.BuildOperations;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentOperations;
@@ -36,7 +40,6 @@ import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.util.Assert;
@@ -46,12 +49,13 @@ import org.springframework.util.Assert;
  */
 @CliComponent
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class ReleaseCommands implements CommandMarker {
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+class ReleaseCommands extends TimedCommand {
 
-	private final GitOperations git;
-	private final ReleaseOperations misc;
-	private final DeploymentOperations deployment;
-	private final BuildOperations build;
+	@NonNull GitOperations git;
+	@NonNull ReleaseOperations misc;
+	@NonNull DeploymentOperations deployment;
+	@NonNull BuildOperations build;
 
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() throws Exception {
@@ -59,13 +63,6 @@ public class ReleaseCommands implements CommandMarker {
 		return git.getTags(COMMONS).getLatest().toArtifactVersion().//
 				map(this::getTrainNameForCommonsVersion).//
 				orElse(null);
-	}
-
-	public String getTrainNameForCommonsVersion(ArtifactVersion version) {
-
-		return ReleaseTrains.TRAINS.stream().//
-				filter(train -> version.toString().startsWith(train.getModule(COMMONS).getVersion().toString())).//
-				findFirst().map(Train::getName).orElse(null);
 	}
 
 	/**
@@ -159,5 +156,12 @@ public class ReleaseCommands implements CommandMarker {
 
 		git.checkout(iteration);
 		build.distributeResources(iteration);
+	}
+
+	String getTrainNameForCommonsVersion(ArtifactVersion version) {
+
+		return ReleaseTrains.TRAINS.stream().//
+				filter(train -> version.toString().startsWith(train.getModule(COMMONS).getVersion().toString())).//
+				findFirst().map(Train::getName).orElse(null);
 	}
 }

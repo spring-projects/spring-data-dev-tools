@@ -50,7 +50,7 @@ public class BootShim {
 	}
 
 	private void configureApplicationContext(ConfigurableApplicationContext annctx) {
-		this.createAndRegisterBeanDefinition(annctx, JLineShellComponent.class, "shell");
+		this.createAndRegisterBeanDefinition(annctx, CustomShellComponent.class, "shell");
 		annctx.getBeanFactory().registerSingleton("commandLine", commandLine);
 	}
 

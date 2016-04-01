@@ -15,25 +15,27 @@
  */
 package org.springframework.data.release.io;
 
+import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.utils.Logger;
-import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 
 /**
  * @author Oliver Gierke
  */
-@CliComponent
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class WorkspaceCommands implements CommandMarker {
+class WorkspaceCommands extends TimedCommand {
 
-	private final Workspace workspace;
-	private final Logger logger;
+	@NonNull Workspace workspace;
+	@NonNull Logger logger;
 
 	@CliCommand("workspace cleanup")
 	public void cleanup() throws IOException {

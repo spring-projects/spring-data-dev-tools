@@ -22,19 +22,17 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.plugin.core.PluginRegistry;
-import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.util.StringUtils;
@@ -46,7 +44,7 @@ import org.springframework.util.StringUtils;
 @CliComponent
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class IssueTrackerCommands implements CommandMarker {
+class IssueTrackerCommands extends TimedCommand {
 
 	@NonNull PluginRegistry<IssueTracker, Project> tracker;
 
@@ -114,10 +112,6 @@ public class IssueTrackerCommands implements CommandMarker {
 
 	private void createReleaseVersion(ModuleIteration moduleIteration) {
 		getTrackerFor(moduleIteration).createReleaseVersion(moduleIteration);
-	}
-
-	private <T> Stream<T> doWithBuildSystem(TrainIteration train, BiFunction<IssueTracker, ModuleIteration, T> function) {
-		return train.stream().map(module -> function.apply(getTrackerFor(module), module));
 	}
 
 	private IssueTracker getTrackerFor(ModuleIteration moduleIteration) {

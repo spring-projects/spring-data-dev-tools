@@ -15,7 +15,10 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,12 +27,12 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.table.Table;
@@ -41,28 +44,29 @@ import org.springframework.util.StringUtils;
  */
 @CliComponent
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class GitCommands implements CommandMarker {
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+class GitCommands extends TimedCommand {
 
-	private final GitOperations git;
+	@NonNull GitOperations git;
 
 	@CliCommand("git co train")
-	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
+	void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
 		git.checkout(train);
 	}
 
 	@CliCommand("git co")
-	public void checkout(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+	void checkout(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 		git.checkout(iteration);
 	}
 
 	@CliCommand("git update")
-	public void update(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
+	void update(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
 			throws Exception, InterruptedException {
 		git.update(ReleaseTrains.getTrainByName(trainName));
 	}
 
 	@CliCommand("git tags")
-	public String tags(@CliOption(key = { "project" }, mandatory = true) String projectName) throws Exception {
+	String tags(@CliOption(key = { "project" }, mandatory = true) String projectName) throws Exception {
 
 		Project project = ReleaseTrains.getProjectByName(projectName);
 

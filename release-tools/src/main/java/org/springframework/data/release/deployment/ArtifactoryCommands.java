@@ -15,21 +15,24 @@
  */
 package org.springframework.data.release.deployment;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
-import org.springframework.shell.core.CommandMarker;
+import org.springframework.data.release.TimedCommand;
 import org.springframework.shell.core.annotation.CliCommand;
 
 /**
+ * Commands to interact with Artifactory.
+ * 
  * @author Oliver Gierke
  */
 @CliComponent
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class ArtifactoryCommands implements CommandMarker {
+class ArtifactoryCommands extends TimedCommand {
 
-	private final DeploymentOperations deployment;
+	private final @NonNull DeploymentOperations deployment;
 
 	@CliCommand(value = "artifactory verify", help = "Verifies authentication at Artifactory.")
 	public void verify() {
