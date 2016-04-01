@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,32 @@
  */
 package org.springframework.data.release.jira;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.springframework.data.release.model.ModuleIteration;
 
-import lombok.Data;
+import lombok.Value;
 
 /**
- * @author Oliver Gierke
  * @author Mark Paluch
  */
-@Data
-@JsonInclude(Include.NON_NULL)
-class GitHubMilestone {
+@Value
+class GithubMilestone {
 
-	private String title;
-	private Long number;
-	private String description;
+	private ModuleIteration module;
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return module.getMediumVersionString();
+	}
+
+	public String getDescription() {
+		return module.getTrain().getName() + " " + module.getIteration().getName();
+	}
+
+	public GitHubIssue.Milestone toMilestone() {
+		return new GitHubIssue.Milestone(toString(), getDescription());
+	}
 }

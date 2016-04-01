@@ -16,13 +16,11 @@
 package org.springframework.data.release.cli;
 
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.jira.Changelog;
-import org.springframework.data.release.jira.Credentials;
-import org.springframework.data.release.jira.GitHubIssueConnector;
 import org.springframework.data.release.jira.IssueTracker;
 import org.springframework.data.release.jira.JiraConnector;
 import org.springframework.data.release.jira.Tickets;
@@ -45,8 +43,6 @@ public class IssueTrackerCommands implements CommandMarker {
 
 	private final PluginRegistry<IssueTracker, Project> tracker;
 	private final JiraConnector jira;
-	private final GitHubIssueConnector gitHub;
-	private final Credentials credentials;
 
 	/**
 	 * @param tracker must not be {@literal null}.
@@ -54,26 +50,15 @@ public class IssueTrackerCommands implements CommandMarker {
 	 * @param environment must not be {@literal null}.
 	 */
 	@Autowired
-	public IssueTrackerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira, GitHubIssueConnector gitHub,
-			Environment environment) {
-
-		String username = environment.getProperty("jira.username", (String) null);
-		String password = environment.getProperty("jira.password", (String) null);
+	public IssueTrackerCommands(PluginRegistry<IssueTracker, Project> tracker, JiraConnector jira) {
 
 		this.tracker = tracker;
 		this.jira = jira;
-		this.gitHub = gitHub;
-		this.credentials = StringUtils.hasText(username) ? new Credentials(username, password) : null;
 	}
 
-	@CliCommand("jira evict")
-	public void jiraEvict() {
-		jira.reset();
-	}
-	
-	@CliCommand("github evict")
-	public void githubEvict() {
-		gitHub.reset();
+	@CliCommand("tracker evict")
+	public void evict() {
+		StreamSupport.stream(tracker.spliterator(), false).forEach(IssueTracker::reset);
 	}
 
 	@CliCommand(value = "jira tickets")
@@ -81,64 +66,52 @@ public class IssueTrackerCommands implements CommandMarker {
 			@CliOption(key = "for-current-user", specifiedDefaultValue = "true",
 					unspecifiedDefaultValue = "false") boolean forCurrentUser) {
 
-		if (forCurrentUser && credentials == null) {
-			return "No authentication specified!";
-		}
-
-		return jira.getTicketsFor(iteration, forCurrentUser ? credentials : null).toString();
+		Tickets tickets = StreamSupport.stream(tracker.spliterator(), false). //
+				flatMap(issueTracker -> issueTracker. //
+						getTicketsFor(iteration, forCurrentUser).stream())
+				. //
+				collect(Tickets.toTicketsCollector());
+		return tickets.toString();
 	}
 
-	@CliCommand(value = "jira releasetickets")
-	public String jiraReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		return jira.getTicketsFor(iteration, null).getReleaseTickets(iteration).toString();
+	@CliCommand(value = "tracker releasetickets")
+	public String releaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		Tickets tickets = StreamSupport.stream(tracker.spliterator(), false). //
+				flatMap(issueTracker -> issueTracker.getTicketsFor(iteration).stream()). //
+				collect(Tickets.toTicketsCollector());
+		return tickets.getReleaseTickets(iteration).toString();
 	}
-	
+
 	@CliCommand(value = "jira self-assign releasetickets")
 	public String jiraSelfAssignReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
-		Tickets releaseTickets = jira.getTicketsFor(iteration, null).getReleaseTickets(iteration);
-		releaseTickets.forEach(ticket -> jira.assignTicketToMe(ticket, credentials));
-		return jiraReleaseTickets(iteration);
+		Tickets releaseTickets = jira.getTicketsFor(iteration).getReleaseTickets(iteration);
+		releaseTickets.forEach(ticket -> jira.assignTicketToMe(ticket));
+		return releaseTickets(iteration);
 	}
 
-	@CliCommand(value = "jira create releaseversions")
+	@CliCommand(value = "tracker create releaseversions")
 	public void jiraCreateReleaseVersions(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		jira.createReleaseVersions(iteration, credentials);
-	}
-	
-	@CliCommand(value = "jira create releasetickets")
-	public String jiraCreateReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-
-		jira.createReleaseTickets(iteration, credentials);
-
-		jira.reset();
-		return jiraReleaseTickets(iteration);
-	}
-	
-	@CliCommand(value = "github tickets")
-	public String gitHub(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
-			@CliOption(key = "for-current-user", specifiedDefaultValue = "true",
-					unspecifiedDefaultValue = "false") boolean forCurrentUser) {
-		return gitHub.getTicketsFor(iteration, forCurrentUser).toString();
+		iteration.forEach(this::createReleaseVersion);
 	}
 
-	@CliCommand(value = "github releasetickets")
-	public String gitHubReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		return gitHub.getTicketsFor(iteration, false).getReleaseTickets(iteration).toString();
-	}
-	
-	@CliCommand(value = "github create releaseversions")
-	public void gitHubCreateReleaseVersions(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		gitHub.createReleaseVersions(iteration, credentials);
-	}
-	
-	@CliCommand(value = "github create releasetickets")
-	public String gitHubCreateReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+	@CliCommand(value = "tracker create releasetickets")
+	public String createReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
-		gitHub.createReleaseTickets(iteration, credentials);
+		iteration.forEach(this::createReleaseVersion);
 
-		gitHub.reset();
-		return gitHubReleaseTickets(iteration);
+		evict();
+
+		return releaseTickets(iteration);
+	}
+
+	private void createReleaseVersion(ModuleIteration moduleIteration) {
+		getPluginFor(moduleIteration).createReleaseVersion(moduleIteration);
+	}
+
+	private IssueTracker getPluginFor(ModuleIteration moduleIteration) {
+		return tracker.getPluginFor(moduleIteration.getProject());
 	}
 
 	@CliCommand("tracker changelog")

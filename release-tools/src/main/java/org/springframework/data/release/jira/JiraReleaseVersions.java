@@ -28,7 +28,7 @@ import lombok.Data;
  * @author Mark Paluch
  */
 @Data
-class JiraReleaseVersions implements Iterable<JiraReleaseVersion>, Streamable<JiraReleaseVersion> {
+class JiraReleaseVersions implements Streamable<JiraReleaseVersion> {
 
 	private int startAt;
 	private int maxResults;
@@ -52,5 +52,4 @@ class JiraReleaseVersions implements Iterable<JiraReleaseVersion>, Streamable<Ji
 	public Iterator<JiraReleaseVersion> iterator() {
 		return values.iterator();
 	}
-
 }

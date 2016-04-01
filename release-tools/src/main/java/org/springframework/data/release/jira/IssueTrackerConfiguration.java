@@ -33,6 +33,7 @@ import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,6 +60,7 @@ class IssueTrackerConfiguration {
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.setSerializationInclusion(Include.NON_NULL);
 
 		return mapper;
 	}
@@ -79,13 +81,12 @@ class IssueTrackerConfiguration {
 	}
 
 	@Bean
-	public Jira jira(Logger logger, @Value("${jira.url}") String jiraUrl) {
-		return new Jira(restTemplate(), logger, jiraUrl);
+	public Jira jira(Logger logger, JiraProperties jiraProperties) {
+		return new Jira(restTemplate(), logger, jiraProperties);
 	}
 
 	@Bean
-	public GitHubIssueTracker github(Logger logger, GitProperties properties,
-			@Value("${github.api.url}") String githubUrl) {
-		return new GitHubIssueTracker(restTemplate(), logger, properties, githubUrl);
+	public GitHubIssueTracker github(Logger logger, GitProperties properties) {
+		return new GitHubIssueTracker(restTemplate(), logger, properties);
 	}
 }

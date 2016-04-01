@@ -22,9 +22,7 @@ import static org.springframework.test.util.AssertionErrors.fail;
 
 import java.util.Collections;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ReleaseTrains;
 
@@ -34,8 +32,6 @@ import org.springframework.data.release.model.ReleaseTrains;
  * @author Mark Paluch
  */
 public class TicketsUnitTests {
-
-	@Rule public final ExpectedException expectedException = ExpectedException.none();
 
 	@Test
 	public void hasReleaseTicketShouldReturnTrue() throws Exception {
@@ -67,10 +63,8 @@ public class TicketsUnitTests {
 		assertThat(releaseTicket, is(ticket));
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
 	public void getReleaseTicketThrowsExceptionWithoutAReleaseTicket() throws Exception {
-
-		expectedException.expect(IllegalStateException.class);
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA", new JiraTicketStatus(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));

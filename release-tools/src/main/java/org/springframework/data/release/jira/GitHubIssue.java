@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,17 @@
 package org.springframework.data.release.jira;
 
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Data;
+import lombok.Value;
 
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-@Data
-@JsonInclude(Include.NON_NULL)
+@Value
 class GitHubIssue {
 
 	private String number;
@@ -36,40 +34,58 @@ class GitHubIssue {
 	private String state;
 	private Object milestone;
 
+	@JsonCreator
+	public GitHubIssue(@JsonProperty("number") String number, @JsonProperty("title") String title,
+			@JsonProperty("state") String state, @JsonProperty("milestone") Object milestone) {
+		this.number = number;
+		this.title = title;
+		this.state = state;
+		this.milestone = milestone;
+	}
+
+	public GitHubIssue(String title, Milestone milestone) {
+
+		this.title = title;
+		this.milestone = milestone.getNumber();
+		this.number = null;
+		this.state = null;
+	}
+
 	public String getId() {
+
 		if (number == null) {
 			return null;
 		}
 		return "#".concat(number);
 	}
 
-	public boolean isReleaseTicket(ModuleIteration module) {
-		return title.contains("Release") && title.contains(module.getShortVersionString());
-	}
-
 	/**
-	 * Sets the title.
-	 * 
-	 * @param title must not be empty and not {@literal null}.
-	 * @return
+	 * @author Oliver Gierke
+	 * @author Mark Paluch
 	 */
-	public GitHubIssue title(String title) {
+	@Value
+	static class Milestone {
 
-		Assert.hasText(title, "Title must not be empty!");
-		setTitle(title);
-		return this;
-	}
+		private final String title;
+		private final Long number;
+		private final String description;
 
-	/**
-	 * Sets the milestone.
-	 * 
-	 * @param milestone must not be {@literal null}.
-	 * @return
-	 */
-	public GitHubIssue milestone(GitHubMilestone milestone) {
+		@JsonCreator
+		public Milestone(@JsonProperty("title") String title, @JsonProperty("number") Long number,
+				@JsonProperty("description") String description) {
+			this.title = title;
+			this.number = number;
+			this.description = description;
+		}
 
-		Assert.notNull(milestone, "GitHubMilestone must not be null!");
-		setMilestone(milestone.getNumber());
-		return this;
+		public Milestone(String title, String description) {
+			this.number = null;
+			this.title = title;
+			this.description = description;
+		}
+
+		public boolean matchesIteration(ModuleIteration moduleIteration) {
+			return title.contains(moduleIteration.getShortVersionString());
+		}
 	}
 }

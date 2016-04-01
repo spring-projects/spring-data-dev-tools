@@ -15,17 +15,21 @@
  */
 package org.springframework.data.release.jira;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.util.StringUtils;
 
@@ -40,13 +44,13 @@ import lombok.Value;
  */
 @Value
 @RequiredArgsConstructor
-public class Tickets implements Iterable<Ticket>, Streamable<Ticket> {
+public class Tickets implements Streamable<Ticket> {
 
 	private final List<Ticket> tickets;
 	private final int overallTotal;
 
 	public Tickets(List<Ticket> tickets) {
-		this(tickets, tickets.size());
+		this(Collections.unmodifiableList(tickets), tickets.size());
 	}
 
 	/*
@@ -59,39 +63,34 @@ public class Tickets implements Iterable<Ticket>, Streamable<Ticket> {
 	}
 
 	public boolean hasReleaseTicket(ModuleIteration moduleIteration) {
-		return releaseTicketStream(Collections.singleton(Tracker.releaseTicketSummary(moduleIteration))).findFirst()
-				.isPresent();
+		return findReleaseTicket(moduleIteration).isPresent();
 	}
 
 	public Ticket getReleaseTicket(ModuleIteration moduleIteration) {
 
-		Optional<Ticket> releaseTicket = releaseTicketStream(
-				Collections.singleton(Tracker.releaseTicketSummary(moduleIteration))).findFirst();
+		Optional<Ticket> releaseTicket = findReleaseTicket(moduleIteration);
 
-		if (releaseTicket.isPresent()) {
-			return releaseTicket.get();
-		}
-
-		throw new IllegalStateException(String.format("Did not find a release ticket for %s!", moduleIteration));
+		return releaseTicket.orElseThrow(
+				() -> new IllegalStateException(String.format("Did not find a release ticket for %s!", moduleIteration)));
 	}
 
 	public Tickets getIssueTickets(ModuleIteration moduleIteration) {
-		return new Tickets(tickets.stream(). //
-				filter(ticket -> !ticket.getSummary().equals(Tracker.releaseTicketSummary(moduleIteration))).//
-				collect(Collectors.toList()));
+		return tickets.stream(). //
+				filter(ticket -> !ticket.isReleaseTicketFor(moduleIteration)).//
+				collect(toTicketsCollector());
 	}
 
 	public Tickets getReleaseTickets(TrainIteration iteration) {
 
-		Set<String> releaseTicketSummary = iteration.stream()
-				.map(moduleIteration -> Tracker.releaseTicketSummary(moduleIteration)).collect(Collectors.toSet());
-
-		return new Tickets(releaseTicketStream(releaseTicketSummary).collect(Collectors.toList()));
-
+		return stream().//
+				filter(ticket -> ticket.isReleaseTicketFor(iteration)).//
+				collect(toTicketsCollector());
 	}
 
-	private Stream<Ticket> releaseTicketStream(Set<String> releaseTicketSummary) {
-		return tickets.stream().filter(ticket -> releaseTicketSummary.contains(ticket.getSummary()));
+	private Optional<Ticket> findReleaseTicket(ModuleIteration moduleIteration) {
+		return stream().//
+				filter(ticket -> ticket.isReleaseTicketFor(moduleIteration)).//
+				findFirst();
 	}
 
 	@Override
@@ -105,4 +104,42 @@ public class Tickets implements Iterable<Ticket>, Streamable<Ticket> {
 		return builder.toString();
 	}
 
+	/**
+	 * Returns a new collector to toTicketsCollector {@link Ticket} as {@link Tickets} using the {@link Stream} API.
+	 *
+	 * @return
+	 */
+	public static Collector<? super Ticket, ?, Tickets> toTicketsCollector() {
+
+		return new Collector<Ticket, List<Ticket>, Tickets>() {
+			@Override
+			public Supplier<List<Ticket>> supplier() {
+				return ArrayList::new;
+			}
+
+			@Override
+			public BiConsumer<List<Ticket>, Ticket> accumulator() {
+				return List::add;
+			}
+
+			@Override
+			public BinaryOperator<List<Ticket>> combiner() {
+				return (left, right) -> {
+					left.addAll(right);
+					return left;
+				};
+			}
+
+			@Override
+			public Function<List<Ticket>, Tickets> finisher() {
+				return tickets -> new Tickets(tickets);
+			}
+
+			@Override
+			public Set<Characteristics> characteristics() {
+				return Collections.emptySet();
+			}
+
+		};
+	}
 }

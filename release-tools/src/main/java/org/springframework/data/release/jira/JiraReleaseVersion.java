@@ -16,10 +16,13 @@
 
 package org.springframework.data.release.jira;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import lombok.Data;
+
+import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Value object to bind REST responses to.
@@ -27,7 +30,6 @@ import lombok.Data;
  * @author Mark Paluch
  */
 @Data
-@JsonInclude(Include.NON_NULL)
 public class JiraReleaseVersion {
 
 	private String id;
@@ -35,4 +37,26 @@ public class JiraReleaseVersion {
 	private String project;
 	private String description;
 
+	@JsonCreator
+	public JiraReleaseVersion(@JsonProperty("id") String id, @JsonProperty("name") String name,
+			@JsonProperty("string") String project, @JsonProperty("description") String description) {
+		this.id = id;
+		this.name = name;
+		this.project = project;
+		this.description = description;
+	}
+
+	public JiraReleaseVersion(ModuleIteration moduleIteration, JiraVersion jiraVersion) {
+
+		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
+		Assert.notNull(jiraVersion, "JiraVersion must not be null.");
+
+		project = moduleIteration.getProjectKey().getKey();
+		name = jiraVersion.toString();
+		description = jiraVersion.getDescription();
+	}
+
+	public boolean hasSameNameAs(JiraVersion jiraVersion) {
+		return getName().equals(jiraVersion.toString());
+	}
 }

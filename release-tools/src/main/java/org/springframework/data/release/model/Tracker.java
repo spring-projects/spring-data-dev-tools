@@ -35,5 +35,4 @@ public enum Tracker {
 	public static final String releaseTicketSummary(ModuleIteration moduleIteration) {
 		return "Release " + moduleIteration.getMediumVersionString();
 	}
-
 }

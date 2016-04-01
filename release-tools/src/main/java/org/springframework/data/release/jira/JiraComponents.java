@@ -16,30 +16,26 @@
 
 package org.springframework.data.release.jira;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NonNull;
 
 /*
  * Value object to represent a list of {@link JiraComponent}s.
  * @author Mark Paluch
  */
 @Data
-@JsonInclude(Include.NON_NULL)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class JiraComponents implements Iterable<JiraComponent> {
 
-	@NonNull Collection<JiraComponent> jiraComponents;
+	@NonNull private Collection<JiraComponent> jiraComponents;
 
 	/**
 	 * Try to find a component by its {@code name}.
@@ -48,13 +44,12 @@ class JiraComponents implements Iterable<JiraComponent> {
 	 * @return
 	 */
 	public Optional<JiraComponent> findComponent(String name) {
-		return jiraComponents.stream().filter(jiraComponent -> jiraComponent.getName().equals(name)).findFirst();
+		return jiraComponents.stream().filter(jiraComponent -> jiraComponent.hasName(name)).findFirst();
 	}
 
-	public static JiraComponents from(Collection<JiraComponent> jiraComponents) {
+	public static JiraComponents of(Collection<JiraComponent> jiraComponents) {
 
 		Assert.notNull(jiraComponents, "JiraComponents must not be null!");
-
 		return new JiraComponents(jiraComponents);
 	}
 
@@ -62,5 +57,4 @@ class JiraComponents implements Iterable<JiraComponent> {
 	public Iterator<JiraComponent> iterator() {
 		return jiraComponents.iterator();
 	}
-
 }

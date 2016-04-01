@@ -24,9 +24,6 @@ import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.Train;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,7 +35,6 @@ import lombok.NoArgsConstructor;
  * @author Mark Paluch
  */
 @Data
-@JsonInclude(Include.NON_NULL)
 class JiraIssue {
 
 	private String key;
@@ -54,7 +50,18 @@ class JiraIssue {
 	public boolean wasBackportedFrom(Train train) {
 
 		List<FixVersions> fixVersions = fields.getFixVersions();
-		return fixVersions != null && !(fixVersions.size() == 1 && fixVersions.get(0).name.contains(train.getName()));
+		return fixVersions != null && wasBackportedFrom(train, fixVersions);
+	}
+
+	private boolean wasBackportedFrom(Train train, List<FixVersions> fixVersions) {
+		return fixVersions.size() > 1 && isPresent(train, fixVersions);
+	}
+
+	private boolean isPresent(Train train, List<FixVersions> fixVersions) {
+		return fixVersions.stream().//
+				filter(fixVersion -> fixVersion.isTrain(train)).//
+				findFirst().//
+				isPresent();
 	}
 
 	/**
@@ -66,8 +73,8 @@ class JiraIssue {
 	public boolean isReleaseTicket(ModuleIteration moduleIteration) {
 
 		List<FixVersions> fixVersions = fields.getFixVersions();
-		return fixVersions.size() == 1 && fixVersions.get(0).name.contains(moduleIteration.getTrain().getName())
-				&& fields.getSummary().equals(Tracker.releaseTicketSummary(moduleIteration));
+		return fixVersions.size() == 1 && isPresent(moduleIteration.getTrain(), fixVersions)
+				&& fields.hasSummary(Tracker.releaseTicketSummary(moduleIteration));
 	}
 
 	/**
@@ -155,7 +162,6 @@ class JiraIssue {
 	}
 
 	@Data
-	@JsonInclude(Include.NON_NULL)
 	static class Fields {
 
 		Project project;
@@ -166,12 +172,15 @@ class JiraIssue {
 		Status status;
 		Resolution resolution;
 		JiraUser assignee;
+
+		public boolean hasSummary(String other) {
+			return summary.equals(other);
+		}
 	}
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonInclude(Include.NON_NULL)
 	static class Component {
 
 		String id;
@@ -187,17 +196,25 @@ class JiraIssue {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonInclude(Include.NON_NULL)
 	static class FixVersions {
 
 		String id;
 		String name;
+
+		/**
+		 * Returns whether this {@link FixVersions} matches the given {@link Train}.
+		 *
+		 * @param train
+		 * @return
+		 */
+		public boolean isTrain(Train train) {
+			return name.contains(train.getName());
+		}
 	}
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonInclude(Include.NON_NULL)
 	static class IssueType {
 
 		public final static IssueType TASK = new IssueType("Task");
@@ -208,7 +225,6 @@ class JiraIssue {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonInclude(Include.NON_NULL)
 	static class Status {
 
 		String name;
@@ -246,7 +262,6 @@ class JiraIssue {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonInclude(Include.NON_NULL)
 	static class JiraUser {
 
 		String name;

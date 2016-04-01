@@ -17,9 +17,7 @@ package org.springframework.data.release.jira;
 
 import java.util.Optional;
 
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 
 /**
@@ -27,18 +25,6 @@ import org.springframework.data.release.model.TrainIteration;
  * @author Mark Paluch
  */
 public interface JiraConnector extends IssueTracker {
-
-	@Override
-	void reset();
-
-	/**
-	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
-	 *
-	 * @param iteration must not be {@literal null}.
-	 * @param credentials may be {@literal null}.
-	 * @return
-	 */
-	Tickets getTicketsFor(TrainIteration iteration, Credentials credentials);
 
 	/**
 	 * Verifies the state of all {@link Tickets} before releasing. In particular: Check whether the release ticket exists,
@@ -48,8 +34,8 @@ public interface JiraConnector extends IssueTracker {
 	 */
 	void verifyBeforeRelease(TrainIteration iteration);
 
-	void closeIteration(TrainIteration iteration, Credentials credentials);
-	
+	void closeIteration(TrainIteration iteration);
+
 	/**
 	 * Lookup a Jira release version.
 	 * 
@@ -57,13 +43,13 @@ public interface JiraConnector extends IssueTracker {
 	 * @return
 	 */
 	Optional<JiraReleaseVersion> findJiraReleaseVersion(ModuleIteration moduleIteration);
-	
+
 	/**
 	 * Assigns the ticket to the current user.
 	 *
 	 * @param ticket must not be {@literal null}.
 	 * @param credentials must not be {@literal null}.
 	 */
-	void assignTicketToMe(Ticket ticket, Credentials credentials);
+	void assignTicketToMe(Ticket ticket);
 
 }

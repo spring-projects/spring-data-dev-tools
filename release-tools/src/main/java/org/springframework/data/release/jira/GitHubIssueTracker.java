@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -56,7 +55,7 @@ import lombok.RequiredArgsConstructor;
  * @author Mark Paluch
  */
 @RequiredArgsConstructor
-class GitHubIssueTracker implements GitHubIssueConnector {
+class GitHubIssueTracker implements IssueTracker {
 
 	private static final String MILESTONE_URI = "{githubBaseUrl}/repos/spring-projects/{repoName}/milestones?state={state}";
 	private static final String ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues?milestone={id}&state=all&assignee={assignee}";
@@ -65,14 +64,13 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 	private static final String ISSUE_BY_ID_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues/{id}";
 	private static final String ISSUES_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues";
 
-	private static final ParameterizedTypeReference<List<GitHubMilestone>> MILESTONES_TYPE = new ParameterizedTypeReference<List<GitHubMilestone>>() {};
+	private static final ParameterizedTypeReference<List<GitHubIssue.Milestone>> MILESTONES_TYPE = new ParameterizedTypeReference<List<GitHubIssue.Milestone>>() {};
 	private static final ParameterizedTypeReference<List<GitHubIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubIssue>>() {};
 	private static final ParameterizedTypeReference<GitHubIssue> ISSUE_TYPE = new ParameterizedTypeReference<GitHubIssue>() {};
 
 	private final RestOperations operations;
 	private final Logger logger;
 	private final GitProperties properties;
-	private final String gitubBaseUrl;
 
 	/*
 	 * (non-Javadoc)
@@ -113,7 +111,7 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 
 			try {
 				GitHubIssue gitHubIssue = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.GET,
-						new HttpEntity<>(getAuthenticationHeaders()), ISSUE_TYPE, parameters).getBody();
+						new HttpEntity<>(newUserScopedHttpHeaders()), ISSUE_TYPE, parameters).getBody();
 
 				tickets.add(toTicket(gitHubIssue));
 			} catch (HttpStatusCodeException e) {
@@ -133,15 +131,15 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 	 */
 	@Override
 	@Cacheable("changelogs")
-	public Changelog getChangelogFor(ModuleIteration module) {
+	public Changelog getChangelogFor(ModuleIteration moduleIteration) {
 
-		List<Ticket> tickets = getIssuesFor(module, false).stream().//
+		Tickets tickets = getIssuesFor(moduleIteration, false).stream().//
 				map(issue -> toTicket(issue)).//
-				collect(Collectors.toList());
+				collect(Tickets.toTicketsCollector());
 
-		logger.log(module, "Created changelog with %s entries.", tickets.size());
+		logger.log(moduleIteration, "Created changelog with %s entries.", tickets.getOverallTotal());
 
-		return new Changelog(module, new Tickets(tickets));
+		return new Changelog(moduleIteration, tickets);
 	}
 
 	/* 
@@ -158,111 +156,62 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 		return getTicketsFor(iteration, false);
 	}
 
+	@Override
+	public Tickets getTicketsFor(TrainIteration iteration) {
+		return getTicketsFor(iteration, false);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.GitHubIssueConnector#getTicketsFor(org.springframework.data.release.model.TrainIteration, boolean)
 	 */
 	@Override
-	public Tickets getTicketsFor(TrainIteration iteration, boolean forCurrentUser) {
+	public Tickets getTicketsFor(TrainIteration trainIteration, boolean forCurrentUser) {
 
 		if (forCurrentUser) {
-			logger.log(iteration, "Retrieving tickets (for user %s)…", properties.getUsername());
+			logger.log(trainIteration, "Retrieving tickets (for user %s)…", properties.getUsername());
 		} else {
-			logger.log(iteration, "Retrieving tickets…");
+			logger.log(trainIteration, "Retrieving tickets…");
 		}
 
-		List<Ticket> tickets = iteration.stream(). //
+		Tickets tickets = trainIteration.stream(). //
 				filter(moduleIteration -> supports(moduleIteration.getProject())). //
 				flatMap(moduleIteration -> getTicketsFor(moduleIteration, forCurrentUser).stream()). //
-				collect(Collectors.toList());
+				collect(Tickets.toTicketsCollector());
 
-		return new Tickets(tickets);
+		return tickets;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.IssueTracker#createReleaseVersions(org.springframework.data.release.model.TrainIteration, org.springframework.data.release.jira.Credentials)
-	 */
 	@Override
-	public void createReleaseVersions(TrainIteration iteration, Credentials credentials) {
-
-		Assert.notNull(iteration, "TrainIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
-
-		for (ModuleIteration moduleIteration : iteration) {
-
-			if (!supports(moduleIteration.getProject())) {
-				continue;
-			}
-
-			createReleaseVersion(moduleIteration, credentials);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.IssueTracker#createReleaseVersion(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.jira.Credentials)
-	 */
-	@Override
-	public void createReleaseVersion(ModuleIteration moduleIteration, Credentials credentials) {
+	public void createReleaseVersion(ModuleIteration moduleIteration) {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 
-		Optional<GitHubMilestone> milestone = findMilestone(moduleIteration, repositoryName);
+		Optional<GitHubIssue.Milestone> milestone = findMilestone(moduleIteration, repositoryName);
 
 		if (milestone.isPresent()) {
 			return;
 		}
 
-		JiraVersion jiraVersion = new JiraVersion(moduleIteration);
-		logger.log(moduleIteration, "Creating GitHub milestone %s", jiraVersion);
+		GithubMilestone githubMilestone = new GithubMilestone(moduleIteration);
+		logger.log(moduleIteration, "Creating GitHub milestone %s", githubMilestone);
 
-		HttpHeaders httpHeaders = getAuthenticationHeaders();
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 
-		GitHubMilestone gitHubMilestone = new GitHubMilestone();
-		gitHubMilestone.setTitle(jiraVersion.toString());
-		gitHubMilestone.setDescription(jiraVersion.getDescription());
-
-		operations.exchange(MILESTONES_URI_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(gitHubMilestone, httpHeaders),
-				GitHubMilestone.class, parameters);
+		operations.exchange(MILESTONES_URI_TEMPLATE, HttpMethod.POST,
+				new HttpEntity<Object>(githubMilestone.toMilestone(), httpHeaders), GitHubIssue.Milestone.class, parameters);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.IssueTracker#createReleaseTickets(org.springframework.data.release.model.TrainIteration, org.springframework.data.release.jira.Credentials)
-	 */
 	@Override
-	public void createReleaseTickets(TrainIteration trainIteration, Credentials credentials) {
-
-		Assert.notNull(trainIteration, "TrainIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
-
-		for (ModuleIteration moduleIteration : trainIteration) {
-
-			if (!supports(moduleIteration.getProject())) {
-				continue;
-			}
-
-			createReleaseTicket(moduleIteration, credentials);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.IssueTracker#createReleaseTicket(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.jira.Credentials)
-	 */
-	@Override
-	public void createReleaseTicket(ModuleIteration moduleIteration, Credentials credentials) {
+	public void createReleaseTicket(ModuleIteration moduleIteration) {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
 
-		HttpHeaders httpHeaders = getAuthenticationHeaders();
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
 
 		Tickets tickets = getTicketsFor(moduleIteration);
 
@@ -275,59 +224,55 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 
-		GitHubMilestone milestone = getMilestone(moduleIteration, repositoryName);
+		GitHubIssue.Milestone milestone = getMilestone(moduleIteration, repositoryName);
 
 		logger.log(moduleIteration, "Creating release ticket…");
 
-		GitHubIssue gitHubIssue = new GitHubIssue();
-		gitHubIssue.title(Tracker.releaseTicketSummary(moduleIteration)).milestone(milestone);
+		GitHubIssue gitHubIssue = new GitHubIssue(Tracker.releaseTicketSummary(moduleIteration), milestone);
 
 		operations.exchange(ISSUES_URI_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(gitHubIssue, httpHeaders),
 				GitHubIssue.class, parameters).getBody();
 
 	}
 
-	private Tickets getTicketsFor(ModuleIteration iteration, boolean forCurrentUser) {
+	private Tickets getTicketsFor(ModuleIteration moduleIteration, boolean forCurrentUser) {
 
-		List<GitHubIssue> issues = getIssuesFor(iteration, forCurrentUser);
-		List<Ticket> tickets = issues.stream().map(this::toTicket).collect(Collectors.toList());
-		return new Tickets(tickets);
+		List<GitHubIssue> issues = getIssuesFor(moduleIteration, forCurrentUser);
+		return issues.stream().map(this::toTicket).collect(Tickets.toTicketsCollector());
 	}
 
-	private List<GitHubIssue> getIssuesFor(ModuleIteration module, boolean forCurrentUser) {
+	private List<GitHubIssue> getIssuesFor(ModuleIteration moduleIteration, boolean forCurrentUser) {
 
-		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
+		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 
-		GitHubMilestone milestone = getMilestone(module, repositoryName);
+		GitHubIssue.Milestone milestone = getMilestone(moduleIteration, repositoryName);
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 		parameters.put("id", milestone.getNumber());
-		
-		if(forCurrentUser) {
+
+		if (forCurrentUser) {
 			parameters.put("assignee", properties.getUsername());
 
 			return operations.exchange(ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE, HttpMethod.GET,
-					new HttpEntity<>(getAuthenticationHeaders()), ISSUES_TYPE, parameters).getBody();
+					new HttpEntity<>(newUserScopedHttpHeaders()), ISSUES_TYPE, parameters).getBody();
 		}
-		
+
 		return operations.exchange(ISSUES_BY_MILESTONE_URI_TEMPLATE, HttpMethod.GET,
-				new HttpEntity<>(getAuthenticationHeaders()), ISSUES_TYPE, parameters).getBody();
+				new HttpEntity<>(newUserScopedHttpHeaders()), ISSUES_TYPE, parameters).getBody();
 	}
 
-	private GitHubMilestone getMilestone(ModuleIteration module, String repositoryName) {
+	private GitHubIssue.Milestone getMilestone(ModuleIteration moduleIteration, String repositoryName) {
 
-		Optional<GitHubMilestone> milestone = findMilestone(module, repositoryName);
-		if (!milestone.isPresent()) {
-			throw new IllegalStateException(
-					String.format("No milestone for %s found containing %s!", module.getProject().getFullName(), module.getShortVersionString()));
-		}
-
-		return milestone.get();
+		Optional<GitHubIssue.Milestone> milestone = findMilestone(moduleIteration, repositoryName);
+		return milestone
+				.orElseThrow(() -> new IllegalStateException(String.format("No milestone for %s found containing %s!", //
+						moduleIteration.getProject().getFullName(), //
+						moduleIteration.getShortVersionString())));
 	}
 
 	@Cacheable("milestone")
-	protected Optional<GitHubMilestone> findMilestone(ModuleIteration module, String repositoryName) {
+	protected Optional<GitHubIssue.Milestone> findMilestone(ModuleIteration moduleIteration, String repositoryName) {
 
 		for (String state : Arrays.asList("close", "open")) {
 
@@ -337,29 +282,28 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 
 			URI milestoneUri = new UriTemplate(MILESTONE_URI).expand(parameters);
 
-			logger.log(module, "Looking up milestone from %s…", milestoneUri);
+			logger.log(moduleIteration, "Looking up milestone from %s…", milestoneUri);
 
-			List<GitHubMilestone> exchange = operations.exchange(MILESTONE_URI, HttpMethod.GET,
-					new HttpEntity<>(getAuthenticationHeaders()), MILESTONES_TYPE, parameters).getBody();
+			List<GitHubIssue.Milestone> milestones = operations.exchange(MILESTONE_URI, HttpMethod.GET,
+					new HttpEntity<>(newUserScopedHttpHeaders()), MILESTONES_TYPE, parameters).getBody();
 
-			GitHubMilestone milestone = null;
+			Optional<GitHubIssue.Milestone> milestone = milestones.stream(). //
+					filter(m -> m.matchesIteration(moduleIteration)). //
+					findFirst(). //
+					map(m -> {
+						logger.log(moduleIteration, "Found milestone %s.", m);
+						return m;
+					});
 
-			for (GitHubMilestone candidate : exchange) {
-				if (candidate.getTitle().contains(module.getShortVersionString())) {
-					milestone = candidate;
-				}
-			}
-
-			if (milestone != null) {
-				logger.log(module, "Found milestone %s.", milestone);
-				return Optional.of(milestone);
+			if (milestone.isPresent()) {
+				return milestone;
 			}
 		}
 
 		return Optional.empty();
 	}
 
-	private HttpHeaders getAuthenticationHeaders() {
+	private HttpHeaders newUserScopedHttpHeaders() {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", properties.getHttpCredentials().toString());
@@ -369,10 +313,10 @@ class GitHubIssueTracker implements GitHubIssueConnector {
 
 	private Map<String, Object> newUrlTemplateVariables() {
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("githubBaseUrl", gitubBaseUrl);
+		parameters.put("githubBaseUrl", properties.getGithubApiBaseUrl());
 		return parameters;
 	}
-	
+
 	private Ticket toTicket(GitHubIssue issue) {
 		return new Ticket(issue.getId(), issue.getTitle(), new GithubTicketStatus(issue.getState()));
 	}

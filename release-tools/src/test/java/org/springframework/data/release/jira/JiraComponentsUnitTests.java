@@ -21,9 +21,7 @@ import static org.junit.Assert.*;
 
 import java.util.Collections;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /**
  * Unit tests for {@link JiraComponents}.
@@ -32,8 +30,6 @@ import org.junit.rules.ExpectedException;
  */
 public class JiraComponentsUnitTests {
 
-	@Rule public ExpectedException expectedException = ExpectedException.none();
-
 	/**
 	 * @see #5
 	 */
@@ -41,8 +37,7 @@ public class JiraComponentsUnitTests {
 	public void returnsComponentByName() throws Exception {
 
 		JiraComponent fooComponent = new JiraComponent("123", "foo");
-
-		JiraComponents jiraComponents = JiraComponents.from(Collections.singleton(fooComponent));
+		JiraComponents jiraComponents = JiraComponents.of(Collections.singleton(fooComponent));
 
 		assertThat(jiraComponents.findComponent("foo").isPresent(), is(true));
 	}
@@ -54,8 +49,7 @@ public class JiraComponentsUnitTests {
 	public void returnsEmptyIfComponentMissing() throws Exception {
 
 		JiraComponent fooComponent = new JiraComponent("123", "foo");
-
-		JiraComponents jiraComponents = JiraComponents.from(Collections.singleton(fooComponent));
+		JiraComponents jiraComponents = JiraComponents.of(Collections.singleton(fooComponent));
 
 		assertThat(jiraComponents.findComponent("baz").isPresent(), is(false));
 	}
@@ -63,12 +57,10 @@ public class JiraComponentsUnitTests {
 	/**
 	 * @see #5
 	 */
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void failsOnNullArgumentConstruction() throws Exception {
 
-		expectedException.expect(IllegalArgumentException.class);
-
-		JiraComponents.from(null);
+		JiraComponents.of(null);
 
 		fail("Missing IllegalArgumentException");
 	}

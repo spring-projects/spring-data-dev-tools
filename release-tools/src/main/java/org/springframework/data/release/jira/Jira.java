@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -71,7 +70,7 @@ class Jira implements JiraConnector {
 	private final RestOperations operations;
 	private final Logger logger;
 
-	private final String jiraBaseUrl;
+	private final JiraProperties jiraProperties;
 
 	/*
 	 * (non-Javadoc)
@@ -131,27 +130,26 @@ class Jira implements JiraConnector {
 				collect(Collectors.toList());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#getTicketsFor(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration, org.springframework.data.release.jira.Credentials)
-	 */
-	@Override
 	@Cacheable("tickets")
-	public Tickets getTicketsFor(TrainIteration trainIteration, Credentials credentials) {
+	@Override
+	public Tickets getTicketsFor(TrainIteration iteration) {
+		return getTicketsFor(iteration, false);
+	}
 
-		JqlQuery query = JqlQuery.from(trainIteration);
+	@Cacheable("tickets")
+	@Override
+	public Tickets getTicketsFor(TrainIteration trainIteration, boolean forCurrentUser) {
 
-		HttpHeaders headers = new HttpHeaders();
+		JqlQuery query = JqlQuery
+				.from(trainIteration.stream().filter(moduleIteration -> supports(moduleIteration.getProject())));
+
+		HttpHeaders headers = newUserScopedHttpHeaders();
 
 		List<Ticket> tickets = new ArrayList<>();
 
-		if (credentials != null) {
-
+		if (forCurrentUser) {
 			query = query.and("assignee = currentUser()");
-
-			withAuthorization(credentials, headers);
-
-			logger.log(trainIteration, "Retrieving tickets (for user %s)…", credentials.getUsername());
+			logger.log(trainIteration, "Retrieving tickets (for user %s)…", jiraProperties.getUsername());
 		} else {
 			logger.log(trainIteration, "Retrieving tickets…");
 		}
@@ -159,14 +157,12 @@ class Jira implements JiraConnector {
 		query = query.orderBy("updatedDate DESC");
 
 		JiraIssues issues = execute(trainIteration.toString(), query, headers, jiraIssues -> {
-			for (JiraIssue issue : jiraIssues) {
-				if (!issue.wasBackportedFrom(trainIteration.getTrain())) {
-					tickets.add(toTicket(issue));
-				}
-			}
+			jiraIssues.stream().//
+					filter(jiraIssue -> !jiraIssue.wasBackportedFrom(trainIteration.getTrain())). //
+					forEach(jiraIssue -> tickets.add(toTicket(jiraIssue)));
 		});
 
-		return new Tickets(Collections.unmodifiableList(tickets), issues.getTotal());
+		return new Tickets(tickets, issues.getTotal());
 	}
 
 	@Cacheable("tickets")
@@ -183,34 +179,12 @@ class Jira implements JiraConnector {
 		query = query.orderBy("updatedDate DESC");
 
 		JiraIssues issues = execute(moduleIteration.toString(), query, headers, jiraIssues -> {
-			for (JiraIssue issue : jiraIssues) {
-				if (!issue.wasBackportedFrom(moduleIteration.getTrain())) {
-					tickets.add(toTicket(issue));
-				}
-			}
+			jiraIssues.stream().//
+					filter(jiraIssue -> !jiraIssue.wasBackportedFrom(moduleIteration.getTrain())). //
+					forEach(jiraIssue -> tickets.add(toTicket(jiraIssue)));
 		});
 
-		return new Tickets(Collections.unmodifiableList(tickets), issues.getTotal());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseVersions(org.springframework.data.release.model.TrainIteration, org.springframework.data.release.jira.Credentials)
-	 */
-	@Override
-	public void createReleaseVersions(TrainIteration trainIteration, Credentials credentials) {
-
-		Assert.notNull(trainIteration, "TrainIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
-
-		for (ModuleIteration moduleIteration : trainIteration) {
-
-			if (!supports(moduleIteration.getProject())) {
-				continue;
-			}
-
-			createReleaseVersion(moduleIteration, credentials);
-		}
+		return new Tickets(tickets, issues.getTotal());
 	}
 
 	/*
@@ -218,28 +192,23 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseVersion(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.jira.Credentials)
 	 */
 	@Override
-	public void createReleaseVersion(ModuleIteration moduleIteration, Credentials credentials) {
+	public void createReleaseVersion(ModuleIteration moduleIteration) {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
-		HttpHeaders httpHeaders = new HttpHeaders();
-		withAuthorization(credentials, httpHeaders);
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
 
 		Optional<JiraReleaseVersion> versionsForModuleIteration = findJiraReleaseVersion(moduleIteration);
 
 		if (versionsForModuleIteration.isPresent()) {
 			return;
 		}
-		
+
 		JiraVersion jiraVersion = new JiraVersion(moduleIteration);
 		logger.log(moduleIteration, "Creating Jira release version %s", jiraVersion);
 
-		JiraReleaseVersion jiraReleaseVersion = new JiraReleaseVersion();
-		jiraReleaseVersion.setProject(moduleIteration.getProjectKey().getKey());
-		jiraReleaseVersion.setName(jiraVersion.toString());
-		jiraReleaseVersion.setDescription(jiraVersion.getDescription());
+		JiraReleaseVersion jiraReleaseVersion = new JiraReleaseVersion(moduleIteration, jiraVersion);
 
 		operations.exchange(VERSIONS_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraReleaseVersion, httpHeaders),
 				JiraReleaseVersion.class, parameters).getBody();
@@ -258,46 +227,21 @@ class Jira implements JiraConnector {
 		List<JiraReleaseVersion> versionsForModuleIteration = new ArrayList<>();
 		getReleaseVersions(moduleIteration.toString(), moduleIteration.getProjectKey(), httpHeaders, releaseVersions -> {
 			releaseVersions.stream(). //
-					filter(jiraReleaseVersion -> jiraReleaseVersion.getName().equals(jiraVersion.toString())). //
-					forEach(jiraReleaseVersion -> versionsForModuleIteration.add(jiraReleaseVersion));
-
+					filter(jiraReleaseVersion -> jiraReleaseVersion.hasSameNameAs(jiraVersion)). //
+					findFirst(). //
+					ifPresent(jiraReleaseVersion -> versionsForModuleIteration.add(jiraReleaseVersion));
 		});
 
 		return versionsForModuleIteration.stream().findFirst();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseTickets(org.springframework.data.release.model.TrainIteration, org.springframework.data.release.jira.Credentials)
-	 */
 	@Override
-	public void createReleaseTickets(TrainIteration trainIteration, Credentials credentials) {
-
-		Assert.notNull(trainIteration, "TrainIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
-
-		for (ModuleIteration moduleIteration : trainIteration) {
-
-			if (!supports(moduleIteration.getProject())) {
-				continue;
-			}
-
-			createReleaseTicket(moduleIteration, credentials);
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseTicket(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.jira.Credentials)
-	 */
-	@Override
-	public void createReleaseTicket(ModuleIteration moduleIteration, Credentials credentials) {
+	public void createReleaseTicket(ModuleIteration moduleIteration) {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
 
-		HttpHeaders httpHeaders = new HttpHeaders();
-		withAuthorization(credentials, httpHeaders);
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
 		Map<String, Object> parameters = newUrlTemplateVariables();
 
 		Tickets tickets = getTicketsFor(moduleIteration);
@@ -307,9 +251,8 @@ class Jira implements JiraConnector {
 		}
 
 		Optional<JiraReleaseVersion> jiraReleaseVersion = findJiraReleaseVersion(moduleIteration);
-		if (!jiraReleaseVersion.isPresent()) {
-			throw new IllegalStateException(String.format("Did not find a release version for %s", moduleIteration));
-		}
+		jiraReleaseVersion.orElseThrow(
+				() -> new IllegalStateException(String.format("Did not find a release version for %s", moduleIteration)));
 
 		JiraComponents jiraComponents = getJiraComponents(moduleIteration.getProjectKey());
 
@@ -319,21 +262,19 @@ class Jira implements JiraConnector {
 
 		operations.exchange(CREATE_ISSUES_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraIssue, httpHeaders),
 				CreatedJiraIssue.class, parameters).getBody();
-
 	}
 
 	@Override
-	public void assignTicketToMe(Ticket ticket, Credentials credentials) {
+	public void assignTicketToMe(Ticket ticket) {
 
 		Assert.notNull(ticket, "Ticket must not be null.");
-		Assert.notNull(credentials, "Credentials must not be null.");
 
-		HttpHeaders httpHeaders = new HttpHeaders();
-		withAuthorization(credentials, httpHeaders);
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("ticketId", ticket.getId());
 
-		JiraIssue jiraIssue = JiraIssue.create().assignTo(credentials);
+		JiraIssue jiraIssue = JiraIssue.create().assignTo(jiraProperties.getCredentials());
 
 		operations.exchange(UPDATE_ISSUE_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraIssue, httpHeaders),
 				String.class, parameters).getBody();
@@ -366,20 +307,17 @@ class Jira implements JiraConnector {
 			Tickets tickets = getTicketsFor(moduleIteration);
 
 			Ticket releaseTicket = tickets.getReleaseTicket(moduleIteration);
-			
-			if(releaseTicket.getTicketStatus().isResolved()) {
+
+			if (releaseTicket.isResolved()) {
 				throw new IllegalStateException(
 						String.format("Release ticket %s for %s is resolved", releaseTicket, moduleIteration));
 			}
 
 			Tickets issueTickets = tickets.getIssueTickets(moduleIteration);
 
-			List<Ticket> unresolvedTickets = new ArrayList<>();
-			for (Ticket ticket : issueTickets) {
-				if (!ticket.getTicketStatus().isResolved()) {
-					unresolvedTickets.add(ticket);
-				}
-			}
+			List<Ticket> unresolvedTickets = issueTickets.stream().//
+					filter(ticket -> !ticket.isResolved()).//
+					collect(Collectors.toList());
 
 			if (!unresolvedTickets.isEmpty()) {
 				throw new IllegalStateException(
@@ -391,10 +329,10 @@ class Jira implements JiraConnector {
 	/*
 	 *
 	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#closeIteration(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration, org.springframework.data.release.jira.Credentials)
+	 * @see org.springframework.data.release.jira.JiraConnector#closeIteration(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration)
 	 */
 	@Override
-	public void closeIteration(TrainIteration iteration, Credentials credentials) {
+	public void closeIteration(TrainIteration iteration) {
 
 		// for each module
 
@@ -425,15 +363,10 @@ class Jira implements JiraConnector {
 		logger.log(moduleIteration, "Looking up JIRA issues from %s…", searchUri);
 
 		JiraIssues issues = operations.getForObject(searchUri, JiraIssues.class);
-		List<Ticket> tickets = new ArrayList<>();
+		Tickets tickets = issues.stream().map(this::toTicket).collect(Tickets.toTicketsCollector());
+		logger.log(moduleIteration, "Created changelog with %s entries.", tickets.getOverallTotal());
 
-		for (JiraIssue issue : issues) {
-			tickets.add(toTicket(issue));
-		}
-
-		logger.log(moduleIteration, "Created changelog with %s entries.", tickets.size());
-
-		return new Changelog(moduleIteration, new Tickets(tickets, tickets.size()));
+		return new Changelog(moduleIteration, tickets);
 	}
 
 	/*
@@ -455,7 +388,7 @@ class Jira implements JiraConnector {
 		List<JiraComponent> components = operations.exchange(PROJECT_COMPONENTS_TEMPLATE, HttpMethod.GET,
 				new HttpEntity<>(headers), new ParameterizedTypeReference<List<JiraComponent>>() {}, parameters).getBody();
 
-		return JiraComponents.from(components);
+		return JiraComponents.of(components);
 	}
 
 	private JiraIssues execute(String context, JqlQuery query, HttpHeaders headers, JiraIssuesCallback callback) {
@@ -541,8 +474,16 @@ class Jira implements JiraConnector {
 		return new Ticket(issue.getKey(), fields.getSummary(), jiraTicketStatus);
 	}
 
-	private void withAuthorization(Credentials credentials, HttpHeaders headers) {
-		headers.set("Authorization", String.format("Basic %s", credentials.asBase64()));
+	/**
+	 * Returns new {@link HttpHeaders} with authentication headers.
+	 * 
+	 * @return
+	 */
+	private HttpHeaders newUserScopedHttpHeaders() {
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", String.format("Basic %s", jiraProperties.getCredentials().asBase64()));
+		return headers;
 	}
 
 	public static void main(String[] args) {
@@ -562,7 +503,7 @@ class Jira implements JiraConnector {
 
 	private Map<String, Object> newUrlTemplateVariables() {
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("jiraBaseUrl", jiraBaseUrl);
+		parameters.put("jiraBaseUrl", jiraProperties.getUrl());
 		return parameters;
 	}
 

@@ -16,24 +16,29 @@
 
 package org.springframework.data.release.jira;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
 /*
  * Value object to bind REST responses to.
  * 
  * @author Mark Paluch
  */
-@Data
-@JsonInclude(Include.NON_NULL)
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 class JiraComponent {
 
-	String id;
-	String name;
+	private String id;
+	private String name;
+
+	@JsonCreator
+	public JiraComponent(@JsonProperty("id") String id, @JsonProperty("name") String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public boolean hasName(String name) {
+		return this.name.equals(name);
+	}
 }

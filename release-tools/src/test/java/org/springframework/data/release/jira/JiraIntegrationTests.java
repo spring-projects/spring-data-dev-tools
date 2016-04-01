@@ -51,7 +51,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
  */
 public class JiraIntegrationTests extends AbstractIntegrationTests {
 
-	public static final Credentials CREDENTIALS = new Credentials("dummy", "dummy");
 	public static final String CREATE_ISSUE_URI = "/rest/api/2/issue";
 	public static final String CREATE_VERSION_URI = "/rest/api/2/version";
 	public static final String SEARCH_URI = "/rest/api/2/search";
@@ -156,7 +155,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", REST_HOPPER_RC1.getProjectKey());
 		mockCreateVersionWith("versionCreated.json");
 
-		jira.createReleaseVersion(REST_HOPPER_RC1, CREDENTIALS);
+		jira.createReleaseVersion(REST_HOPPER_RC1);
 
 		verify(postRequestedFor(urlPathMatching(CREATE_VERSION_URI)).withRequestBody(
 				equalToJson("{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\"}")));
@@ -172,7 +171,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 
 		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 
-		jira.createReleaseVersion(moduleIteration, CREDENTIALS);
+		jira.createReleaseVersion(moduleIteration);
 
 		verify(0, postRequestedFor(urlPathMatching(CREATE_VERSION_URI)));
 	}
@@ -190,7 +189,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		mockSearchWith("emptyTickets.json");
 		prepareCreateIssueAndReturn("issueCreated.json");
 
-		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
+		jira.createReleaseTicket(moduleIteration);
 
 		verify(postRequestedFor(urlPathMatching(CREATE_ISSUE_URI))
 				.withRequestBody(equalToJson("{\"fields\":{\"project\":{\"key\":\"DATAREST\"},"
@@ -213,7 +212,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		mockSearchWith("emptyTickets.json");
 		prepareCreateIssueAndReturn("issueCreated.json");
 
-		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
+		jira.createReleaseTicket(moduleIteration);
 
 		verify(postRequestedFor(urlPathMatching(CREATE_ISSUE_URI))
 				.withRequestBody(equalToJson("{\"fields\":{\"project\":{\"key\":\"DATAREST\"},"
@@ -236,7 +235,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		mockSearchWith("emptyTickets.json");
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", moduleIteration.getProjectKey());
 
-		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
+		jira.createReleaseTicket(moduleIteration);
 
 		fail("Missing IllegalStateException");
 	}
@@ -253,7 +252,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		mockGetProjectComponentsWith("projectComponents.json", moduleIteration.getProjectKey());
 		mockSearchWith("releaseTickets.json");
 
-		jira.createReleaseTicket(moduleIteration, CREDENTIALS);
+		jira.createReleaseTicket(moduleIteration);
 
 		verify(0, postRequestedFor(urlPathMatching(CREATE_ISSUE_URI)));
 	}
@@ -267,7 +266,7 @@ public class JiraIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATAREDIS-99999")).//
 				willReturn(aResponse().withStatus(204)));
 
-		jira.assignTicketToMe(new Ticket("DATAREDIS-99999", "", null), CREDENTIALS);
+		jira.assignTicketToMe(new Ticket("DATAREDIS-99999", "", null));
 
 		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-99999"))
 				.withRequestBody(equalToJson("{\"fields\":{\"assignee\":{\"name\":\"dummy\"}}}")));
