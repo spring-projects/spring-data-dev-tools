@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,41 @@
  */
 package org.springframework.data.release.jira;
 
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.Train;
+import java.util.Optional;
+
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.TrainIteration;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public interface JiraConnector extends IssueTracker {
 
-	void reset();
-
 	/**
-	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
+	 * Verifies the state of all {@link Tickets} before releasing. In particular: Check whether the release ticket exists,
+	 * check whether all other issue tickets are in a resolved state.
 	 * 
-	 * @param iteration must not be {@literal null}.
-	 * @param credentials may be {@literal null}.
-	 * @return
+	 * @param iteration
 	 */
-	Tickets getTicketsFor(TrainIteration iteration, Credentials credentials);
-
 	void verifyBeforeRelease(TrainIteration iteration);
 
-	void closeIteration(TrainIteration iteration, Credentials credentials);
+	void closeIteration(TrainIteration iteration);
+
+	/**
+	 * Lookup a Jira release version.
+	 * 
+	 * @param moduleIteration must not be {@literal null}.
+	 * @return
+	 */
+	Optional<JiraReleaseVersion> findJiraReleaseVersion(ModuleIteration moduleIteration);
+
+	/**
+	 * Assigns the ticket to the current user.
+	 *
+	 * @param ticket must not be {@literal null}.
+	 * @param credentials must not be {@literal null}.
+	 */
+	void assignTicketToMe(Ticket ticket);
+
 }

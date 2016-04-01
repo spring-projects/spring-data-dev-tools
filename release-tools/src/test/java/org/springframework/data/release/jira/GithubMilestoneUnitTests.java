@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.ReleaseTrains;
 
 /**
- * Unit tests for {@link JiraVersion}.
+ * Unit tests for {@link GithubMilestone}.
  *
- * @author Oliver Gierke
+ * @author Mark Paluch
  */
-public class JiraVersionUnitTests {
+public class GithubMilestoneUnitTests {
 
 	@Test
-	public void rendersJiraGaVersionCorrectly() {
+	public void rendersGithubGaVersionCorrectly() {
 
 		assertIterationVersion(Iteration.M1, "1.8 M1 (Dijkstra)");
 		assertIterationVersion(Iteration.RC1, "1.8 RC1 (Dijkstra)");
@@ -48,7 +48,7 @@ public class JiraVersionUnitTests {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
 
-		JiraVersion version = new JiraVersion(module);
+		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.toString(), is("1.0 M1 (Dijkstra)"));
 	}
 
@@ -57,7 +57,7 @@ public class JiraVersionUnitTests {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.RC1, "Elasticsearch");
 
-		JiraVersion version = new JiraVersion(module);
+		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.toString(), is("1.0 RC1 (Dijkstra)"));
 	}
 
@@ -66,7 +66,7 @@ public class JiraVersionUnitTests {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
 
-		JiraVersion version = new JiraVersion(module);
+		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.getDescription(), is("Dijkstra M2"));
 	}
 
@@ -74,7 +74,7 @@ public class JiraVersionUnitTests {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(iteration, "Commons");
 
-		JiraVersion version = new JiraVersion(module);
+		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.toString(), is(expected));
 	}
 }

@@ -15,32 +15,41 @@
  */
 package org.springframework.data.release.jira;
 
-import org.springframework.data.release.model.ModuleIteration;
+import java.util.Iterator;
+import java.util.List;
 
-import lombok.Value;
+import org.springframework.data.release.Streamable;
+
+import lombok.Data;
 
 /**
+ * Value object to bind REST responses to.
+ * 
  * @author Mark Paluch
  */
-@Value
-class GithubMilestone {
+@Data
+class JiraReleaseVersions implements Streamable<JiraReleaseVersion> {
 
-	private ModuleIteration module;
+	private int startAt;
+	private int maxResults;
+	private int total;
+
+	private List<JiraReleaseVersion> values;
+
+	public int getNextStartAt() {
+		return startAt + values.size();
+	}
+
+	public boolean hasMoreResults() {
+		return startAt + values.size() < total;
+	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
-	public String toString() {
-		return module.getMediumVersionString();
-	}
-
-	public String getDescription() {
-		return module.getTrain().getName() + " " + module.getIteration().getName();
-	}
-
-	public GitHubIssue.Milestone toMilestone() {
-		return new GitHubIssue.Milestone(toString(), getDescription());
+	public Iterator<JiraReleaseVersion> iterator() {
+		return values.iterator();
 	}
 }

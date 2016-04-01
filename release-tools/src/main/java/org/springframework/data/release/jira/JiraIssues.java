@@ -18,13 +18,15 @@ package org.springframework.data.release.jira;
 import java.util.Iterator;
 import java.util.List;
 
+import org.springframework.data.release.Streamable;
+
 import lombok.Data;
 
 /**
  * @author Oliver Gierke
  */
 @Data
-class JiraIssues implements Iterable<JiraIssue> {
+class JiraIssues implements Streamable<JiraIssue> {
 
 	private int startAt;
 	private int maxResults;

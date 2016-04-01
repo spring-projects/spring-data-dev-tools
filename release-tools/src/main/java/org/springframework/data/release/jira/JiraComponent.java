@@ -13,34 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.release.jira;
 
-import org.springframework.data.release.model.ModuleIteration;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Value;
 
-/**
+/*
+ * Value object to bind REST responses to.
+ * 
  * @author Mark Paluch
  */
 @Value
-class GithubMilestone {
+class JiraComponent {
 
-	private ModuleIteration module;
+	private String id;
+	private String name;
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return module.getMediumVersionString();
+	@JsonCreator
+	public JiraComponent(@JsonProperty("id") String id, @JsonProperty("name") String name) {
+		this.id = id;
+		this.name = name;
 	}
 
-	public String getDescription() {
-		return module.getTrain().getName() + " " + module.getIteration().getName();
-	}
-
-	public GitHubIssue.Milestone toMilestone() {
-		return new GitHubIssue.Milestone(toString(), getDescription());
+	public boolean hasName(String name) {
+		return this.name.equals(name);
 	}
 }
