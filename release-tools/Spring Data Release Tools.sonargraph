@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<context version="7.2.2.230">
+    <scope type="Project" name="spring-data-release-cli">
+        <workspace>
+            <element type="JavaRootDirectory" name="src/main/java">
+                <reference name="Project|spring-data-release-cli::BuildUnit|spring-data-release-cli"/>
+            </element>
+            <element type="JavaRootDirectory" name="target/classes">
+                <reference name="Project|spring-data-release-cli::BuildUnit|spring-data-release-cli"/>
+            </element>
+        </workspace>
+        <physical>
+            <element type="BuildUnit" name="spring-data-release-cli"/>
+        </physical>
+    </scope>
+    <scope type="External" name="External">
+        <element type="TypeFilter" name="Filter">
+            <element type="IncludeTypePattern" name="**"/>
+            <element type="ExcludeTypePattern" name="java.io.*"/>
+            <element type="ExcludeTypePattern" name="java.lang.*"/>
+            <element type="ExcludeTypePattern" name="java.lang.annotation.*"/>
+            <element type="ExcludeTypePattern" name="java.lang.ref.*"/>
+            <element type="ExcludeTypePattern" name="java.math.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.channels.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.channels.spi.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.charset.*"/>
+            <element type="ExcludeTypePattern" name="java.nio.charset.spi.*"/>
+            <element type="ExcludeTypePattern" name="java.text.*"/>
+            <element type="ExcludeTypePattern" name="java.util.*"/>
+            <element type="ExcludeTypePattern" name="java.util.jar.*"/>
+            <element type="ExcludeTypePattern" name="java.util.prefs.*"/>
+            <element type="ExcludeTypePattern" name="java.util.regex.*"/>
+            <element type="ExcludeTypePattern" name="java.util.zip.*"/>
+        </element>
+    </scope>
+    <scope type="Global" name="Global">
+        <element type="Configuration" name="Configuration"/>
+        <element type="TypeFilter" name="Filter">
+            <element type="IncludeTypePattern" name="**"/>
+        </element>
+        <itemDefinition>
+            <item type="ThresholdItem">
+                <property value="NumberOfNotAssignedTypes" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Project" name="NamedElementGroup"/>
+                <property value="0" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="NumberOfParameters" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Method" name="NamedElementGroup"/>
+                <property value="7" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="NumberOfAccessibleTypes" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Namespace" name="NamedElementGroup"/>
+                <property value="30" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="NormalizedCumulativeComponentDependency" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Project" name="NamedElementGroup"/>
+                <property value="7" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="LinesOfCode" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="SourceFile" name="NamedElementGroup"/>
+                <property value="700" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="NumberOfInternalTypes" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Namespace" name="NamedElementGroup"/>
+                <property value="50" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="NumberOfMethods" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Type" name="NamedElementGroup"/>
+                <property value="50" name="UpperValue"/>
+            </item>
+            <item type="ThresholdItem">
+                <property value="ModifiedCyclomaticComplexity" name="AttributeId"/>
+                <property value="" name="LowerValue"/>
+                <property value="Method" name="NamedElementGroup"/>
+                <property value="20" name="UpperValue"/>
+            </item>
+        </itemDefinition>
+    </scope>
+    <attributeConfiguration type="AttributeConfiguration">
+        <property value="disabled" name="NumberOfWorkspaceWarnings"/>
+        <property value="disabled" name="DistributedOverPathContainers"/>
+        <property value="disabled" name="MaxAccumulatedExtendedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="CyclomaticComplexity"/>
+        <property value="disabled" name="NumberOfCyclicProjects"/>
+        <property value="disabled" name="NumberOfTypesWithImplementation"/>
+        <property value="disabled" name="NumberOfNamedInterfaces"/>
+        <property value="disabled" name="NumberOfCyclicSubsystems"/>
+        <property value="disabled" name="AverageAccumulatedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="NumberOfAbstractTypes"/>
+        <property value="disabled" name="NormalizedCumulativeTypeDependency"/>
+        <property value="disabled" name="NumberOfVerticalSlices"/>
+        <property value="disabled" name="NumberOfTasks"/>
+        <property value="disabled" name="NumberOfWarnings"/>
+        <property value="disabled" name="NumberOfRefactorings"/>
+        <property value="disabled" name="AverageExtendedCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="NumberOfCyclicNamespaces"/>
+        <property value="disabled" name="MaxExtendedCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="Level"/>
+        <property value="disabled" name="NumberOfVerticalSliceGroups"/>
+        <property value="disabled" name="NumberOfNameParts"/>
+        <property value="disabled" name="NumberOfCyclicVerticalSliceGroups"/>
+        <property value="disabled" name="AccumulatedExtendedCyclomaticComplexity"/>
+        <property value="disabled" name="NumberOfCyclicLayerGroups"/>
+        <property value="disabled" name="NumberOfLayerGroups"/>
+        <property value="disabled" name="NumberOfAssertions"/>
+        <property value="disabled" name="NumberOfDuplicateCodeBlocksWarnings"/>
+        <property value="disabled" name="AverageAccumulatedExtendedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="ExtendedCyclomaticComplexity"/>
+        <property value="disabled" name="NumberOfLayers"/>
+        <property value="disabled" name="DependsUpon"/>
+        <property value="disabled" name="NumberOfMethodsWithImplementation"/>
+        <property value="disabled" name="NumberOfCyclicVerticalSlices"/>
+        <property value="disabled" name="MaxAccumulatedCyclomaticComplexityPerType"/>
+        <property value="disabled" name="AccumulatedCyclomaticComplexity"/>
+        <property value="disabled" name="MaxCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="JdkVersion"/>
+        <property value="disabled" name="NumberOfSubsystems"/>
+        <property value="disabled" name="NumberOfCyclicDirectories"/>
+        <property value="disabled" name="NumberOfIgnoredWarnings"/>
+        <property value="disabled" name="AverageAssertionUsage"/>
+        <property value="disabled" name="AverageTypeDependency"/>
+        <property value="disabled" name="RelativeAverageTypeDependency"/>
+        <property value="disabled" name="AverageCyclomaticComplexityPerMethod"/>
+        <property value="disabled" name="NumberOfExcludedSourceFiles"/>
+        <property value="disabled" name="NumberOfCyclicWarnings"/>
+        <property value="disabled" name="Timestamp"/>
+        <property value="disabled" name="NumberOfExcludedTargetFiles"/>
+        <property value="disabled" name="NumberOfIgnoredViolations"/>
+        <property value="disabled" name="NumberOfCyclicLayers"/>
+        <property value="disabled" name="NumberOfCyclicSourceFiles"/>
+        <property value="disabled" name="NumberOfMetricWarnings"/>
+        <property value="disabled" name="NumberOfAbstractMethods"/>
+        <property value="disabled" name="NumberOfFixWarnings"/>
+    </attributeConfiguration>
+</context>
