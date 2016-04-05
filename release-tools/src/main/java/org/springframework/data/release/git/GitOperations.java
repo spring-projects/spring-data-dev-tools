@@ -15,7 +15,9 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,9 +43,8 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.Workspace;
-import org.springframework.data.release.jira.IssueTracker;
-import org.springframework.data.release.jira.Ticket;
-import org.springframework.data.release.jira.TicketBranches;
+import org.springframework.data.release.issues.IssueTracker;
+import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -62,13 +63,14 @@ import org.springframework.util.Assert;
  */
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class GitOperations {
 
-	private final GitServer server = new GitServer();
-	private final Workspace workspace;
-	private final Logger logger;
-	private final PluginRegistry<IssueTracker, Project> issueTracker;
-	private final GitProperties gitProperties;
+	GitServer server = new GitServer();
+	Workspace workspace;
+	Logger logger;
+	PluginRegistry<IssueTracker, Project> issueTracker;
+	GitProperties gitProperties;
 
 	/**
 	 * Returns the {@link GitProject} for the given {@link Project}.
@@ -297,8 +299,8 @@ public class GitOperations {
 
 			Collection<Ticket> tickets = tracker.findTickets(project, ticketIds.keySet());
 
-			return TicketBranches.from(tickets.stream()
-					.collect(Collectors.toMap(ticket -> ticketIds.get(ticket.getId()), ticket -> ticket)));
+			return TicketBranches
+					.from(tickets.stream().collect(Collectors.toMap(ticket -> ticketIds.get(ticket.getId()), ticket -> ticket)));
 		});
 	}
 
@@ -659,12 +661,10 @@ public class GitOperations {
 	}
 
 	private static interface GitCallback<T> {
-
 		T doWithGit(Git git) throws Exception;
 	}
 
 	private static interface VoidGitCallback {
-
 		void doWithGit(Git git) throws Exception;
 	}
 }

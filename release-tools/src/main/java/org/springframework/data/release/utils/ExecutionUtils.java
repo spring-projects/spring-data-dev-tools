@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.release.utils;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.Streamable;
@@ -62,16 +63,22 @@ public class ExecutionUtils {
 	 * @return
 	 */
 	public static <T, S> Collection<S> runAndReturn(Streamable<T> streamable, Function<T, S> function) {
+		return runAndReturn(streamable, function, Collectors.toList());
+	}
+
+	public static <T, S, R> R runAndReturn(Streamable<T> streamable, Function<T, S> function,
+			Collector<? super S, ?, R> collector) {
 
 		Assert.notNull(streamable, "Iterable must not be null!");
 		Assert.notNull(function, "Consumer must not be null!");
 
 		return streamable.stream().//
 				map(it -> CompletableFuture.supplyAsync(() -> function.apply(it))).//
+				filter(it -> it != null).//
 				collect(Collectors.toList()).//
 				stream().//
 				map(future -> future.join()).//
-				collect(Collectors.toList());
+				collect(collector);
 	}
 
 	public static interface ConsumerWithException<T> {

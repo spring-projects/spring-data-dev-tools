@@ -23,7 +23,6 @@ import javax.annotation.PostConstruct;
 
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
@@ -43,8 +42,6 @@ public class GitProperties {
 	private @Getter(AccessLevel.PRIVATE) String password;
 	private String username, author, email;
 
-	@Value("${github.api.url}") private String githubApiBaseUrl;
-
 	@PostConstruct
 	public void init() {
 
@@ -52,7 +49,6 @@ public class GitProperties {
 		Assert.hasText(password, "No GitHub password (git.password) configured!");
 		Assert.hasText(author, "No Git author (git.author) configured!");
 		Assert.hasText(email, "No Git email (git.email) configured!");
-		Assert.hasText(githubApiBaseUrl, "No GitHub API base url configured!");
 	}
 
 	/**

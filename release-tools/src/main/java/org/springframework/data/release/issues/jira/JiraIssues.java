@@ -13,42 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.git;
+package org.springframework.data.release.issues.jira;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Value;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.release.Streamable;
 
 /**
  * @author Oliver Gierke
  */
-@EqualsAndHashCode
-@RequiredArgsConstructor
-public class Commit {
+@Value
+class JiraIssues implements Streamable<JiraIssue> {
 
-	private final Ticket ticket;
-	private final String summary;
-	private final Optional<String> details;
+	int startAt, maxResult;
+	@Getter int total;
+	List<JiraIssue> issues = new ArrayList<>();
+
+	public int getNextStartAt() {
+		return startAt + issues.size();
+	}
+
+	public boolean hasMoreResults() {
+		return startAt + issues.size() < total;
+	}
+
+	public boolean hasIssues() {
+		return !issues.isEmpty();
+	}
 
 	/* 
 	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
-	public String toString() {
-
-		StringBuilder builder = new StringBuilder();
-
-		builder.append(ticket.getId()).append(" - ").append(summary).append("\n");
-
-		details.ifPresent(it -> {
-			builder.append("\n");
-			builder.append(it).append("\n");
-		});
-
-		return builder.toString();
+	public Iterator<JiraIssue> iterator() {
+		return issues.iterator();
 	}
 }

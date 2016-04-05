@@ -30,7 +30,6 @@ import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.model.UpdateInformation;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.io.XBFileIO;
 
@@ -75,7 +74,7 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
 		ModuleIteration build = iteration.getModule(Projects.BUILD);
-		UpdateInformation information = new UpdateInformation(iteration, Phase.PREPARE);
+		UpdateInformation information = UpdateInformation.of(iteration, Phase.PREPARE);
 
 		maven.updateProjectDescriptors(build, information);
 		maven.prepareVersion(build, Phase.PREPARE);

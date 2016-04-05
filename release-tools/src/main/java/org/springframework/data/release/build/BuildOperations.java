@@ -28,7 +28,6 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.model.UpdateInformation;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.plugin.core.PluginRegistry.Supplier;
 import org.springframework.stereotype.Component;
@@ -56,13 +55,13 @@ public class BuildOperations {
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.notNull(phase, "Phase must not be null!");
 
-		UpdateInformation updateInformation = new UpdateInformation(iteration, phase);
+		UpdateInformation updateInformation = UpdateInformation.of(iteration, phase);
 
 		doWithBuildSystem(iteration, (system, it) -> system.updateProjectDescriptors(it, updateInformation));
 	}
 
 	/**
-	 * Triggers the distribution builds for all modules particitpating in the given {@link TrainIteration}.
+	 * Triggers the distribution builds for all modules participating in the given {@link TrainIteration}.
 	 * 
 	 * @param iteration must not be {@literal null}.
 	 */

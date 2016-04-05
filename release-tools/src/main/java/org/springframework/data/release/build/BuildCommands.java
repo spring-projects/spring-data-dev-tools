@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.io;
+package org.springframework.data.release.build;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
+import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.utils.Logger;
-import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 
 /**
@@ -30,17 +31,24 @@ import org.springframework.shell.core.annotation.CliCommand;
  */
 @CliComponent
 @RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-public class WorkspaceCommands implements CommandMarker {
+public class BuildCommands {
 
-	private final Workspace workspace;
-	private final Logger logger;
+	private final @NonNull BuildOperations build;
+	private final @NonNull Workspace workspace;
+	private final @NonNull Logger logger;
 
-	@CliCommand("workspace cleanup")
-	public void cleanup() throws IOException {
+	/**
+	 * Removes all Spring Data artifacts from the local repository.
+	 * 
+	 * @throws IOException
+	 */
+	@CliCommand("workspace purge artifacts")
+	public void purge() throws IOException {
 
 		logger.log("Workspace", "Cleaning up workspace directory at %s.",
 				workspace.getWorkingDirectory().getAbsolutePath());
 
-		workspace.cleanup();
+		workspace.purge(build.getLocalRepository(),
+				path -> build.getLocalRepository().relativize(path).startsWith("org/springframework/data"));
 	}
 }

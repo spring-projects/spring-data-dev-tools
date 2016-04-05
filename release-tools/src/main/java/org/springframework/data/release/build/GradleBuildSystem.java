@@ -29,7 +29,6 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.model.UpdateInformation;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 
@@ -61,7 +60,7 @@ class GradleBuildSystem implements BuildSystem {
 	 */
 	public void updateProject(TrainIteration iteration, final Phase phase) throws Exception {
 
-		UpdateInformation updateInformation = new UpdateInformation(iteration, phase);
+		UpdateInformation updateInformation = UpdateInformation.of(iteration, phase);
 
 		for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
 			updateProjectDescriptors(module, updateInformation);

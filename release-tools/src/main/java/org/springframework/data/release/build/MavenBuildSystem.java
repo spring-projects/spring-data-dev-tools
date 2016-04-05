@@ -36,7 +36,6 @@ import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.model.UpdateInformation;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
@@ -218,7 +217,7 @@ class MavenBuildSystem implements BuildSystem {
 	public ModuleIteration prepareVersion(ModuleIteration module, Phase phase) {
 
 		Project project = module.getProject();
-		UpdateInformation information = new UpdateInformation(module.getTrainIteration(), phase);
+		UpdateInformation information = UpdateInformation.of(module.getTrainIteration(), phase);
 
 		mvn.execute(project, "versions:set", "versions:commit",
 				"-DnewVersion=".concat(information.getProjectVersionToSet(project).toString()));

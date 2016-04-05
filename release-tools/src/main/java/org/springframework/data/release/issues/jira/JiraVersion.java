@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.git;
+package org.springframework.data.release.issues.jira;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
-import java.util.Optional;
-
-import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.release.issues.jira.JiraIssue.FixVersion;
+import org.springframework.data.release.model.ModuleIteration;
 
 /**
  * @author Oliver Gierke
  */
-@EqualsAndHashCode
-@RequiredArgsConstructor
-public class Commit {
+@Value
+class JiraVersion {
 
-	private final Ticket ticket;
-	private final String summary;
-	private final Optional<String> details;
+	ModuleIteration module;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
+		return module.getMediumVersionString();
+	}
 
-		StringBuilder builder = new StringBuilder();
+	public String getDescription() {
+		return module.getTrain().getName() + " " + module.getIteration().getName();
+	}
 
-		builder.append(ticket.getId()).append(" - ").append(summary).append("\n");
-
-		details.ifPresent(it -> {
-			builder.append("\n");
-			builder.append(it).append("\n");
-		});
-
-		return builder.toString();
+	public FixVersion toFixVersion() {
+		return new FixVersion(null, toString());
 	}
 }
