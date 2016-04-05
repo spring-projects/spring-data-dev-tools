@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -244,13 +244,31 @@ class MavenBuildSystem implements BuildSystem {
 
 		DeploymentInformation information = new DeploymentInformation(module, properties);
 
+		deployToArtifactory(module, information);
+		deployToMavenCentral(module);
+
+		return information;
+	}
+
+	/**
+	 * Triggers Maven commands to deploy module artifacts to Spring Artifactory.
+	 * 
+	 * @param module must not be {@literal null}.
+	 * @param information must not be {@literal null}.
+	 */
+	private void deployToArtifactory(ModuleIteration module, DeploymentInformation information) {
+
+		Assert.notNull(module, "Module iteration must not be null!");
+		Assert.notNull(information, "Deployment information must not be null!");
+
+		logger.log(module, "Deploying artifacts to Spring Artifactory…");
+
 		List<String> arguments = new ArrayList<>();
 		arguments.add("clean");
 		arguments.add("deploy");
-		arguments.add("-Pci,release".concat(module.getIteration().isPublic() ? ",central" : ""));
 
+		arguments.add("-Pci,release");
 		arguments.add("-DskipTests");
-
 		arguments.add("-Dartifactory.server=".concat(properties.getServer().getUri()));
 		arguments.add("-Dartifactory.staging-repository=".concat(properties.getStagingRepository()));
 		arguments.add("-Dartifactory.username=".concat(properties.getUsername()));
@@ -258,18 +276,39 @@ class MavenBuildSystem implements BuildSystem {
 		arguments.add("-Dartifactory.build-name=\"".concat(information.getBuildName()).concat("\""));
 		arguments.add("-Dartifactory.build-number=".concat(information.getBuildNumber()));
 
-		if (module.getIteration().isPublic()) {
+		mvn.execute(module.getProject(), arguments);
+	}
 
-			Gpg gpg = properties.getGpg();
+	/**
+	 * Triggers Maven commands to deploy to Sonatypes OSS Nexus if the given {@link ModuleIteration} refers to a version
+	 * that has to be publically released.
+	 * 
+	 * @param module must not be {@literal null}.
+	 */
+	private void deployToMavenCentral(ModuleIteration module) {
 
-			arguments.add("-Dgpg.executable=".concat(gpg.getExecutable()));
-			arguments.add("-Dgpg.keyname=".concat(gpg.getKeyname()));
-			arguments.add("-Dgpg.password=".concat(gpg.getPassword()));
+		Assert.notNull(module, "Module iteration must not be null!");
+
+		if (!module.getIteration().isPublic()) {
+
+			logger.log(module, "Skipping deployment to Maven Central as it's not a public version!");
+			return;
 		}
 
-		mvn.execute(module.getProject(), arguments);
+		logger.log(module, "Deploying artifacts to Sonatype OSS Nexus…");
 
-		return information;
+		List<String> arguments = new ArrayList<>();
+		arguments.add("deploy");
+		arguments.add("-Pci,central");
+		arguments.add("-DskipTests");
+
+		Gpg gpg = properties.getGpg();
+
+		arguments.add("-Dgpg.executable=".concat(gpg.getExecutable()));
+		arguments.add("-Dgpg.keyname=".concat(gpg.getKeyname()));
+		arguments.add("-Dgpg.password=".concat(gpg.getPassword()));
+
+		mvn.execute(module.getProject(), arguments);
 	}
 
 	/* 
@@ -289,6 +328,9 @@ class MavenBuildSystem implements BuildSystem {
 		execute(file, Pom.class, callback);
 	}
 
+	/**
+	 * TODO: Move XML file callbacks using the {@link ProjectionFactory} to {@link Workspace}.
+	 */
 	private <T extends Pom> void execute(File file, Class<T> type, Consumer<T> callback) {
 
 		XBFileIO io = projectionFactory.io().file(file);
