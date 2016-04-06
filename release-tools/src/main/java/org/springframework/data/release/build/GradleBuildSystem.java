@@ -77,8 +77,8 @@ class GradleBuildSystem implements BuildSystem {
 
 		Project project = iteration.getProject();
 		Repository repository = new Repository(iteration.getIteration());
-		ArtifactVersion commonsVersion = updateInformation.getIteration().getModuleVersion(COMMONS);
-		ArtifactVersion buildVersion = updateInformation.getIteration().getModuleVersion(BUILD);
+		ArtifactVersion commonsVersion = updateInformation.getTrain().getModuleVersion(COMMONS);
+		ArtifactVersion buildVersion = updateInformation.getTrain().getModuleVersion(BUILD);
 
 		workspace.processFile(GRADLE_PROPERTIES, project, (line, number) -> {
 

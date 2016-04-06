@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor(staticName = "of")
 public class UpdateInformation {
 
-	private final @NonNull @Getter TrainIteration iteration;
+	private final @NonNull @Getter TrainIteration train;
 	private final @NonNull @Getter Phase phase;
 
 	/**
@@ -48,7 +49,7 @@ public class UpdateInformation {
 
 		Assert.notNull(dependency, "Project must not be null!");
 
-		ArtifactVersion dependencyVersion = iteration.getModuleVersion(dependency);
+		ArtifactVersion dependencyVersion = train.getModuleVersion(dependency);
 
 		switch (phase) {
 			case PREPARE:
@@ -69,7 +70,7 @@ public class UpdateInformation {
 	 */
 	public ArtifactVersion getParentVersionToSet() {
 
-		ArtifactVersion version = iteration.getModuleVersion(BUILD);
+		ArtifactVersion version = train.getModuleVersion(BUILD);
 
 		switch (phase) {
 			case PREPARE:
@@ -89,7 +90,7 @@ public class UpdateInformation {
 	 * @return will never be {@literal null}.
 	 */
 	public Repository getRepository() {
-		return new Repository(iteration.getIteration());
+		return new Repository(train.getIteration());
 	}
 
 	/**
@@ -99,12 +100,15 @@ public class UpdateInformation {
 	 */
 	public String getReleaseTrainVersion() {
 
+		String version = train.getTrain().getName();
+
 		switch (phase) {
 			case PREPARE:
-				return iteration.toVersionString();
+				Iteration iteration = train.getIteration();
+				return String.format("%s-%s", version, iteration.isGAIteration() ? "RELEASE" : iteration.getName());
 			case CLEANUP:
 			case MAINTENANCE:
-				return iteration.getTrain().getName().concat("-BUILD-SNAPSHOT");
+				return version.concat("-BUILD-SNAPSHOT");
 		}
 
 		throw new IllegalStateException("Unexpected phase detected " + phase + " detected!");

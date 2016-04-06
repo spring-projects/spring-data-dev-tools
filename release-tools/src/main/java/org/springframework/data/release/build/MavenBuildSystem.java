@@ -116,7 +116,7 @@ class MavenBuildSystem implements BuildSystem {
 
 	private void updateBom(UpdateInformation updateInformation) {
 
-		TrainIteration iteration = updateInformation.getIteration();
+		TrainIteration iteration = updateInformation.getTrain();
 
 		logger.log(BUILD, "Updating BOM pom.xml…");
 

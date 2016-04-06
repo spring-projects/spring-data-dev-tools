@@ -70,4 +70,18 @@ public class UpdateInformationUnitTests {
 		updateInformation = UpdateInformation.of(hopperM1, Phase.CLEANUP);
 		assertThat(updateInformation.getProjectVersionToSet(Projects.JPA).toString(), is("1.10.0.BUILD-SNAPSHOT"));
 	}
+
+	/**
+	 * @see #22
+	 */
+	@Test
+	public void returnsCorrectReleaseTrainVersions() {
+
+		TrainIteration hopperGa = new TrainIteration(ReleaseTrains.HOPPER, Iteration.GA);
+		TrainIteration hopperSr1 = new TrainIteration(ReleaseTrains.HOPPER, Iteration.SR1);
+
+		assertThat(UpdateInformation.of(hopperGa, Phase.PREPARE).getReleaseTrainVersion(), is("Hopper-RELEASE"));
+		assertThat(UpdateInformation.of(hopperM1, Phase.PREPARE).getReleaseTrainVersion(), is("Hopper-M1"));
+		assertThat(UpdateInformation.of(hopperSr1, Phase.PREPARE).getReleaseTrainVersion(), is("Hopper-SR1"));
+	}
 }

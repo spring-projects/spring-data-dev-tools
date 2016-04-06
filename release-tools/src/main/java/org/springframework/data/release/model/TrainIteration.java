@@ -66,15 +66,6 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 		return train.getModuleIteration(previousIteration, module.getProject().getName());
 	}
 
-	/**
-	 * Returns the version string to be used for the train iteration.
-	 * 
-	 * @return
-	 */
-	public String toVersionString() {
-		return toString().replace(' ', '-');
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
