@@ -28,7 +28,7 @@ import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.TrainIteration;
 
 /**
- * Integration test for {@link DeploymentInformation}.
+ * Integration test for {@link DefaultDeploymentInformation}.
  * 
  * @author Oliver Gierke
  */
@@ -42,7 +42,7 @@ public class DeploymentInformationIntegrationTests extends AbstractIntegrationTe
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
 		ModuleIteration buildModule = iteration.getModule(Projects.BUILD);
 
-		DeploymentInformation information = new DeploymentInformation(buildModule, properties);
+		DeploymentInformation information = new DefaultDeploymentInformation(buildModule, properties);
 
 		assertThat(information.getDeploymentTargetUrl(), containsString(properties.getServer().getUri().toString()));
 		assertThat(information.getBuildName(), is("Spring Data Build - Release"));

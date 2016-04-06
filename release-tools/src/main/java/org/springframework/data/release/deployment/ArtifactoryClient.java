@@ -80,7 +80,7 @@ class ArtifactoryClient {
 		}
 	}
 
-	private void handle(String log, HttpClientErrorException o_O, ModuleIteration module) {
+	void handle(String log, HttpClientErrorException o_O, ModuleIteration module) {
 
 		try {
 
@@ -115,7 +115,7 @@ class ArtifactoryClient {
 	}
 
 	@Value
-	private static class PromotionRequest {
+	static class PromotionRequest {
 		String targetRepo;
 	}
 }

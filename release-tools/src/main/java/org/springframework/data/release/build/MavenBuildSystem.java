@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
 import org.springframework.data.release.deployment.DeploymentProperties.Gpg;
@@ -242,7 +243,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		Assert.notNull(module, "Module must not be null!");
 
-		DeploymentInformation information = new DeploymentInformation(module, properties);
+		DeploymentInformation information = new DefaultDeploymentInformation(module, properties);
 
 		deployToArtifactory(module, information);
 		deployToMavenCentral(module);

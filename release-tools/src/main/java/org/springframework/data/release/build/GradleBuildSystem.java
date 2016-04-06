@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
 import org.springframework.data.release.io.Workspace;
@@ -146,7 +147,7 @@ class GradleBuildSystem implements BuildSystem {
 	 */
 	@Override
 	public DeploymentInformation deploy(ModuleIteration module) {
-		return new DeploymentInformation(module, properties);
+		return new DefaultDeploymentInformation(module, properties);
 	}
 
 	/* 
