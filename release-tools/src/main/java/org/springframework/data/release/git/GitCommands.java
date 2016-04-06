@@ -50,23 +50,23 @@ class GitCommands extends TimedCommand {
 	@NonNull GitOperations git;
 
 	@CliCommand("git co train")
-	void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
+	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
 		git.checkout(train);
 	}
 
 	@CliCommand("git co")
-	void checkout(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+	public void checkout(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
 		git.checkout(iteration);
 	}
 
 	@CliCommand("git update")
-	void update(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
+	public void update(@CliOption(key = { "", "train" }, mandatory = true) String trainName)
 			throws Exception, InterruptedException {
 		git.update(ReleaseTrains.getTrainByName(trainName));
 	}
 
 	@CliCommand("git tags")
-	String tags(@CliOption(key = { "project" }, mandatory = true) String projectName) throws Exception {
+	public String tags(@CliOption(key = { "project" }, mandatory = true) String projectName) throws Exception {
 
 		Project project = ReleaseTrains.getProjectByName(projectName);
 
