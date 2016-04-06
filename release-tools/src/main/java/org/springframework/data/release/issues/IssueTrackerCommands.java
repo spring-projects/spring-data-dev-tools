@@ -106,6 +106,11 @@ class IssueTrackerCommands extends TimedCommand {
 				stream().map(it -> it.toString()).collect(Collectors.joining("\n"));
 	}
 
+	@CliCommand("tracker close")
+	public void closeIteration(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		iteration.forEach(module -> getTrackerFor(module).closeIteration(module));
+	}
+
 	private Changelog getChangelog(ModuleIteration module) {
 		return getTrackerFor(module).getChangelogFor(module);
 	}

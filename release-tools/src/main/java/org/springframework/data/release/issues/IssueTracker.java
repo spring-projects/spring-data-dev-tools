@@ -111,4 +111,11 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @return
 	 */
 	Changelog getChangelogFor(ModuleIteration module);
+
+	/**
+	 * Closes the given {@link ModuleIteration}.
+	 * 
+	 * @param module must not be {@literal null}.
+	 */
+	void closeIteration(ModuleIteration module);
 }

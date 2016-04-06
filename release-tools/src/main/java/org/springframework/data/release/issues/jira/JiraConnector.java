@@ -37,13 +37,6 @@ interface JiraConnector extends IssueTracker {
 	void verifyBeforeRelease(TrainIteration iteration);
 
 	/**
-	 * Closes the given {@link TrainIteration}.
-	 * 
-	 * @param iteration must not be {@literal null}.
-	 */
-	void closeIteration(TrainIteration iteration);
-
-	/**
 	 * Lookup a JIRA release version.
 	 * 
 	 * @param moduleIteration must not be {@literal null}.

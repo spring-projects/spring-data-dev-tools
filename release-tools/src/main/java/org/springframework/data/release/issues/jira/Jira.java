@@ -63,6 +63,7 @@ class Jira implements JiraConnector {
 	private static final String PROJECT_VERSIONS_TEMPLATE = BASE_URI + "/project/{project}/version?startAt={startAt}";
 	private static final String PROJECT_COMPONENTS_TEMPLATE = BASE_URI + "/project/{project}/components";
 	private static final String VERSIONS_TEMPLATE = BASE_URI + "/version";
+	private static final String VERSION_TEMPLATE = BASE_URI + "/version/{id}";
 	private static final String SEARCH_TEMPLATE = BASE_URI + "/search?jql={jql}&fields={fields}&startAt={startAt}";
 
 	public static final String INFRASTRUCTURE_COMPONENT_NAME = "Infrastructure";
@@ -354,7 +355,7 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#closeIteration(org.springframework.data.release.model.Train, org.springframework.data.release.model.Iteration)
 	 */
 	@Override
-	public void closeIteration(TrainIteration iteration) {
+	public void closeIteration(ModuleIteration module) {
 
 		// for each module
 
@@ -364,6 +365,19 @@ class Jira implements JiraConnector {
 		// -- close tickets
 
 		// - mark version as releases
+
+		findJiraReleaseVersion(module).//
+				map(JiraReleaseVersion::markReleased).//
+				ifPresent(version -> {
+
+					logger.log(module, "Marking version %s as released.", version);
+
+					Map<String, Object> parameters = newUrlTemplateVariables();
+					parameters.put("id", version.getId());
+
+					operations.put(VERSION_TEMPLATE, version, parameters);
+				});
+
 		// - if no next version exists, create
 	}
 

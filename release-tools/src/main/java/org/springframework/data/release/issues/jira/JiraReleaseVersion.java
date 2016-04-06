@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 class JiraReleaseVersion {
 
 	String id, name, project, description;
+	boolean released;
 
 	public static JiraReleaseVersion of(ModuleIteration moduleIteration, JiraVersion jiraVersion) {
 
@@ -37,7 +38,11 @@ class JiraReleaseVersion {
 		Assert.notNull(jiraVersion, "JiraVersion must not be null.");
 
 		return new JiraReleaseVersion(null, jiraVersion.toString(), moduleIteration.getProjectKey().getKey(),
-				jiraVersion.getDescription());
+				jiraVersion.getDescription(), false);
+	}
+
+	public JiraReleaseVersion markReleased() {
+		return new JiraReleaseVersion(id, name, project, description, true);
 	}
 
 	public boolean hasSameNameAs(JiraVersion jiraVersion) {

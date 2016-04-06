@@ -326,6 +326,15 @@ class GitHub implements IssueTracker {
 		return Optional.empty();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.issues.IssueTracker#closeIteration(org.springframework.data.release.model.ModuleIteration)
+	 */
+	@Override
+	public void closeIteration(ModuleIteration module) {
+
+	}
+
 	private Tickets getTicketsFor(ModuleIteration moduleIteration, boolean forCurrentUser) {
 
 		return getIssuesFor(moduleIteration, forCurrentUser).//
