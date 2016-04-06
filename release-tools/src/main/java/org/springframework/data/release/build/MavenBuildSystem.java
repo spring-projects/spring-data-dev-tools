@@ -107,17 +107,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(project, "Triggering distribution build…");
 
-		ArtifactVersion version = ArtifactVersion.of(module);
-
-		String profile = "-Pdistribute";
-
-		if (version.isMilestoneVersion()) {
-			profile = profile.concat(",milestone");
-		} else if (version.isReleaseVersion()) {
-			profile = profile.concat(",release");
-		}
-
-		mvn.execute(project, "clean", "deploy", "-DskipTests", profile);
+		mvn.execute(project, "clean", "deploy", "-DskipTests", "-Pdistribute");
 
 		logger.log(project, "Successfully finished distribution build!");
 
