@@ -59,7 +59,7 @@ public class Branch implements Comparable<Branch> {
 		return from(versioned.getVersion());
 	}
 
-	private static Branch from(Version version) {
+	public static Branch from(Version version) {
 		return from(version.toString().concat(".x"));
 	}
 

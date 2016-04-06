@@ -148,8 +148,6 @@ public class GitOperations {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		update(iteration.getTrain());
-
 		ExecutionUtils.run(iteration, module -> {
 
 			Project project = module.getProject();
@@ -319,22 +317,22 @@ public class GitOperations {
 		});
 	}
 
+	/**
+	 * Tags the release commits for the given {@link TrainIteration}.
+	 * 
+	 * @param iteration
+	 */
 	public void tagRelease(TrainIteration iteration) {
+
+		Assert.notNull(iteration, "Train iteration must not be null!");
 
 		ExecutionUtils.run(iteration, module -> {
 
-			Branch branch = Branch.from(module);
 			Project project = module.getProject();
+			ObjectId hash = getReleaseHash(module);
+			Tag tag = getTags(project).createTag(module);
 
 			doWithGit(project, git -> {
-
-				checkout(project, branch);
-
-				logger.log(module, "git pull", branch);
-				git.pull().call();
-
-				ObjectId hash = getReleaseHash(module);
-				Tag tag = getTags(project).createTag(module);
 
 				try (RevWalk walk = new RevWalk(git.getRepository())) {
 
@@ -423,11 +421,11 @@ public class GitOperations {
 	}
 
 	/**
-	 * Checks out the given {@link Branch} of the given {@link Project}.
+	 * Checks out the given {@link Branch} of the given {@link Project}. If the given branch doesn't exist yet, a tracking
+	 * branch is created assuming the branch exists in the {@code origin} remote.
 	 * 
 	 * @param project must not be {@literal null}.
 	 * @param branch must not be {@literal null}.
-	 * @throws Exception
 	 */
 	public void checkout(Project project, Branch branch) {
 
@@ -462,9 +460,14 @@ public class GitOperations {
 
 	public void createMaintenanceBranches(TrainIteration iteration) {
 
+		if (!iteration.getIteration().isGAIteration()) {
+			return;
+		}
+
 		checkout(iteration);
 
 		ExecutionUtils.run(iteration, module -> {
+
 			Branch branch = createMaintenanceBranch(module);
 			checkout(module.getProject(), branch);
 		});
@@ -539,11 +542,20 @@ public class GitOperations {
 		});
 	}
 
+	/**
+	 * Creates a version branch for the given {@link ModuleIteration}.
+	 * 
+	 * @param module must not be {@literal null}.
+	 * @return
+	 */
 	private Branch createMaintenanceBranch(ModuleIteration module) {
 
-		Branch branch = Branch.from(module);
+		Assert.notNull(module, "Module iteration must not be null!");
+
+		Branch branch = Branch.from(module.getVersion());
 
 		doWithGit(module.getProject(), git -> {
+			logger.log(module, "git checkout -b %s", branch);
 			git.branchCreate().setName(branch.toString()).call();
 		});
 

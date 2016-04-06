@@ -107,9 +107,6 @@ class ReleaseCommands extends TimedCommand {
 			List<DeploymentInformation> deploymentInformation = build.performRelease(iteration);
 
 			deploymentInformation.forEach(deployment::promote);
-
-			build.prepareVersions(iteration, Phase.CLEANUP);
-			git.commit(iteration, "Prepare next development iteration.");
 		}
 	}
 
@@ -124,22 +121,31 @@ class ReleaseCommands extends TimedCommand {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		// Tag release
-		git.tagRelease(iteration);
+		build.prepareVersions(iteration, Phase.CLEANUP);
+		git.commit(iteration, "Prepare next development iteration.");
 
 		// Prepare master branch
 		build.updateProjectDescriptors(iteration, Phase.CLEANUP);
 		git.commit(iteration, "After release cleanups.");
 
+		// Tag release
+		git.tagRelease(iteration);
+
 		// Prepare maintenance branches
 		if (iteration.getIteration().isGAIteration()) {
 
+			// Create bugfix branches
 			git.createMaintenanceBranches(iteration);
 
-			build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
+			// Set project version to maintenance once
 			build.prepareVersions(iteration, Phase.MAINTENANCE);
 			git.commit(iteration, "Prepare next development iteration.");
 
+			// Update inter-project dependencies and repositories
+			build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
+			git.commit(iteration, "After release cleanups.");
+
+			// Back to master branch
 			git.checkout(iteration);
 		}
 	}
