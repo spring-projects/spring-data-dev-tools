@@ -20,8 +20,8 @@ import lombok.Value;
 @Value
 public class SimpleIterationVersion implements IterationVersion {
 
-	private final Version version;
-	private final Iteration iteration;
+	Version version;
+	Iteration iteration;
 
 	/* 
 	 * (non-Javadoc)

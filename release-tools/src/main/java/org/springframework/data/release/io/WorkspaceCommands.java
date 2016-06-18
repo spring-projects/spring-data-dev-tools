@@ -22,7 +22,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -30,8 +29,8 @@ import org.springframework.shell.core.annotation.CliCommand;
 /**
  * @author Oliver Gierke
  */
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 class WorkspaceCommands extends TimedCommand {
 
 	@NonNull Workspace workspace;

@@ -17,14 +17,15 @@ package org.springframework.data.release.build;
 
 import static org.springframework.data.release.model.Projects.*;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
@@ -49,16 +50,17 @@ import org.xmlbeam.io.XBFileIO;
  */
 @Component
 @Order(100)
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 class MavenBuildSystem implements BuildSystem {
 
-	private static final String POM_XML = "pom.xml";
+	static String POM_XML = "pom.xml";
 
-	private final Workspace workspace;
-	private final ProjectionFactory projectionFactory;
-	private final Logger logger;
-	private final MavenRuntime mvn;
-	private final DeploymentProperties properties;
+	Workspace workspace;
+	ProjectionFactory projectionFactory;
+	Logger logger;
+	MavenRuntime mvn;
+	DeploymentProperties properties;
 
 	/* 
 	 * (non-Javadoc)

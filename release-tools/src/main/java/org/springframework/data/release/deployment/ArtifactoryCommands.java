@@ -18,7 +18,6 @@ package org.springframework.data.release.deployment;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -29,7 +28,7 @@ import org.springframework.shell.core.annotation.CliCommand;
  * @author Oliver Gierke
  */
 @CliComponent
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
 class ArtifactoryCommands extends TimedCommand {
 
 	private final @NonNull DeploymentOperations deployment;

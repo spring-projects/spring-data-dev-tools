@@ -15,17 +15,14 @@
  */
 package org.springframework.data.release.git;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.issues.Ticket;
@@ -43,11 +40,10 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  */
 @CliComponent
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequiredArgsConstructor
 class GitCommands extends TimedCommand {
 
-	@NonNull GitOperations git;
+	private final @NonNull GitOperations git;
 
 	@CliCommand("git co train")
 	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {

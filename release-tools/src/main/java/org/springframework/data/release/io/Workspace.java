@@ -17,11 +17,13 @@ package org.springframework.data.release.io;
 
 import static org.springframework.data.release.utils.StreamUtils.*;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +36,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.release.model.Project;
@@ -47,13 +48,13 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
 public class Workspace {
 
-	private static final Charset UTF_8 = Charset.forName("UTF-8");
+	private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
-	private final IoProperties ioProperties;
-	private final ResourcePatternResolver resolver;
+	private final @NonNull IoProperties ioProperties;
+	private final @NonNull ResourcePatternResolver resolver;
 
 	/**
 	 * Returns the current working directory.

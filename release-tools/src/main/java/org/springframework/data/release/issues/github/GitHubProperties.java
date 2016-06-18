@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.data.release.git.GitProperties;
 import org.springframework.data.release.utils.HttpBasicCredentials;
@@ -35,7 +34,7 @@ import org.springframework.util.Assert;
 @Data
 @Component
 @ConfigurationProperties(prefix = "github")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
 public class GitHubProperties {
 
 	private final @Getter(AccessLevel.NONE) GitProperties gitProperties;

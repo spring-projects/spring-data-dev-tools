@@ -24,7 +24,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.build.BuildOperations;
@@ -48,7 +47,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @CliComponent
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 class ReleaseCommands extends TimedCommand {
 
@@ -61,7 +60,7 @@ class ReleaseCommands extends TimedCommand {
 	public String predictTrainAndIteration() throws Exception {
 
 		return git.getTags(COMMONS).getLatest().toArtifactVersion().//
-				map(this::getTrainNameForCommonsVersion).//
+				map(ReleaseCommands::getTrainNameForCommonsVersion).//
 				orElse(null);
 	}
 
@@ -164,7 +163,7 @@ class ReleaseCommands extends TimedCommand {
 		build.distributeResources(iteration);
 	}
 
-	String getTrainNameForCommonsVersion(ArtifactVersion version) {
+	private static String getTrainNameForCommonsVersion(ArtifactVersion version) {
 
 		return ReleaseTrains.TRAINS.stream().//
 				filter(train -> version.toString().startsWith(train.getModule(COMMONS).getVersion().toString())).//

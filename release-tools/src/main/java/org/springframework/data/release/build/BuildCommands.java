@@ -22,7 +22,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.utils.Logger;
@@ -31,8 +31,9 @@ import org.springframework.shell.core.annotation.CliCommand;
 /**
  * @author Oliver Gierke
  */
+@CliComponent
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 class BuildCommands extends TimedCommand {
 
 	@NonNull BuildOperations build;

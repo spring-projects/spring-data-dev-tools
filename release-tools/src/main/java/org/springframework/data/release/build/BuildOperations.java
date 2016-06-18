@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.build;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
@@ -37,11 +37,11 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
+@RequiredArgsConstructor
 public class BuildOperations {
 
-	private final PluginRegistry<BuildSystem, Project> buildSystems;
-	private final MavenProperties properties;
+	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
+	private final @NonNull MavenProperties properties;
 
 	/**
 	 * Updates all inter-project dependencies based on the given {@link TrainIteration} and release {@link Phase}.

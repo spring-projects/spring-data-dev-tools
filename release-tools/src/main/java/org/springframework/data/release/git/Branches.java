@@ -15,14 +15,12 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.EqualsAndHashCode;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.EqualsAndHashCode;
-
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
 
 /**

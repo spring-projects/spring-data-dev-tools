@@ -25,7 +25,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.model.ModuleIteration;
@@ -42,8 +41,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  */
 @CliComponent
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor(onConstructor = @__(@Autowired) )
 class IssueTrackerCommands extends TimedCommand {
 
 	@NonNull PluginRegistry<IssueTracker, Project> tracker;
