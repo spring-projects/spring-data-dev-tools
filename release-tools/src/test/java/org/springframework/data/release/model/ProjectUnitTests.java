@@ -42,4 +42,12 @@ public class ProjectUnitTests {
 		assertThat(projects.get(0), is(Projects.BUILD));
 		assertThat(projects.get(1), is(Projects.COMMONS));
 	}
+
+	/**
+	 * @see #28
+	 */
+	@Test
+	public void findsProjectByKey() {
+		assertThat(Projects.byName("DATACMNS"), is(Projects.COMMONS));
+	}
 }

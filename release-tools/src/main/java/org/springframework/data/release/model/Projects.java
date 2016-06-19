@@ -52,7 +52,7 @@ public class Projects {
 		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
 		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
 		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS, KEY_VALUE));
-		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS));
+		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS)).withSkipTests(true);
 
 		REST = new Project("DATAREST", "REST",
 				Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE), ArtifactCoordinates.NONE
@@ -90,7 +90,8 @@ public class Projects {
 	public static Project byName(String name) {
 
 		return PROJECTS.stream().//
-				filter(project -> project.getName().equalsIgnoreCase(name)).//
-				findFirst().orElseThrow(() -> new IllegalArgumentException("No project named %s available!"));
+				filter(project -> project.getName().equalsIgnoreCase(name) || project.getKey().toString().equals(name)).//
+				findFirst()
+				.orElseThrow(() -> new IllegalArgumentException(String.format("No project named %s available!", name)));
 	}
 }
