@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -190,12 +191,7 @@ public class Workspace {
 			long number = 0;
 
 			while (scanner.hasNextLine()) {
-
-				String result = callback.doWith(scanner.nextLine(), number++);
-
-				if (result != null) {
-					builder.append(result).append("\n");
-				}
+				callback.doWith(scanner.nextLine(), number++).ifPresent(it -> builder.append(it).append("\n"));
 			}
 
 			writeContentToFile(filename, project, builder.toString());
@@ -229,6 +225,6 @@ public class Workspace {
 	}
 
 	public interface LineCallback {
-		String doWith(String line, long number);
+		Optional<String> doWith(String line, long number);
 	}
 }

@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.release.git.GitOperations;
@@ -83,9 +84,9 @@ public class ReleaseOperations {
 						builder.append(line).append("\n\n");
 						builder.append(changelog.toString());
 
-						return builder.toString();
+						return Optional.of(builder.toString());
 					} else {
-						return line;
+						return Optional.of(line);
 					}
 				});
 
@@ -104,7 +105,7 @@ public class ReleaseOperations {
 		iteration.stream().forEach(module -> {
 
 			boolean processed = workspace.processFile("src/main/resources/notice.txt", module.getProject(),
-					(line, number) -> number != 0 ? line : module.toString());
+					(line, number) -> Optional.of(number != 0 ? line : module.toString()));
 
 			if (processed) {
 				logger.log(module, "Updated notice.txt.");
