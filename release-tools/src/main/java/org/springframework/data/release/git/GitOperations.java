@@ -120,9 +120,9 @@ public class GitOperations {
 				if (!branchExists(project, branch)) {
 
 					logger.log(project, "git checkout -b %s --track origin/%s", branch, branch);
-					command.setCreateBranch(true).//
-							setStartPoint("origin/".concat(branch.toString())).//
-							call();
+					command.setCreateBranch(true)//
+							.setStartPoint("origin/".concat(branch.toString()))//
+							.call();
 
 				} else {
 
@@ -166,6 +166,8 @@ public class GitOperations {
 
 	public void prepare(TrainIteration iteration) {
 
+		reset(iteration);
+
 		ExecutionUtils.run(iteration, module -> {
 
 			Project project = module.getProject();
@@ -177,9 +179,9 @@ public class GitOperations {
 			doWithGit(project, git -> {
 
 				logger.log(project, "git pull origin %s", branch);
-				git.pull().//
-						setRebase(true).//
-						call();
+				git.pull()//
+						.setRebase(true)//
+						.call();
 			});
 		});
 
@@ -201,11 +203,11 @@ public class GitOperations {
 
 				Ref ref = git.getRepository().findRef(branch.toString());
 
-				git.push().//
-						setRemote("origin").//
-						setRefSpecs(new RefSpec(ref.getName())).//
-						setCredentialsProvider(gitProperties.getCredentials()).//
-						call();
+				git.push()//
+						.setRemote("origin")//
+						.setRefSpecs(new RefSpec(ref.getName()))//
+						.setCredentialsProvider(gitProperties.getCredentials())//
+						.call();
 			});
 		});
 	}
@@ -218,11 +220,11 @@ public class GitOperations {
 
 			doWithGit(module.getProject(), git -> {
 
-				git.push().//
-						setRemote("origin").//
-						setPushTags().//
-						setCredentialsProvider(gitProperties.getCredentials()).//
-						call();
+				git.push()//
+						.setRemote("origin")//
+						.setPushTags()//
+						.setCredentialsProvider(gitProperties.getCredentials())//
+						.call();
 			});
 		});
 	}
@@ -268,9 +270,9 @@ public class GitOperations {
 	public VersionTags getTags(Project project) {
 
 		return doWithGit(project, git -> {
-			return new VersionTags(git.tagList().call().stream().//
-					map(ref -> Tag.of(ref.getName())).//
-					collect(Collectors.toList()));
+			return new VersionTags(git.tagList().call().stream()//
+					.map(ref -> Tag.of(ref.getName()))//
+					.collect(Collectors.toList()));
 		});
 	}
 
@@ -290,9 +292,9 @@ public class GitOperations {
 
 			update(project);
 
-			Map<String, Branch> ticketIds = getRemoteBranches(project).//
-					filter(branch -> branch.isIssueBranch(project.getTracker())).//
-					collect(Collectors.toMap(Branch::toString, branch -> branch));
+			Map<String, Branch> ticketIds = getRemoteBranches(project)//
+					.filter(branch -> branch.isIssueBranch(project.getTracker()))//
+					.collect(Collectors.toMap(Branch::toString, branch -> branch));
 
 			Collection<Ticket> tickets = tracker.findTickets(project, ticketIds.keySet());
 
@@ -305,14 +307,14 @@ public class GitOperations {
 
 		return doWithGit(project, git -> {
 
-			Collection<Ref> refs = git.lsRemote().//
-					setHeads(true).//
-					setTags(false).//
-					call();
+			Collection<Ref> refs = git.lsRemote()//
+					.setHeads(true)//
+					.setTags(false)//
+					.call();
 
-			return refs.stream().//
-					map(Ref::getName).//
-					map(Branch::from);//
+			return refs.stream()//
+					.map(Ref::getName)//
+					.map(Branch::from);//
 		});
 	}
 
@@ -411,17 +413,18 @@ public class GitOperations {
 
 		doWithGit(project, git -> {
 
-			git.commit().//
-					setMessage(commit.toString()).//
-					setAuthor(author, email).//
-					setAll(true).//
-					call();
+			git.commit()//
+					.setMessage(commit.toString())//
+					.setAuthor(author, email)//
+					.setAll(true)//
+					.call();
 		});
 	}
 
 	/**
 	 * Checks out the given {@link Branch} of the given {@link Project}. If the given branch doesn't exist yet, a tracking
-	 * branch is created assuming the branch exists in the {@code origin} remote.
+	 * branch is created assuming the branch exists in the {@code origin} remote. Pulls the latest changes from the
+	 * checked out branch to make sure we see the latest changes.
 	 * 
 	 * @param project must not be {@literal null}.
 	 * @param branch must not be {@literal null}.
@@ -444,9 +447,9 @@ public class GitOperations {
 
 				logger.log(project, "git checkout --track -b %s origin/%s", branch, branch);
 
-				checkout.setCreateBranch(true).//
-						setUpstreamMode(SetupUpstreamMode.TRACK).//
-						setStartPoint("origin/".concat(branch.toString()));
+				checkout.setCreateBranch(true)//
+						.setUpstreamMode(SetupUpstreamMode.TRACK)//
+						.setStartPoint("origin/".concat(branch.toString()));
 			}
 
 			try {
@@ -618,9 +621,9 @@ public class GitOperations {
 	 */
 	private Optional<Tag> findTagFor(Project project, ArtifactVersion version) {
 
-		return getTags(project).stream().//
-				filter(tag -> tag.toArtifactVersion().map(it -> it.equals(version)).orElse(false)).//
-				findFirst();
+		return getTags(project).stream()//
+				.filter(tag -> tag.toArtifactVersion().map(it -> it.equals(version)).orElse(false))//
+				.findFirst();
 	}
 
 	private Repository getRepository(Project project) throws IOException {
@@ -629,13 +632,14 @@ public class GitOperations {
 
 	private void clone(Project project) throws Exception {
 
-		Git git = Git.cloneRepository().//
-				setURI(getGitProject(project).getProjectUri()).//
-				setDirectory(workspace.getProjectDirectory(project)).//
-				call();
+		Git git = Git.cloneRepository()//
+				.setURI(getGitProject(project).getProjectUri())//
+				.setDirectory(workspace.getProjectDirectory(project))//
+				.call();
 
-		git.checkout().setName(Branch.MASTER.toString()).//
-				call();
+		git.checkout()//
+				.setName(Branch.MASTER.toString())//
+				.call();
 	}
 
 	private boolean branchExists(Project project, Branch branch) {
