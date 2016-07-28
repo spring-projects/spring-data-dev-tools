@@ -454,6 +454,14 @@ public class GitOperations {
 			} catch (RefNotFoundException o_O) {
 				// TODO:
 			}
+
+			// Pull latest changes to make sure the branch is up to date
+			logger.log(project, "git pull origin %s", branch);
+
+			git.pull()//
+					.setRemote("origin")//
+					.setRemoteBranchName(branch.toString())//
+					.call();
 		});
 	}
 
