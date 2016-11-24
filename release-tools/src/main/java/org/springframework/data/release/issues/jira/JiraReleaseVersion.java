@@ -16,6 +16,7 @@
 
 package org.springframework.data.release.issues.jira;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Value;
 
 import org.springframework.data.release.model.ModuleIteration;
@@ -47,5 +48,10 @@ class JiraReleaseVersion {
 
 	public boolean hasSameNameAs(JiraVersion jiraVersion) {
 		return getName().equals(jiraVersion.toString());
+	}
+
+	@JsonIgnore
+	public boolean isOpen() {
+		return !released;
 	}
 }

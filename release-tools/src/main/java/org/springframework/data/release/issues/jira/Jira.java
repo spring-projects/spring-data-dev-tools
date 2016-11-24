@@ -366,16 +366,20 @@ class Jira implements JiraConnector {
 
 		// - mark version as releases
 
-		findJiraReleaseVersion(module).//
-				map(JiraReleaseVersion::markReleased).//
-				ifPresent(version -> {
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
+		findJiraReleaseVersion(module) //
+				.filter(JiraReleaseVersion::isOpen) //
+				.map(JiraReleaseVersion::markReleased) //
+				.ifPresent(version -> {
 
 					logger.log(module, "Marking version %s as released.", version);
 
 					Map<String, Object> parameters = newUrlTemplateVariables();
 					parameters.put("id", version.getId());
 
-					operations.put(VERSION_TEMPLATE, version, parameters);
+					operations.exchange(VERSION_TEMPLATE, HttpMethod.PUT, new HttpEntity<Object>(version, httpHeaders), Map.class,
+							parameters);
 				});
 
 		// - if no next version exists, create
