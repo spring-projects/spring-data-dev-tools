@@ -45,7 +45,7 @@ class GitCommands extends TimedCommand {
 
 	private final @NonNull GitOperations git;
 
-	@CliCommand("git co train")
+	@CliCommand("git co-train")
 	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
 		git.checkout(train);
 	}
@@ -97,7 +97,7 @@ class GitCommands extends TimedCommand {
 	public void push(//
 			@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "tags", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") String tags)
-					throws Exception {
+			throws Exception {
 
 		boolean pushTags = Boolean.parseBoolean(tags);
 
@@ -135,7 +135,7 @@ class GitCommands extends TimedCommand {
 	@SuppressWarnings("deprecation")
 	public Table issuebranches(@CliOption(key = { "" }, mandatory = true) String projectName,
 			@CliOption(key = "resolved", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") Boolean resolved)
-					throws Exception {
+			throws Exception {
 
 		Project project = ReleaseTrains.getProjectByName(projectName);
 		TicketBranches ticketBranches = git.listTicketBranches(project);

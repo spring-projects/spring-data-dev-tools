@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -29,6 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Oliver Gierke
  */
+@Slf4j
 public class ExecutionUtils {
 
 	/**
@@ -49,6 +52,7 @@ public class ExecutionUtils {
 					try {
 						consumer.accept(it);
 					} catch (Exception o_O) {
+						log.error(o_O.getMessage(), o_O);
 						throw new RuntimeException(o_O);
 					}
 				})).collect(Collectors.toList()).forEach(future -> future.join());

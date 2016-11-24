@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CherryPickResult;
+import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
@@ -166,8 +168,6 @@ public class GitOperations {
 
 	public void prepare(TrainIteration iteration) {
 
-		reset(iteration);
-
 		ExecutionUtils.run(iteration, module -> {
 
 			Project project = module.getProject();
@@ -176,6 +176,8 @@ public class GitOperations {
 			update(project);
 			checkout(project, branch);
 
+			logger.log(project, "Pulling latest updates for branch %s…", branch);
+
 			doWithGit(project, git -> {
 
 				logger.log(project, "git pull origin %s", branch);
@@ -183,6 +185,8 @@ public class GitOperations {
 						.setRebase(true)//
 						.call();
 			});
+
+			logger.log(project, "Pulling updates done!", branch);
 		});
 
 		reset(iteration);
@@ -240,6 +244,8 @@ public class GitOperations {
 
 		Assert.notNull(project, "Project must not be null!");
 
+		logger.log(project, "Updating project…");
+
 		GitProject gitProject = new GitProject(project, server);
 		String repositoryName = gitProject.getRepositoryName();
 
@@ -250,7 +256,6 @@ public class GitOperations {
 				logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
 
 				checkout(project, Branch.MASTER);
-				reset(project, Branch.MASTER);
 
 				logger.log(project, "git fetch --tags");
 				git.fetch().setTagOpt(TagOpt.FETCH_TAGS).call();
@@ -259,12 +264,11 @@ public class GitOperations {
 				git.pull().call();
 
 			} else {
-
-				logger.log(project, "No repository found! Cloning from %s…", gitProject.getProjectUri());
-
 				clone(project);
 			}
 		});
+
+		logger.log(project, "Project update done!");
 	}
 
 	public VersionTags getTags(Project project) {
@@ -416,6 +420,7 @@ public class GitOperations {
 			git.commit()//
 					.setMessage(commit.toString())//
 					.setAuthor(author, email)//
+					.setCommitter(author, email)//
 					.setAll(true)//
 					.call();
 		});
@@ -433,6 +438,8 @@ public class GitOperations {
 
 		Assert.notNull(project, "Project must not be null!");
 		Assert.notNull(branch, "Branch must not be null!");
+
+		logger.log(project, "Checking out project…");
 
 		doWithGit(project, git -> {
 
@@ -466,6 +473,8 @@ public class GitOperations {
 					.setRemoteBranchName(branch.toString())//
 					.call();
 		});
+
+		logger.log(project, "Checkout done!");
 	}
 
 	public void createMaintenanceBranches(TrainIteration iteration) {
@@ -525,13 +534,16 @@ public class GitOperations {
 			doWithGit(project, git -> {
 
 				checkout(project, backportTargets.getSource());
-				ObjectId objectId = getChangelogUpdate(module);
+				Optional<ObjectId> objectId = getChangelogUpdate(module);
 
-				backportTargets.forEach(target -> cherryPickCommitToBranch(objectId, project, target));
+				objectId.ifPresent(it -> backportTargets.forEach(target -> cherryPickCommitToBranch(it, project, target)));
+
+				if (!objectId.isPresent()) {
+					logger.log(project, "No changelog commit found, skipping backports!");
+				}
+
 			});
 		});
-
-		update(iteration.getTrain());
 	}
 
 	private void cherryPickCommitToBranch(ObjectId id, Project project, Branch branch) {
@@ -546,9 +558,16 @@ public class GitOperations {
 				return;
 			}
 
-			git.cherryPick().include(id).call();
-			logger.log(project, "Successfully cherry-picked commit %s to branch %s.", id.getName(), branch);
+			logger.log(project, "git cp %s", id.getName());
+			CherryPickResult result = git.cherryPick().include(id).call();
 
+			if (result.getStatus().equals(CherryPickStatus.OK)) {
+				logger.log(project, "Successfully cherry-picked commit %s to branch %s.", id.getName(), branch);
+			} else {
+				logger.log(project, "Cherry pick failed. aborting…");
+				logger.log(project, "git reset --hard");
+				git.reset().setMode(ResetType.HARD).call();
+			}
 		});
 	}
 
@@ -583,32 +602,45 @@ public class GitOperations {
 	 * @throws Exception
 	 */
 	private ObjectId getReleaseHash(ModuleIteration module) {
-		return findCommit(module, "Release");
+		return findRequiredCommit(module, "Release");
 	}
 
-	private ObjectId getChangelogUpdate(ModuleIteration module) {
+	private Optional<ObjectId> getChangelogUpdate(ModuleIteration module) {
 		return findCommit(module, "Updated changelog");
 	}
 
-	private ObjectId findCommit(ModuleIteration module, String summary) {
+	private ObjectId findRequiredCommit(ModuleIteration module, String summary) {
 
-		Project project = module.getProject();
-		Ticket releaseTicket = issueTracker.getPluginFor(project).getReleaseTicketFor(module);
-		String trigger = String.format("%s - %s", releaseTicket.getId(), summary);
+		String trigger = calculateTrigger(module, summary);
 
-		return doWithGit(module.getProject(), git -> {
+		return findCommit(module, summary).orElseThrow(() -> new IllegalStateException(String
+				.format("Did not find a commit with summary starting with '%s' for project %s", module.getProject(), trigger)));
+	}
+
+	private Optional<ObjectId> findCommit(ModuleIteration module, String summary) {
+		return findCommitWithTrigger(module.getProject(), calculateTrigger(module, summary));
+	}
+
+	private Optional<ObjectId> findCommitWithTrigger(Project project, String trigger) {
+
+		return doWithGit(project, git -> {
 
 			for (RevCommit commit : git.log().setMaxCount(50).call()) {
 
 				if (commit.getShortMessage().startsWith(trigger)) {
-					return commit.getId();
+					return Optional.of(commit.getId());
 				}
 			}
 
-			throw new IllegalStateException(
-					String.format("Did not find a commit with summary starting with '%s' for project %s", project, trigger));
-
+			return Optional.empty();
 		});
+	}
+
+	private String calculateTrigger(ModuleIteration module, String summary) {
+
+		Project project = module.getProject();
+		Ticket releaseTicket = issueTracker.getPluginFor(project).getReleaseTicketFor(module);
+		return String.format("%s - %s", releaseTicket.getId(), summary);
 	}
 
 	/**
@@ -632,14 +664,20 @@ public class GitOperations {
 
 	private void clone(Project project) throws Exception {
 
+		GitProject gitProject = getGitProject(project);
+
+		logger.log(project, "No repository found! Cloning from %s…", gitProject.getProjectUri());
+
 		Git git = Git.cloneRepository()//
-				.setURI(getGitProject(project).getProjectUri())//
+				.setURI(gitProject.getProjectUri())//
 				.setDirectory(workspace.getProjectDirectory(project))//
 				.call();
 
 		git.checkout()//
 				.setName(Branch.MASTER.toString())//
 				.call();
+
+		logger.log(project, "Cloning done!", project);
 	}
 
 	private boolean branchExists(Project project, Branch branch) {
@@ -657,9 +695,13 @@ public class GitOperations {
 
 		logger.log(project, "git reset --hard origin/%s", branch);
 
-		try (Git git = new Git(getRepository(project))) {
-			git.reset().setMode(ResetType.HARD).setRef("origin/".concat(branch.toString())).call();
-		}
+		doWithGit(project, git -> {
+
+			git.reset()//
+					.setMode(ResetType.HARD)//
+					.setRef("origin/".concat(branch.toString()))//
+					.call();
+		});
 	}
 
 	private static String expandSummary(String summary, ModuleIteration module, TrainIteration iteration) {
@@ -669,7 +711,9 @@ public class GitOperations {
 	private <T> T doWithGit(Project project, GitCallback<T> callback) {
 
 		try (Git git = new Git(getRepository(project))) {
-			return callback.doWithGit(git);
+			T result = callback.doWithGit(git);
+			Thread.sleep(100);
+			return result;
 		} catch (Exception o_O) {
 			throw new RuntimeException(o_O);
 		}
