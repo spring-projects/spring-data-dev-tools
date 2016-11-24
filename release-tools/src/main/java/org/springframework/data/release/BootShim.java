@@ -1,8 +1,6 @@
 package org.springframework.data.release;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -16,11 +14,10 @@ import org.springframework.shell.ShellException;
 import org.springframework.shell.SimpleShellCommandLineOptions;
 import org.springframework.shell.core.ExitShellRequest;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.util.StopWatch;
 
 public class BootShim {
-	private static BootShim bootstrap;
+
 	private static StopWatch sw = new StopWatch("Spring Shell");
 	private static CommandLine commandLine;
 	private ConfigurableApplicationContext ctx;
@@ -67,16 +64,6 @@ public class BootShim {
 		} else {
 			bf.registerBeanDefinition(clazz.getSimpleName(), rbd);
 		}
-
-	}
-
-	private void setupLogging() {
-		Logger rootLogger = Logger.getLogger("");
-		HandlerUtils.wrapWithDeferredLogHandler(rootLogger, Level.SEVERE);
-		Logger sfwLogger = Logger.getLogger("org.springframework");
-		sfwLogger.setLevel(Level.WARNING);
-		Logger rooLogger = Logger.getLogger("org.springframework.shell");
-		rooLogger.setLevel(Level.FINE);
 	}
 
 	public ExitShellRequest run() {
