@@ -17,9 +17,12 @@ package org.springframework.data.release.model;
 
 import static org.springframework.data.release.model.Iteration.*;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.Wither;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,21 +41,20 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  */
 @Value
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Train implements Streamable<Module> {
 
 	private final String name;;
 	private final Modules modules;
-	private final Iterations iterations;
+	private @Wither Iterations iterations;
+	private @Wither boolean alwaysUseBranch;
 
 	public Train(String name, Module... modules) {
 		this(name, Arrays.asList(modules));
 	}
 
 	public Train(String name, Collection<Module> modules) {
-
-		this.name = name;
-		this.modules = Modules.of(modules);
-		this.iterations = Iterations.DEFAULT;
+		this(name, Modules.of(modules), Iterations.DEFAULT, false);
 	}
 
 	/* 
@@ -182,7 +184,7 @@ public class Train implements Streamable<Module> {
 	@ToString
 	public static class Iterations implements Iterable<Iteration> {
 
-		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6);
+		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
 
 		private final List<Iteration> iterations;
 

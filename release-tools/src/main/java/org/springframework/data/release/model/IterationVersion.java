@@ -24,5 +24,5 @@ public interface IterationVersion extends VersionAware {
 
 	Iteration getIteration();
 
-	boolean isServiceIteration();
+	boolean isBranchVersion();
 }

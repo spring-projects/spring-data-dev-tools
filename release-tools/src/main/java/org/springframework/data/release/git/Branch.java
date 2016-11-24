@@ -48,7 +48,7 @@ public class Branch implements Comparable<Branch> {
 
 		Assert.notNull(iterationVersion, "Iteration version must not be null!");
 
-		if (iterationVersion.isServiceIteration()) {
+		if (iterationVersion.isBranchVersion()) {
 			return from((VersionAware) iterationVersion);
 		}
 
@@ -63,6 +63,12 @@ public class Branch implements Comparable<Branch> {
 		return from(version.toString().concat(".x"));
 	}
 
+	/**
+	 * Creates a new {@link Branch} from the given name. Uses the local part of it only.
+	 * 
+	 * @param name must not be {@literal null} or empty.
+	 * @return
+	 */
 	public static Branch from(String name) {
 
 		int slashIndex = name.lastIndexOf('/');
@@ -95,6 +101,10 @@ public class Branch implements Comparable<Branch> {
 		return name;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(Branch o) {
 		return name.compareToIgnoreCase(o.name);

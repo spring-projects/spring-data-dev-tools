@@ -15,11 +15,14 @@
  */
 package org.springframework.data.release.model;
 
+import static org.springframework.data.release.model.Iteration.*;
 import static org.springframework.data.release.model.Projects.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.data.release.model.Train.Iterations;
 
 /**
  * @author Oliver Gierke
@@ -27,7 +30,7 @@ import java.util.List;
 public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
-	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS;
+	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY;
 
 	static {
 
@@ -40,9 +43,17 @@ public class ReleaseTrains {
 				new Module(NEO4J, "4.1"), new Module(COUCHBASE, "2.1"), new Module(ELASTICSEARCH, "2.0"));
 		INGALLS = HOPPER.next("Ingalls", Transition.MINOR);
 
+		Iteration M2 = new Iteration("M2", RC1);
+
+		Iterations iterations = new Iterations(new Iteration("M1", M2), M2, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
+
+		KAY = INGALLS.next("Kay", Transition.MAJOR)//
+				.withAlwaysUseBranch(true)//
+				.withIterations(iterations);
+
 		// Trains
 
-		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS);
+		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY);
 
 		// Train names
 

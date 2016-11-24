@@ -25,10 +25,10 @@ public class SimpleIterationVersion implements IterationVersion {
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.release.model.IterationVersion#isServiceIteration()
+	 * @see org.springframework.data.release.model.IterationVersion#isBranchVersion()
 	 */
 	@Override
-	public boolean isServiceIteration() {
+	public boolean isBranchVersion() {
 		return iteration.isServiceIteration();
 	}
 }

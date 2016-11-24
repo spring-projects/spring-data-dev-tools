@@ -65,11 +65,11 @@ public class ModuleIteration implements IterationVersion {
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.springframework.data.release.model.IterationVersion#isServiceIteration()
+	 * @see org.springframework.data.release.model.IterationVersion#isBranchVersion()
 	 */
 	@Override
-	public boolean isServiceIteration() {
-		return getIteration().isServiceIteration();
+	public boolean isBranchVersion() {
+		return getIteration().isServiceIteration() || trainIteration.getTrain().isAlwaysUseBranch();
 	}
 
 	/**
