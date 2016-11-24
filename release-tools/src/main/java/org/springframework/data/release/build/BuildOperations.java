@@ -135,6 +135,10 @@ public class BuildOperations {
 		return doWithBuildSystem(module, BuildSystem::deploy);
 	}
 
+	public ModuleIteration triggerBuild(ModuleIteration module) {
+		return doWithBuildSystem(module, BuildSystem::triggerBuild);
+	}
+
 	/**
 	 * Selects the build system for each {@link ModuleIteration} contained in the given {@link TrainIteration} and
 	 * executes the given function for it.

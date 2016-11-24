@@ -21,12 +21,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
+import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
+import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
+import org.springframework.shell.core.annotation.CliOption;
+import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
@@ -38,6 +45,7 @@ class BuildCommands extends TimedCommand {
 
 	@NonNull BuildOperations build;
 	@NonNull Workspace workspace;
+	@NonNull GitOperations git;
 	@NonNull Logger logger;
 
 	/**
@@ -53,5 +61,26 @@ class BuildCommands extends TimedCommand {
 
 		workspace.purge(build.getLocalRepository(),
 				path -> build.getLocalRepository().relativize(path).startsWith("org/springframework/data"));
+	}
+
+	/**
+	 * Triggers a build for all modules of the given {@link TrainIteration}.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 * @param projectKey can be {@literal null} or empty.
+	 */
+	@CliCommand("build")
+	public void build(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "module") String projectKey) {
+
+		Assert.notNull(iteration, "Train iteration must not be null!");
+		Optional<Project> project = Projects.byName(projectKey);
+
+		project.ifPresent(it -> build.triggerBuild(iteration.getModule(it)));
+
+		if (!project.isPresent()) {
+			git.prepare(iteration);
+			iteration.forEach(module -> build.triggerBuild(module));
+		}
 	}
 }

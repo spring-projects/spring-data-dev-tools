@@ -221,6 +221,8 @@ class MavenBuildSystem implements BuildSystem {
 					"-DnewVersion=".concat(information.getReleaseTrainVersion()), //
 					"-DgroupId=org.springframework.data", //
 					"-DartifactId=spring-data-releasetrain");
+
+			mvn.execute(project, "install");
 		}
 
 		return module;
@@ -241,6 +243,26 @@ class MavenBuildSystem implements BuildSystem {
 		deployToMavenCentral(module);
 
 		return information;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.build.BuildSystem#triggerBuild(org.springframework.data.release.model.ModuleIteration)
+	 */
+	@Override
+	public ModuleIteration triggerBuild(ModuleIteration module) {
+
+		List<String> arguments = new ArrayList<>();
+		arguments.add("clean");
+		arguments.add("install");
+
+		if (module.getProject().skipTests()) {
+			arguments.add("-DskipTests");
+		}
+
+		mvn.execute(module.getProject(), arguments);
+
+		return module;
 	}
 
 	/**

@@ -60,4 +60,6 @@ interface BuildSystem extends Plugin<Project> {
 	 * @return
 	 */
 	ModuleIteration triggerDistributionBuild(ModuleIteration module);
+
+	ModuleIteration triggerBuild(ModuleIteration module);
 }
