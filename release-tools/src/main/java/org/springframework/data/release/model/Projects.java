@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -45,10 +46,10 @@ public class Projects {
 		MONGO_DB = new Project("DATAMONGO", "MongoDB", Arrays.asList(COMMONS),
 				ArtifactCoordinates.NONE.artifacts("spring-data-mongodb-cross-store", "spring-data-mongodb-log4j"));
 		NEO4J = new Project("DATAGRAPH", "Neo4j", Arrays.asList(COMMONS));
-		SOLR = new Project("DATASOLR", "Solr", Arrays.asList(COMMONS));
+		SOLR = new Project("DATASOLR", "Solr", Arrays.asList(COMMONS)).withFullName("Spring Data for Apache Solr");
 		COUCHBASE = new Project("DATACOUCH", "Couchbase", Arrays.asList(COMMONS));
 		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS),
-				ArtifactCoordinates.NONE.artifacts("spring-cql"));
+				ArtifactCoordinates.NONE.artifacts("spring-cql")).withFullName("Spring Data for Apache Cassandra");
 		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
 		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
 		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS, KEY_VALUE));
@@ -87,11 +88,16 @@ public class Projects {
 		PROJECTS = Collections.unmodifiableList(intermediate);
 	}
 
-	public static Project byName(String name) {
+	public static Optional<Project> byName(String name) {
 
 		return PROJECTS.stream().//
 				filter(project -> project.getName().equalsIgnoreCase(name) || project.getKey().toString().equals(name)).//
-				findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(String.format("No project named %s available!", name)));
+				findFirst();
+	}
+
+	public static Project requiredByName(String name) {
+
+		return byName(name).//
+				orElseThrow(() -> new IllegalArgumentException(String.format("No project named %s available!", name)));
 	}
 }

@@ -93,7 +93,7 @@ class ReleaseCommands extends TimedCommand {
 
 			deployment.verifyAuthentication();
 
-			Project project = Projects.byName(projectName);
+			Project project = Projects.requiredByName(projectName);
 			ModuleIteration module = iteration.getModule(project);
 
 			DeploymentInformation information = build.performRelease(module);

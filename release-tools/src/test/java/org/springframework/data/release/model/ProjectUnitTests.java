@@ -48,6 +48,13 @@ public class ProjectUnitTests {
 	 */
 	@Test
 	public void findsProjectByKey() {
-		assertThat(Projects.byName("DATACMNS"), is(Projects.COMMONS));
+		assertThat(Projects.requiredByName("DATACMNS"), is(Projects.COMMONS));
+	}
+
+	@Test
+	public void returnsCustomFullNameIfSet() {
+
+		assertThat(Projects.BUILD.getFullName(), is("Spring Data Build"));
+		assertThat(Projects.CASSANDRA.getFullName(), is("Spring Data for Apache Cassandra"));
 	}
 }

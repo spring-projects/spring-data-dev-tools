@@ -15,9 +15,12 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.Wither;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -29,30 +32,40 @@ import org.springframework.util.Assert;
  */
 @ToString
 @EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Project implements Comparable<Project> {
 
 	private final @Getter ProjectKey key;
 	private final @Getter String name;
+	private final @Wither String fullName;
 	private final @Getter List<Project> dependencies;
 	private final @Getter Tracker tracker;
 	private final @Getter ArtifactCoordinates additionalArtifacts;
+	private final @Wither boolean skipTests;
 
 	Project(String key, String name, List<Project> dependencies) {
-		this(key, name, Tracker.JIRA, dependencies, ArtifactCoordinates.NONE);
+		this(key, name, null, Tracker.JIRA, dependencies, ArtifactCoordinates.NONE);
 	}
 
 	Project(String key, String name, List<Project> dependencies, ArtifactCoordinates additionalArtifacts) {
-		this(key, name, Tracker.JIRA, dependencies, additionalArtifacts);
+		this(key, name, null, Tracker.JIRA, dependencies, additionalArtifacts);
 	}
 
 	Project(String key, String name, Tracker tracker, List<Project> dependencies,
 			ArtifactCoordinates additionalArtifacts) {
+		this(key, name, null, tracker, dependencies, additionalArtifacts);
+	}
+
+	private Project(String key, String name, String fullName, Tracker tracker, List<Project> dependencies,
+			ArtifactCoordinates additionalArtifacts) {
 
 		this.key = new ProjectKey(key);
 		this.name = name;
+		this.fullName = fullName;
 		this.dependencies = dependencies;
 		this.tracker = tracker;
 		this.additionalArtifacts = additionalArtifacts;
+		this.skipTests = false;
 	}
 
 	public boolean uses(Tracker tracker) {
@@ -60,7 +73,7 @@ public class Project implements Comparable<Project> {
 	}
 
 	public String getFullName() {
-		return "Spring Data ".concat(name);
+		return fullName != null ? fullName : "Spring Data ".concat(name);
 	}
 
 	public String getFolderName() {
@@ -86,6 +99,10 @@ public class Project implements Comparable<Project> {
 		Assert.notNull(project, "Project must not be null!");
 
 		return dependencies.stream().anyMatch(dependency -> dependency.equals(project) || dependency.dependsOn(project));
+	}
+
+	public boolean skipTests() {
+		return this.skipTests;
 	}
 
 	/* 
