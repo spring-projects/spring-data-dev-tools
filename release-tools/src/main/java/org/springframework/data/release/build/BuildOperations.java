@@ -140,6 +140,18 @@ public class BuildOperations {
 	}
 
 	/**
+	 * Triggers the pre-release checks for all modules of the given {@link TrainIteration}.
+	 * 
+	 * @param iteration must not be {@literal null}.
+	 */
+	public void runPreReleaseChecks(TrainIteration iteration) {
+
+		Assert.notNull(iteration, "Train iteration must not be null!");
+
+		doWithBuildSystem(iteration, (system, module) -> system.triggerPreReleaseCheck(module));
+	}
+
+	/**
 	 * Selects the build system for each {@link ModuleIteration} contained in the given {@link TrainIteration} and
 	 * executes the given function for it.
 	 * 

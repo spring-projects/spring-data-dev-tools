@@ -62,4 +62,12 @@ interface BuildSystem extends Plugin<Project> {
 	ModuleIteration triggerDistributionBuild(ModuleIteration module);
 
 	ModuleIteration triggerBuild(ModuleIteration module);
+
+	/**
+	 * Triggers the pre-release checks for the given {@link ModuleIteration}.
+	 * 
+	 * @param module must not be {@literal null}.
+	 * @return
+	 */
+	ModuleIteration triggerPreReleaseCheck(ModuleIteration module);
 }

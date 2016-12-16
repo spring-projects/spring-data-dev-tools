@@ -265,6 +265,17 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.build.BuildSystem#triggerPreReleaseCheck(org.springframework.data.release.model.ModuleIteration)
+	 */
+	public ModuleIteration triggerPreReleaseCheck(ModuleIteration module) {
+
+		mvn.execute(module.getProject(), "clean", "verify", "-Ppre-release");
+
+		return module;
+	}
+
 	/**
 	 * Triggers Maven commands to deploy module artifacts to Spring Artifactory.
 	 * 
