@@ -53,7 +53,7 @@ class BuildCommands extends TimedCommand {
 	 * 
 	 * @throws IOException
 	 */
-	@CliCommand("workspace purge artifacts")
+	@CliCommand("build purge artifacts")
 	public void purge() throws IOException {
 
 		logger.log("Workspace", "Cleaning up workspace directory at %s.",

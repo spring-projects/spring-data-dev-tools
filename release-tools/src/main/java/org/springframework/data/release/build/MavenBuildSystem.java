@@ -276,6 +276,15 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.plugin.core.Plugin#supports(java.lang.Object)
+	 */
+	@Override
+	public boolean supports(Project project) {
+		return isMavenProject(project);
+	}
+
 	/**
 	 * Triggers Maven commands to deploy module artifacts to Spring Artifactory.
 	 * 
@@ -335,15 +344,6 @@ class MavenBuildSystem implements BuildSystem {
 		arguments.add("-Dgpg.password=".concat(gpg.getPassword()));
 
 		mvn.execute(module.getProject(), arguments);
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.plugin.core.Plugin#supports(java.lang.Object)
-	 */
-	@Override
-	public boolean supports(Project project) {
-		return isMavenProject(project);
 	}
 
 	private boolean isMavenProject(Project project) {

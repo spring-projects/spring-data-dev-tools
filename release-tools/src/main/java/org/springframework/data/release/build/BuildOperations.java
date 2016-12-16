@@ -121,6 +121,11 @@ public class BuildOperations {
 		return doWithBuildSystem(iteration, (system, module) -> system.prepareVersion(module, phase));
 	}
 
+	/**
+	 * Returns the {@link Path} of the local artifact repository.
+	 * 
+	 * @return
+	 */
 	public Path getLocalRepository() {
 		return properties.getLocalRepository().toPath();
 	}
@@ -135,6 +140,12 @@ public class BuildOperations {
 		return doWithBuildSystem(module, BuildSystem::deploy);
 	}
 
+	/**
+	 * Triggers a nomarl build for the given {@link ModuleIteration}.
+	 * 
+	 * @param module must not be {@literal null}.
+	 * @return
+	 */
 	public ModuleIteration triggerBuild(ModuleIteration module) {
 		return doWithBuildSystem(module, BuildSystem::triggerBuild);
 	}
@@ -176,6 +187,8 @@ public class BuildOperations {
 	 * @return
 	 */
 	private <T> T doWithBuildSystem(ModuleIteration module, BiFunction<BuildSystem, ModuleIteration, T> function) {
+
+		Assert.notNull(module, "ModuleIteration must not be null!");
 
 		Supplier<IllegalStateException> exception = () -> new IllegalStateException(
 				String.format("No build system plugin found for project %s!", module.getProject()));

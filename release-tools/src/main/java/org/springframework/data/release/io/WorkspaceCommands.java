@@ -22,6 +22,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
+import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -29,6 +30,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 /**
  * @author Oliver Gierke
  */
+@CliComponent
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 class WorkspaceCommands extends TimedCommand {
@@ -38,10 +40,6 @@ class WorkspaceCommands extends TimedCommand {
 
 	@CliCommand("workspace cleanup")
 	public void cleanup() throws IOException {
-
-		logger.log("Workspace", "Cleaning up workspace directory at %s.",
-				workspace.getWorkingDirectory().getAbsolutePath());
-
 		workspace.cleanup();
 	}
 }

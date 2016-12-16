@@ -17,8 +17,10 @@ package org.springframework.data.release.io;
 
 import static org.springframework.data.release.utils.StreamUtils.*;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +42,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -50,12 +53,14 @@ import org.springframework.util.Assert;
  */
 @Component
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class Workspace {
 
 	private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
-	private final @NonNull IoProperties ioProperties;
-	private final @NonNull ResourcePatternResolver resolver;
+	@NonNull IoProperties ioProperties;
+	@NonNull ResourcePatternResolver resolver;
+	@NonNull Logger logger;
 
 	/**
 	 * Returns the current working directory.
@@ -72,6 +77,8 @@ public class Workspace {
 	 * @throws IOException
 	 */
 	public void cleanup() throws IOException {
+
+		logger.log("Workspace", "Cleaning up workspace directory at %s.", getWorkingDirectory().getAbsolutePath());
 
 		Path workingDirPath = getWorkingDirectory().toPath();
 
