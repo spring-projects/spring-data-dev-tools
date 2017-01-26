@@ -28,7 +28,9 @@ import org.springframework.util.Assert;
 @Value
 public class Iteration {
 
-	public static final Iteration SR7 = new Iteration("SR7", null);
+	public static final Iteration SR9 = new Iteration("SR9", null);
+	public static final Iteration SR8 = new Iteration("SR8", SR9);
+	public static final Iteration SR7 = new Iteration("SR7", SR8);
 	public static final Iteration SR6 = new Iteration("SR6", SR7);
 	public static final Iteration SR5 = new Iteration("SR5", SR6);
 	public static final Iteration SR4 = new Iteration("SR4", SR5);
