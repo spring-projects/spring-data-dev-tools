@@ -109,7 +109,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(project, "Triggering distribution build…");
 
-		mvn.execute(project, "clean", "deploy", "-DskipTests", "-Pdistribute");
+		mvn.execute(project, "clean", "deploy", "-DskipTests", "-Pdistribute", "-B");
 
 		logger.log(project, "Successfully finished distribution build!");
 
