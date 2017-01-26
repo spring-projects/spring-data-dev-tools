@@ -271,7 +271,7 @@ class MavenBuildSystem implements BuildSystem {
 	 */
 	public ModuleIteration triggerPreReleaseCheck(ModuleIteration module) {
 
-		mvn.execute(module.getProject(), "clean", "verify", "-Ppre-release");
+		mvn.execute(module.getProject(), "clean", "validate", "-Ppre-release");
 
 		return module;
 	}
