@@ -32,7 +32,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 public class Projects {
 
 	public static final Project COMMONS, BUILD, REST, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
-			REDIS, GEMFIRE, KEY_VALUE, ENVERS;
+			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP;
 	public static final List<Project> PROJECTS;
 
 	static {
@@ -60,9 +60,10 @@ public class Projects {
 						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser"));
 
 		ENVERS = new Project("DATAENV", "Envers", Tracker.GITHUB, Arrays.asList(JPA, COMMONS), ArtifactCoordinates.NONE);
+		LDAP = new Project("DATALDAP", "LDAP", Arrays.asList(COMMONS));
 
 		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
-				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS);
+				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP);
 
 		DefaultDirectedGraph<Project, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
 
