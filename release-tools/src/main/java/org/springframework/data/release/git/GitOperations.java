@@ -67,6 +67,10 @@ import org.springframework.util.Assert;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class GitOperations {
 
+	private enum BranchCheckoutMode {
+		CREATE_ONLY, CREATE_AND_UPDATE;
+	}
+
 	GitServer server = new GitServer();
 	Workspace workspace;
 	Logger logger;
@@ -429,12 +433,26 @@ public class GitOperations {
 	/**
 	 * Checks out the given {@link Branch} of the given {@link Project}. If the given branch doesn't exist yet, a tracking
 	 * branch is created assuming the branch exists in the {@code origin} remote. Pulls the latest changes from the
-	 * checked out branch to make sure we see the latest changes.
+	 * checked out branch will be pulled to make sure we see them.
 	 * 
 	 * @param project must not be {@literal null}.
 	 * @param branch must not be {@literal null}.
 	 */
 	public void checkout(Project project, Branch branch) {
+		checkout(project, branch, BranchCheckoutMode.CREATE_AND_UPDATE);
+	}
+
+	/**
+	 * Checks out the given {@link Branch} of the given {@link Project}. If the given branch doesn't exist yet, a tracking
+	 * branch is created assuming the branch exists in the {@code origin} remote. If the {@link BranchCheckoutMode} is set
+	 * to {@code CREATE_AND_UPDATE} the latest changes from the checked out branch will be pulled to make sure we see
+	 * them.
+	 * 
+	 * @param project must not be {@literal null}.
+	 * @param branch must not be {@literal null}.
+	 * @param mode must not be {@literal null}.
+	 */
+	private void checkout(Project project, Branch branch, BranchCheckoutMode mode) {
 
 		Assert.notNull(project, "Project must not be null!");
 		Assert.notNull(branch, "Branch must not be null!");
@@ -465,13 +483,21 @@ public class GitOperations {
 				// TODO:
 			}
 
-			// Pull latest changes to make sure the branch is up to date
-			logger.log(project, "git pull origin %s", branch);
+			switch (mode) {
 
-			git.pull()//
-					.setRemote("origin")//
-					.setRemoteBranchName(branch.toString())//
-					.call();
+				case CREATE_ONLY:
+					break;
+				case CREATE_AND_UPDATE:
+				default:
+					// Pull latest changes to make sure the branch is up to date
+					logger.log(project, "git pull origin %s", branch);
+
+					git.pull()//
+							.setRemote("origin")//
+							.setRemoteBranchName(branch.toString())//
+							.call();
+					break;
+			}
 		});
 
 		logger.log(project, "Checkout done!");
@@ -488,7 +514,7 @@ public class GitOperations {
 		ExecutionUtils.run(iteration, module -> {
 
 			Branch branch = createMaintenanceBranch(module);
-			checkout(module.getProject(), branch);
+			checkout(module.getProject(), branch, BranchCheckoutMode.CREATE_ONLY);
 		});
 	}
 
