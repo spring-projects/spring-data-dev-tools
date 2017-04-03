@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.utils;
+package org.springframework.data.release.model;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
-import org.springframework.data.release.model.Password;
+import org.springframework.util.Assert;
 
 /**
+ * Value object to represent a password.
+ * 
  * @author Oliver Gierke
  */
 @Value
-public class HttpBasicCredentials {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class Password implements Masked {
 
-	private final String username;
-	private final Password password;
+	@Getter(AccessLevel.NONE) String value;
+
+	/**
+	 * Create a new {@link Password} for the given value.
+	 * 
+	 * @param password
+	 * @return
+	 */
+	public static Password of(String password) {
+
+		Assert.hasText(password, "Password must not be null or empty!");
+		return new Password(password);
+	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
+	@Override
 	public String toString() {
-
-		String header = username.concat(":").concat(password.toString());
-		byte[] encodedAuth = Base64.getEncoder().encode(header.getBytes(StandardCharsets.US_ASCII));
-
-		return "Basic ".concat(new String(encodedAuth));
+		return value;
 	}
 }

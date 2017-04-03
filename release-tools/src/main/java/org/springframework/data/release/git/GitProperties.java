@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.data.release.model.Password;
 import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -39,14 +40,14 @@ import org.springframework.util.Assert;
 @ConfigurationProperties(prefix = "git")
 public class GitProperties {
 
-	private @Getter(AccessLevel.PRIVATE) String password;
+	private @Getter(AccessLevel.PRIVATE) Password password;
 	private String username, author, email;
 
 	@PostConstruct
 	public void init() {
 
 		Assert.hasText(username, "No GitHub username (git.username) configured!");
-		Assert.hasText(password, "No GitHub password (git.password) configured!");
+		Assert.notNull(password, "No GitHub password (git.password) configured!");
 		Assert.hasText(author, "No Git author (git.author) configured!");
 		Assert.hasText(email, "No Git email (git.email) configured!");
 	}
@@ -57,7 +58,7 @@ public class GitProperties {
 	 * @return
 	 */
 	public CredentialsProvider getCredentials() {
-		return new UsernamePasswordCredentialsProvider(username, password);
+		return new UsernamePasswordCredentialsProvider(username, password.toString());
 	}
 
 	public HttpBasicCredentials getHttpCredentials() {

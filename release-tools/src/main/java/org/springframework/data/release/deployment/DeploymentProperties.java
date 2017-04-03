@@ -20,6 +20,7 @@ import lombok.Data;
 import java.net.URI;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.data.release.model.Password;
 import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -48,7 +49,7 @@ public class DeploymentProperties {
 	/**
 	 * The deployer's password.
 	 */
-	private String password;
+	private Password password;
 
 	/**
 	 * The repository to deploy the artifacts to.
@@ -110,6 +111,7 @@ public class DeploymentProperties {
 
 	@Data
 	public static class Gpg {
-		private String keyname, password, executable;
+		private String keyname, executable;
+		private Password password;
 	}
 }

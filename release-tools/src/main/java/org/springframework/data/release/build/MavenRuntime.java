@@ -18,9 +18,6 @@ package org.springframework.data.release.build;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
@@ -75,24 +72,16 @@ class MavenRuntime {
 		}
 	}
 
-	public void execute(Project project, String... arguments) {
-		execute(project, Arrays.asList(arguments));
-	}
-
-	public void execute(Project project, List<String> arguments) {
+	public void execute(Project project, CommandLine arguments) {
 
 		DefaultInvocationRequest request = new DefaultInvocationRequest();
 		request.setJavaHome(os.getJavaHome());
 		request.setShellEnvironmentInherited(true);
 		request.setBaseDirectory(workspace.getProjectDirectory(project));
 
-		List<String> goals = arguments.stream()//
-				.map(argument -> properties.getFullyQualifiedPlugin(argument))//
-				.collect(Collectors.toList());
+		logger.log(project, "Executing mvn %s", arguments.toString());
 
-		request.setGoals(goals);
-
-		logger.log(project, "Executing mvn %s", goals.stream().collect(Collectors.joining(" ")));
+		request.setGoals(arguments.toCommandLine(it -> properties.getFullyQualifiedPlugin(it.getGoal())));
 
 		try {
 

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.build;
 
+import static org.springframework.data.release.build.CommandLine.Argument.*;
+import static org.springframework.data.release.build.CommandLine.Goal.*;
 import static org.springframework.data.release.model.Projects.*;
 
 import lombok.AccessLevel;
@@ -22,11 +24,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.core.annotation.Order;
+import org.springframework.data.release.build.CommandLine.Argument;
+import org.springframework.data.release.build.CommandLine.Goal;
 import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
@@ -109,7 +111,8 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(project, "Triggering distribution build…");
 
-		mvn.execute(project, "clean", "deploy", "-DskipTests", "-Pdistribute", "-B");
+		mvn.execute(project, CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
+				SKIP_TESTS, profile("distribute"), Argument.of("-B")));
 
 		logger.log(project, "Successfully finished distribution build!");
 
@@ -186,17 +189,8 @@ class MavenBuildSystem implements BuildSystem {
 
 			logger.log(project, "Triggering distribution build…");
 
-			ArtifactVersion version = ArtifactVersion.of(module);
-
-			String profile = "-Pdistribute";
-
-			if (version.isMilestoneVersion()) {
-				profile = profile.concat(",milestone");
-			} else if (version.isReleaseVersion()) {
-				profile = profile.concat(",release");
-			}
-
-			mvn.execute(project, "clean", "deploy", "-DskipTests", profile);
+			mvn.execute(project,
+					CommandLine.of(Goal.CLEAN, Goal.DEPLOY, ReleaseVersion.of(module).getDistributionProfiles(), SKIP_TESTS));
 
 			logger.log(project, "Successfully finished distribution build!");
 		});
@@ -212,17 +206,18 @@ class MavenBuildSystem implements BuildSystem {
 		Project project = module.getProject();
 		UpdateInformation information = UpdateInformation.of(module.getTrainIteration(), phase);
 
-		mvn.execute(project, "versions:set", "versions:commit",
-				"-DnewVersion=".concat(information.getProjectVersionToSet(project).toString()));
+		CommandLine goals = CommandLine.of(goal("versions:set"), goal("versions:commit"));
+
+		mvn.execute(project, goals.and(arg("newVersion").withValue(information.getProjectVersionToSet(project))));
 
 		if (BUILD.equals(project)) {
 
-			mvn.execute(project, "versions:set", //
-					"-DnewVersion=".concat(information.getReleaseTrainVersion()), //
-					"-DgroupId=org.springframework.data", //
-					"-DartifactId=spring-data-releasetrain");
+			mvn.execute(project,
+					goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion()))//
+							.and(arg("groupId").withValue("org.springframework.data"))//
+							.and(arg("artifactId").withValue("spring-data-releasetrain")));
 
-			mvn.execute(project, "install");
+			mvn.execute(project, CommandLine.of(Goal.INSTALL));
 		}
 
 		return module;
@@ -252,13 +247,8 @@ class MavenBuildSystem implements BuildSystem {
 	@Override
 	public ModuleIteration triggerBuild(ModuleIteration module) {
 
-		List<String> arguments = new ArrayList<>();
-		arguments.add("clean");
-		arguments.add("install");
-
-		if (module.getProject().skipTests()) {
-			arguments.add("-DskipTests");
-		}
+		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.INSTALL)//
+				.conditionalAnd(SKIP_TESTS, () -> module.getProject().skipTests());
 
 		mvn.execute(module.getProject(), arguments);
 
@@ -271,7 +261,7 @@ class MavenBuildSystem implements BuildSystem {
 	 */
 	public ModuleIteration triggerPreReleaseCheck(ModuleIteration module) {
 
-		mvn.execute(module.getProject(), "clean", "validate", "-Ppre-release");
+		mvn.execute(module.getProject(), CommandLine.of(Goal.CLEAN, Goal.VALIDATE, profile("pre-release")));
 
 		return module;
 	}
@@ -298,18 +288,15 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(module, "Deploying artifacts to Spring Artifactory…");
 
-		List<String> arguments = new ArrayList<>();
-		arguments.add("clean");
-		arguments.add("deploy");
-
-		arguments.add("-Pci,release");
-		arguments.add("-DskipTests");
-		arguments.add("-Dartifactory.server=".concat(properties.getServer().getUri()));
-		arguments.add("-Dartifactory.staging-repository=".concat(properties.getStagingRepository()));
-		arguments.add("-Dartifactory.username=".concat(properties.getUsername()));
-		arguments.add("-Dartifactory.password=".concat(properties.getPassword()));
-		arguments.add("-Dartifactory.build-name=\"".concat(information.getBuildName()).concat("\""));
-		arguments.add("-Dartifactory.build-number=".concat(information.getBuildNumber()));
+		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
+				profile("ci,release"), //
+				SKIP_TESTS, //
+				arg("artifactory.server").withValue(properties.getServer().getUri()),
+				arg("artifactory.staging-repository").withValue(properties.getStagingRepository()),
+				arg("artifactory.username").withValue(properties.getUsername()),
+				arg("artifactory.password").withValue(properties.getPassword()),
+				arg("artifactory.build-name").withQuotedValue(information.getBuildName()),
+				arg("artifactory.build-number").withValue(information.getBuildNumber()));
 
 		mvn.execute(module.getProject(), arguments);
 	}
@@ -332,16 +319,13 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(module, "Deploying artifacts to Sonatype OSS Nexus…");
 
-		List<String> arguments = new ArrayList<>();
-		arguments.add("deploy");
-		arguments.add("-Pci,central");
-		arguments.add("-DskipTests");
-
 		Gpg gpg = properties.getGpg();
 
-		arguments.add("-Dgpg.executable=".concat(gpg.getExecutable()));
-		arguments.add("-Dgpg.keyname=".concat(gpg.getKeyname()));
-		arguments.add("-Dgpg.password=".concat(gpg.getPassword()));
+		CommandLine arguments = CommandLine.of(Goal.DEPLOY, //
+				profile("ci,central"), //
+				SKIP_TESTS, //
+				arg("gpg.executable").withValue(gpg.getExecutable()), arg("gpg.keyname").withValue(gpg.getKeyname()),
+				arg("gpg.password").withValue(gpg.getPassword()));
 
 		mvn.execute(module.getProject(), arguments);
 	}
@@ -369,6 +353,44 @@ class MavenBuildSystem implements BuildSystem {
 
 		} catch (Exception o_O) {
 			throw new RuntimeException(o_O);
+		}
+	}
+
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+	private static class ReleaseVersion {
+
+		private final ArtifactVersion version;
+
+		/**
+		 * Creates a new {@link ReleaseVersion} for the given {@link ModuleIteration}.
+		 * 
+		 * @param module must not be {@literal null}.
+		 * @return
+		 */
+		public static ReleaseVersion of(ModuleIteration module) {
+
+			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
+
+			Assert.isTrue(artifactVersion.isMilestoneVersion() || artifactVersion.isReleaseVersion(),
+					String.format("Given module is not in a fixed version, detected %s!", artifactVersion));
+
+			return new ReleaseVersion(ArtifactVersion.of(module));
+		}
+
+		/**
+		 * Returns the Maven profiles to be used during the distribution build.
+		 * 
+		 * @return
+		 */
+		public Argument getDistributionProfiles() {
+
+			if (version.isMilestoneVersion()) {
+				return profile("distribute", "milestone");
+			} else if (version.isReleaseVersion()) {
+				return profile("distribute", "release");
+			}
+
+			throw new IllegalStateException("Should not occur!");
 		}
 	}
 }
