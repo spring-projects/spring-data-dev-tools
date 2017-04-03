@@ -18,6 +18,7 @@ package org.springframework.data.release.git;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -115,11 +116,12 @@ class GitCommands extends TimedCommand {
 
 	@CliCommand("git backport changelog")
 	public void backportChangelogs(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
-			@CliOption(key = "target", mandatory = true) String trains) {
+			@CliOption(key = "target") String trains) {
 
-		List<Train> targets = Stream.of(trains.split(",")).//
-				map(it -> ReleaseTrains.getTrainByName(it)).//
-				collect(Collectors.toList());
+		List<Train> targets = trains == null ? Collections.emptyList()
+				: Stream.of(trains.split(",")).//
+						map(it -> ReleaseTrains.getTrainByName(it)).//
+						collect(Collectors.toList());
 
 		git.backportChangelogs(iteration, targets);
 	}
