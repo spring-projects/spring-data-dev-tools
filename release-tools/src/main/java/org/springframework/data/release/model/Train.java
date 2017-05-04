@@ -184,7 +184,8 @@ public class Train implements Streamable<Module> {
 	@ToString
 	public static class Iterations implements Iterable<Iteration> {
 
-		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7, SR8, SR9);
+		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7, SR8, SR9, SR10,
+				SR11, SR12);
 
 		private final List<Iteration> iterations;
 

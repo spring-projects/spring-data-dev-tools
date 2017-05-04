@@ -43,13 +43,14 @@ public class ReleaseTrains {
 				new Module(NEO4J, "4.1"), new Module(COUCHBASE, "2.1"), new Module(ELASTICSEARCH, "2.0"));
 		INGALLS = HOPPER.next("Ingalls", Transition.MINOR, new Module(LDAP, "1.0"));
 
-		Iteration M2 = new Iteration("M2", RC1);
+		Iteration M4 = new Iteration("M4", RC1);
+		Iteration M3 = new Iteration("M3", M4);
+		Iteration M2 = new Iteration("M2", M3);
+		Iteration M1 = new Iteration("M1", M2);
 
-		Iterations iterations = new Iterations(new Iteration("M1", M2), M2, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
+		Iterations iterations = new Iterations(M1, M2, M3, M4, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
 
-		KAY = INGALLS.next("Kay", Transition.MAJOR)//
-				.withAlwaysUseBranch(true)//
-				.withIterations(iterations);
+		KAY = INGALLS.next("Kay", Transition.MAJOR).withIterations(iterations);
 
 		// Trains
 
