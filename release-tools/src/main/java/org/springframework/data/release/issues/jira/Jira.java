@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -33,7 +32,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.Tickets;
-import org.springframework.data.release.issues.jira.JiraIssue.Component;
 import org.springframework.data.release.issues.jira.JiraIssue.Fields;
 import org.springframework.data.release.issues.jira.JiraIssue.Resolution;
 import org.springframework.data.release.issues.jira.JiraIssue.Status;
@@ -46,6 +44,7 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriTemplate;
@@ -54,7 +53,7 @@ import org.springframework.web.util.UriTemplate;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-@org.springframework.stereotype.Component
+@Component
 class Jira implements JiraConnector {
 
 	private static final String BASE_URI = "{jiraBaseUrl}/rest/api/2";
@@ -77,7 +76,6 @@ class Jira implements JiraConnector {
 	 * @param logger
 	 * @param jiraProperties
 	 */
-	@Autowired
 	public Jira(@Qualifier("tracker") RestOperations operations, Logger logger, JiraProperties jiraProperties) {
 
 		this.operations = operations;
@@ -177,8 +175,8 @@ class Jira implements JiraConnector {
 
 		JiraIssues issues = execute(trainIteration.toString(), query, headers, jiraIssues -> {
 			jiraIssues.stream().//
-					filter(jiraIssue -> !jiraIssue.wasBackportedFrom(trainIteration.getTrain())). //
-					forEach(jiraIssue -> tickets.add(toTicket(jiraIssue)));
+			filter(jiraIssue -> !jiraIssue.wasBackportedFrom(trainIteration.getTrain())). //
+			forEach(jiraIssue -> tickets.add(toTicket(jiraIssue)));
 		});
 
 		return new Tickets(tickets, issues.getTotal());
@@ -199,8 +197,8 @@ class Jira implements JiraConnector {
 
 		JiraIssues issues = execute(moduleIteration.toString(), query, headers, jiraIssues -> {
 			jiraIssues.stream().//
-					filter(jiraIssue -> !jiraIssue.wasBackportedFrom(moduleIteration.getTrain())). //
-					forEach(jiraIssue -> tickets.add(toTicket(jiraIssue)));
+			filter(jiraIssue -> !jiraIssue.wasBackportedFrom(moduleIteration.getTrain())). //
+			forEach(jiraIssue -> tickets.add(toTicket(jiraIssue)));
 		});
 
 		return new Tickets(tickets, issues.getTotal());
@@ -246,9 +244,9 @@ class Jira implements JiraConnector {
 		List<JiraReleaseVersion> versionsForModuleIteration = new ArrayList<>();
 		getReleaseVersions(moduleIteration.toString(), moduleIteration.getProjectKey(), httpHeaders, releaseVersions -> {
 			releaseVersions.stream(). //
-					filter(jiraReleaseVersion -> jiraReleaseVersion.hasSameNameAs(jiraVersion)). //
-					findFirst(). //
-					ifPresent(jiraReleaseVersion -> versionsForModuleIteration.add(jiraReleaseVersion));
+			filter(jiraReleaseVersion -> jiraReleaseVersion.hasSameNameAs(jiraVersion)). //
+			findFirst(). //
+			ifPresent(jiraReleaseVersion -> versionsForModuleIteration.add(jiraReleaseVersion));
 		});
 
 		return versionsForModuleIteration.stream().findFirst();
@@ -440,8 +438,8 @@ class Jira implements JiraConnector {
 		Fields fields = jiraIssue.getFields();
 
 		Optional<JiraComponent> component = jiraComponents.findComponent(INFRASTRUCTURE_COMPONENT_NAME);
-		component.ifPresent(
-				jiraComponent -> fields.setComponents(Collections.singletonList(Component.of(jiraComponent.getName()))));
+		component.ifPresent(jiraComponent -> fields.setComponents(Collections
+				.singletonList(org.springframework.data.release.issues.jira.JiraIssue.Component.of(jiraComponent.getName()))));
 
 		return jiraIssue;
 	}

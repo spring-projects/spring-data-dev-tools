@@ -72,7 +72,10 @@ public class ReleaseOperations {
 
 		for (ModuleIteration module : iteration) {
 
-			final Changelog changelog = trackers.getPluginFor(module.getProject()).getChangelogFor(module);
+			Changelog changelog = trackers
+					.getRequiredPluginFor(module.getProject(),
+							() -> String.format("No issue tracker found for project %!", module.getProject()))//
+					.getChangelogFor(module);
 
 			for (String location : CHANGELOG_LOCATIONS) {
 

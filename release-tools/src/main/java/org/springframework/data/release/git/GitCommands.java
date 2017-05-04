@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  */
 @CliComponent
+@SuppressWarnings("deprecation")
 @RequiredArgsConstructor
 class GitCommands extends TimedCommand {
 
@@ -134,7 +135,6 @@ class GitCommands extends TimedCommand {
 	 * @throws Exception
 	 */
 	@CliCommand("git issuebranches")
-	@SuppressWarnings("deprecation")
 	public Table issuebranches(@CliOption(key = { "" }, mandatory = true) String projectName,
 			@CliOption(key = "resolved", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") Boolean resolved)
 			throws Exception {

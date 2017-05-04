@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
@@ -29,7 +30,6 @@ import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.plugin.core.PluginRegistry;
-import org.springframework.plugin.core.PluginRegistry.Supplier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 

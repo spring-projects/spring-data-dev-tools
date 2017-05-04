@@ -294,7 +294,8 @@ public class GitOperations {
 
 		Assert.notNull(project, "Project must not be null!");
 
-		IssueTracker tracker = issueTracker.getPluginFor(project);
+		IssueTracker tracker = issueTracker.getRequiredPluginFor(project,
+				() -> String.format("No issue tracker found for project %!", project));
 
 		return doWithGit(project, git -> {
 
@@ -410,7 +411,8 @@ public class GitOperations {
 		Assert.hasText(summary, "Summary must not be null or empty!");
 
 		Project project = module.getProject();
-		IssueTracker tracker = issueTracker.getPluginFor(project);
+		IssueTracker tracker = issueTracker.getRequiredPluginFor(project,
+				() -> String.format("No issue tracker found for project %s!", project));
 		Ticket ticket = tracker.getReleaseTicketFor(module);
 
 		Commit commit = new Commit(ticket, summary, details);
@@ -665,7 +667,10 @@ public class GitOperations {
 	private String calculateTrigger(ModuleIteration module, String summary) {
 
 		Project project = module.getProject();
-		Ticket releaseTicket = issueTracker.getPluginFor(project).getReleaseTicketFor(module);
+		Ticket releaseTicket = issueTracker
+				.getRequiredPluginFor(project, () -> String.format("No issue tracker found for project %!", project))//
+				.getReleaseTicketFor(module);
+
 		return String.format("%s - %s", releaseTicket.getId(), summary);
 	}
 

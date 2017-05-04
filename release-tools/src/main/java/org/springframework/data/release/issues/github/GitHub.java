@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -78,7 +77,6 @@ class GitHub implements IssueTracker {
 	 * @param logger
 	 * @param properties
 	 */
-	@Autowired
 	public GitHub(@Qualifier("tracker") RestOperations operations, Logger logger, GitHubProperties properties) {
 
 		this.operations = operations;
