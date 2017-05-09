@@ -1,0 +1,173 @@
+{
+  "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog",
+  "id": "68967",
+  "self": "https://jira.spring.io/rest/api/2/issue/68967",
+  "key": "DATACASS-302",
+  "fields": {
+	"issuetype": {
+	  "self": "https://jira.spring.io/rest/api/2/issuetype/3",
+	  "id": "3",
+	  "description": "A task that needs to be done.",
+	  "iconUrl": "https://jira.spring.io/images/icons/issuetypes/task.png",
+	  "name": "Task",
+	  "subtask": false
+	},
+	"timespent": null,
+	"customfield_10150": null,
+	"project": {
+	  "self": "https://jira.spring.io/rest/api/2/project/11403",
+	  "id": "11403",
+	  "key": "DATACASS",
+	  "name": "Spring Data for Apache Cassandra",
+	  "avatarUrls": {
+		"48x48": "https://jira.spring.io/secure/projectavatar?pid=11403&avatarId=12504",
+		"24x24": "https://jira.spring.io/secure/projectavatar?size=small&pid=11403&avatarId=12504",
+		"16x16": "https://jira.spring.io/secure/projectavatar?size=xsmall&pid=11403&avatarId=12504",
+		"32x32": "https://jira.spring.io/secure/projectavatar?size=medium&pid=11403&avatarId=12504"
+	  },
+	  "projectCategory": {
+		"self": "https://jira.spring.io/rest/api/2/projectCategory/10000",
+		"id": "10000",
+		"description": "Top-level Spring projects",
+		"name": "Spring Projects"
+	  }
+	},
+	"fixVersions": [],
+	"aggregatetimespent": null,
+	"resolution": null,
+	"resolutiondate": null,
+	"workratio": -1,
+	"lastViewed": null,
+	"watches": {
+	  "self": "https://jira.spring.io/rest/api/2/issue/DATACASS-302/watchers",
+	  "watchCount": 1,
+	  "isWatching": true
+	},
+	"customfield_10180": "27907200",
+	"customfield_10181": "true",
+	"customfield_10380": "9223372036854775807",
+	"customfield_10182": "mp911de(mp911de)",
+	"created": "2016-06-20T11:54:21.542+0000",
+	"customfield_10381": "9223372036854775807",
+	"customfield_10140": null,
+	"customfield_10580": null,
+	"customfield_10142": null,
+	"priority": {
+	  "self": "https://jira.spring.io/rest/api/2/priority/4",
+	  "iconUrl": "https://jira.spring.io/images/icons/priorities/minor.png",
+	  "name": "Minor",
+	  "id": "4"
+	},
+	"customfield_10981": null,
+	"labels": [],
+	"timeestimate": null,
+	"aggregatetimeoriginalestimate": null,
+	"versions": [],
+	"issuelinks": [],
+	"assignee": {
+	  "self": "https://jira.spring.io/rest/api/2/user?username=mp911de",
+	  "name": "mp911de",
+	  "key": "mp911de",
+	  "emailAddress": "mpaluch at pivotal dot io",
+	  "avatarUrls": {
+		"48x48": "https://jira.spring.io/secure/useravatar?ownerId=mp911de&avatarId=14015",
+		"24x24": "https://jira.spring.io/secure/useravatar?size=small&ownerId=mp911de&avatarId=14015",
+		"16x16": "https://jira.spring.io/secure/useravatar?size=xsmall&ownerId=mp911de&avatarId=14015",
+		"32x32": "https://jira.spring.io/secure/useravatar?size=medium&ownerId=mp911de&avatarId=14015"
+	  },
+	  "displayName": "Mark Paluch",
+	  "active": true,
+	  "timeZone": "Europe/Berlin"
+	},
+	"updated": "2016-06-20T11:54:42.720+0000",
+	"status": {
+	  "self": "https://jira.spring.io/rest/api/2/status/1",
+	  "description": "The issue is open and ready for the assignee to start work on it.",
+	  "iconUrl": "https://jira.spring.io/images/icons/statuses/open.png",
+	  "name": "Open",
+	  "id": "1",
+	  "statusCategory": {
+		"self": "https://jira.spring.io/rest/api/2/statuscategory/2",
+		"id": 2,
+		"key": "new",
+		"colorName": "blue-gray",
+		"name": "To Do"
+	  }
+	},
+	"components": [],
+	"customfield_10170": null,
+	"customfield_10171": null,
+	"timeoriginalestimate": null,
+	"description": "Add support for Cassandra {{time}} data type.\r\n\r\n{{time}} represents a Time string, such as 13:30:54.234 but it's mapped to the {{long}} Java type. The {{long}} value denotes millis since midnight. Updates require quoting of the value:\r\n\r\n{code}\r\nUPDATE mytable SET mytimefield ='123456';\r\n{code}\r\n\r\nPlease see also https://issues.apache.org/jira/browse/CASSANDRA-11798",
+	"timetracking": {},
+	"attachment": [],
+	"aggregatetimeestimate": null,
+	"summary": "Support Cassandra time columns",
+	"creator": {
+	  "self": "https://jira.spring.io/rest/api/2/user?username=mp911de",
+	  "name": "mp911de",
+	  "key": "mp911de",
+	  "emailAddress": "mpaluch at pivotal dot io",
+	  "avatarUrls": {
+		"48x48": "https://jira.spring.io/secure/useravatar?ownerId=mp911de&avatarId=14015",
+		"24x24": "https://jira.spring.io/secure/useravatar?size=small&ownerId=mp911de&avatarId=14015",
+		"16x16": "https://jira.spring.io/secure/useravatar?size=xsmall&ownerId=mp911de&avatarId=14015",
+		"32x32": "https://jira.spring.io/secure/useravatar?size=medium&ownerId=mp911de&avatarId=14015"
+	  },
+	  "displayName": "Mark Paluch",
+	  "active": true,
+	  "timeZone": "Europe/Berlin"
+	},
+	"customfield_10280": "9223372036854775807",
+	"subtasks": [],
+	"customfield_10480": null,
+	"customfield_10680": null,
+	"customfield_10120": null,
+	"reporter": {
+	  "self": "https://jira.spring.io/rest/api/2/user?username=mp911de",
+	  "name": "mp911de",
+	  "key": "mp911de",
+	  "emailAddress": "mpaluch at pivotal dot io",
+	  "avatarUrls": {
+		"48x48": "https://jira.spring.io/secure/useravatar?ownerId=mp911de&avatarId=14015",
+		"24x24": "https://jira.spring.io/secure/useravatar?size=small&ownerId=mp911de&avatarId=14015",
+		"16x16": "https://jira.spring.io/secure/useravatar?size=xsmall&ownerId=mp911de&avatarId=14015",
+		"32x32": "https://jira.spring.io/secure/useravatar?size=medium&ownerId=mp911de&avatarId=14015"
+	  },
+	  "displayName": "Mark Paluch",
+	  "active": true,
+	  "timeZone": "Europe/Berlin"
+	},
+	"customfield_10000": null,
+	"customfield_10880": "0|i09a87:",
+	"aggregateprogress": {
+	  "progress": 0,
+	  "total": 0
+	},
+	"customfield_10002": null,
+	"customfield_10684": null,
+	"environment": null,
+	"duedate": null,
+	"progress": {
+	  "progress": 0,
+	  "total": 0
+	},
+	"comment": {
+	  "startAt": 0,
+	  "maxResults": 0,
+	  "total": 0,
+	  "comments": []
+	},
+	"votes": {
+	  "self": "https://jira.spring.io/rest/api/2/issue/DATACASS-302/votes",
+	  "votes": 0,
+	  "hasVoted": false
+	},
+	"worklog": {
+	  "startAt": 0,
+	  "maxResults": 20,
+	  "total": 0,
+	  "worklogs": []
+	}
+  }
+}

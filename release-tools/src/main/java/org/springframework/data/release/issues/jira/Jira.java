@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,11 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriTemplate;
 
@@ -58,7 +61,7 @@ class Jira implements JiraConnector {
 
 	private static final String BASE_URI = "{jiraBaseUrl}/rest/api/2";
 	private static final String CREATE_ISSUES_TEMPLATE = BASE_URI + "/issue";
-	private static final String UPDATE_ISSUE_TEMPLATE = BASE_URI + "/issue/{ticketId}";
+	private static final String ISSUE_TEMPLATE = BASE_URI + "/issue/{ticketId}";
 	private static final String PROJECT_VERSIONS_TEMPLATE = BASE_URI + "/project/{project}/version?startAt={startAt}";
 	private static final String PROJECT_COMPONENTS_TEMPLATE = BASE_URI + "/project/{project}/components";
 	private static final String VERSIONS_TEMPLATE = BASE_URI + "/version";
@@ -298,13 +301,27 @@ class Jira implements JiraConnector {
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("ticketId", ticket.getId());
 
+		JiraIssue currentIssue = getJiraIssue(ticket.getId())
+				.orElseThrow(() -> new IllegalStateException(String.format("Ticket %s does not exist", ticket.getId())));
+
+		if (currentIssue.isAssignedTo(jiraProperties.getUsername())) {
+			logger.log("Ticket", "Skipping self-assignment of %s", ticket);
+			return;
+		}
+
 		JiraIssue jiraIssue = JiraIssue.create().assignTo(jiraProperties.getCredentials());
 
-		operations.exchange(UPDATE_ISSUE_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraIssue, httpHeaders),
-				String.class, parameters).getBody();
+		logger.log("Ticket", "Self-assignment of %s", ticket);
+
+		try {
+			operations.exchange(ISSUE_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraIssue, httpHeaders), String.class,
+					parameters).getBody();
+		} catch (HttpClientErrorException e) {
+			logger.warn("Ticket", "Self-assignment of %s failed with status ", ticket, e.getStatusCode());
+		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.IssueTracker#assignReleaseTicketToMe(org.springframework.data.release.model.ModuleIteration)
 	 */
@@ -444,6 +461,24 @@ class Jira implements JiraConnector {
 		return jiraIssue;
 	}
 
+	private Optional<JiraIssue> getJiraIssue(String ticketId) {
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("ticketId", ticketId);
+
+		try {
+			ResponseEntity<JiraIssue> jiraIssue = operations.getForEntity(ISSUE_TEMPLATE, JiraIssue.class, parameters);
+
+			return Optional.of(jiraIssue.getBody());
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				return Optional.empty();
+			}
+
+			throw e;
+		}
+	}
+
 	private JiraIssues execute(String context, JqlQuery query, HttpHeaders headers, JiraIssuesCallback callback) {
 
 		JiraIssues issues;
@@ -530,7 +565,7 @@ class Jira implements JiraConnector {
 
 	/**
 	 * Returns new {@link HttpHeaders} with authentication headers.
-	 * 
+	 *
 	 * @return
 	 */
 	private HttpHeaders newUserScopedHttpHeaders() {

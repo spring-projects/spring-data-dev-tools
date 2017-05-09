@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.release.issues.jira;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -34,10 +33,6 @@ import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.issues.Ticket;
-import org.springframework.data.release.issues.jira.Jira;
-import org.springframework.data.release.issues.jira.JiraConnector;
-import org.springframework.data.release.issues.jira.JiraProperties;
-import org.springframework.data.release.issues.jira.JiraReleaseVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.ProjectKey;
@@ -54,7 +49,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
  * Integration Tests for {@link Jira} using a local {@link WireMockRule} server.
- * 
+ *
  * @author Mark Paluch
  */
 public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
@@ -80,6 +75,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(properties.getApiUrl()).build();
 		Assume.assumeThat(uriComponents.getHost(), is("localhost"));
 
+		properties.setUsername("dummy");
 		jira.reset();
 	}
 
@@ -209,7 +205,6 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 						+ "\"issuetype\":{\"name\":\"Task\"},\"summary\":\"Release 2.5 RC1 (Hopper)\","
 						+ "\"fixVersions\":[{\"name\":\"2.5 RC1 (Hopper)\"}],"
 						+ "\"components\":[{\"name\":\"Infrastructure\"}]}}")));
-
 	}
 
 	/**
@@ -231,7 +226,6 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 				.withRequestBody(equalToJson("{\"fields\":{\"project\":{\"key\":\"DATAREST\"},"
 						+ "\"issuetype\":{\"name\":\"Task\"},\"summary\":\"Release 2.5 RC1 (Hopper)\","
 						+ "\"fixVersions\":[{\"name\":\"2.5 RC1 (Hopper)\"}]}}")));
-
 	}
 
 	/**
@@ -274,15 +268,37 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5
 	 */
 	@Test
-	public void assignTicketToMe() throws Exception {
+	public void assignTicketToMe() {
 
-		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATAREDIS-99999")).//
+		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
+				willReturn(json("existingTicket.json")));
+
+		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
 				willReturn(aResponse().withStatus(204)));
 
 		jira.assignTicketToMe(new Ticket("DATAREDIS-99999", "", null));
 
-		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-99999"))
+		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302"))
 				.withRequestBody(equalToJson("{\"fields\":{\"assignee\":{\"name\":\"dummy\"}}}")));
+	}
+
+	/**
+	 * @see #5, #53
+	 */
+	@Test
+	public void skipTicketAssignmentIfAssigned() {
+
+		properties.setUsername("mp911de");
+
+		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATACASS-302")).//
+				willReturn(json("existingTicket.json")));
+
+		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATACASS-302")).//
+				willReturn(aResponse().withStatus(204)));
+
+		jira.assignTicketToMe(new Ticket("DATACASS-302", "", null));
+
+		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/issue/DATACASS-302")));
 	}
 
 	private void mockSearchWith(String fromClassPath) {

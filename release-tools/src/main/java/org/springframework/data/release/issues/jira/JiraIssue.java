@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ class JiraIssue {
 
 	/**
 	 * Creates a new Jira issue value object.
-	 * 
+	 *
 	 * @return
 	 */
 	public static JiraIssue create() {
@@ -51,7 +51,7 @@ class JiraIssue {
 
 	/**
 	 * Creates a new Jira issue value object with a issue type of {@link IssueType#TASK}.
-	 * 
+	 *
 	 * @return
 	 */
 	public static JiraIssue createTask() {
@@ -98,7 +98,7 @@ class JiraIssue {
 
 	/**
 	 * Assign the ticket to {@code username}.
-	 * 
+	 *
 	 * @param username must not be empty and not {@literal null}.
 	 * @return
 	 */
@@ -111,7 +111,7 @@ class JiraIssue {
 
 	/**
 	 * Set the project to {@code projectKey}.
-	 * 
+	 *
 	 * @param projectKey must not be {@literal null}.
 	 * @return
 	 */
@@ -123,7 +123,7 @@ class JiraIssue {
 
 	/**
 	 * Set the issue summary.
-	 * 
+	 *
 	 * @param summary must not be empty and not {@literal null}.
 	 */
 	public JiraIssue summary(String summary) {
@@ -135,7 +135,7 @@ class JiraIssue {
 
 	/**
 	 * Set the fix version.
-	 * 
+	 *
 	 * @param moduleIteration must not be {@literal null}.
 	 * @return
 	 */
@@ -145,6 +145,10 @@ class JiraIssue {
 		getFields().setFixVersions(Collections.singletonList(new JiraVersion(moduleIteration).toFixVersion()));
 
 		return this;
+	}
+
+	public boolean isAssignedTo(String username) {
+		return getFields().getAssignee() != null && getFields().getAssignee().matches(username);
 	}
 
 	private static boolean wasBackportedFrom(Train train, List<FixVersion> fixVersions) {
@@ -251,6 +255,10 @@ class JiraIssue {
 
 		static JiraUser from(String username) {
 			return new JiraUser(username, null);
+		}
+
+		public boolean matches(String username) {
+			return username.equalsIgnoreCase(name);
 		}
 	}
 }
