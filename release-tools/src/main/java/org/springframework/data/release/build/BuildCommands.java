@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @CliComponent
 @RequiredArgsConstructor
@@ -50,7 +51,7 @@ class BuildCommands extends TimedCommand {
 
 	/**
 	 * Removes all Spring Data artifacts from the local repository.
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	@CliCommand("build purge artifacts")
@@ -65,7 +66,7 @@ class BuildCommands extends TimedCommand {
 
 	/**
 	 * Triggers a build for all modules of the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param projectKey can be {@literal null} or empty.
 	 */
@@ -80,7 +81,19 @@ class BuildCommands extends TimedCommand {
 
 		if (!project.isPresent()) {
 			git.prepare(iteration);
-			iteration.forEach(module -> build.triggerBuild(module));
+			iteration.forEach(build::triggerBuild);
 		}
+	}
+
+	/**
+	 * @param iteration must not be {@literal null}.
+	 */
+	@CliCommand("build distribute")
+	public void buildDistribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		Assert.notNull(iteration, "Train iteration must not be null!");
+
+		git.prepare(iteration);
+		build.distributeResources(iteration);
 	}
 }
