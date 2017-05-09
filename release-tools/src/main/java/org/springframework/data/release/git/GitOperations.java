@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -598,7 +598,7 @@ public class GitOperations {
 			if (result.getStatus().equals(CherryPickStatus.OK)) {
 				logger.log(project, "Successfully cherry-picked commit %s to branch %s.", id.getName(), branch);
 			} else {
-				logger.log(project, "Cherry pick failed. aborting…");
+				logger.warn(project, "Cherry pick failed. aborting…");
 				logger.log(project, "git reset --hard");
 				git.reset().setMode(ResetType.HARD).call();
 			}
@@ -674,7 +674,7 @@ public class GitOperations {
 
 		Project project = module.getProject();
 		Ticket releaseTicket = issueTracker
-				.getRequiredPluginFor(project, () -> String.format("No issue tracker found for project %!", project))//
+				.getRequiredPluginFor(project, () -> String.format("No issue tracker found for project %s!", project))//
 				.getReleaseTicketFor(module);
 
 		return String.format("%s - %s", releaseTicket.getId(), summary);
