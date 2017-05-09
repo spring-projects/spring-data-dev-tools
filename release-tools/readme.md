@@ -17,7 +17,17 @@
 
 3. Run `mvn package appassembler:assemble && sh target/appassembler/bin/spring-data-release-shell`
 
-4. Commands to execute
+4. Pre-release checks
+
+Make sure that:
+
+* Upgrade dependencies in Spring Data Build parent pom (mind minor/major version rules)
+* All release tickets are present (`$ tracker releasetickets`)
+* Review open tickets for release
+* Self-assign release tickets
+* Announce release preparations to mailing list
+
+5. Commands to execute
 
 ```
 $ release prepare $trainIteration
@@ -29,3 +39,9 @@ $ release distribute $trainIteration
 $ git backport changelog $trainIteration --target $targets
 $ foreach $target -> git push $target
 ```
+
+6. Post-release tasks
+
+* Create release tickets for next release 
+  `$ tracker create releaseversions` and `$ tracker create releasetickets`
+* Announce release (Blog, Twitter) and notify downstream dependency projects as needed
