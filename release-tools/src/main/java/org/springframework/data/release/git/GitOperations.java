@@ -59,7 +59,7 @@ import org.springframework.util.Assert;
 
 /**
  * Component to execute Git related operations.
- * 
+ *
  * @author Oliver Gierke
  */
 @Component
@@ -79,7 +79,7 @@ public class GitOperations {
 
 	/**
 	 * Returns the {@link GitProject} for the given {@link Project}.
-	 * 
+	 *
 	 * @param project
 	 * @return
 	 */
@@ -89,7 +89,7 @@ public class GitOperations {
 
 	/**
 	 * Resets the repositories for all modules of the given {@link Train}.
-	 * 
+	 *
 	 * @param train must not be {@literal null}.
 	 * @throws Exception
 	 */
@@ -145,7 +145,7 @@ public class GitOperations {
 
 	/**
 	 * Checks out all projects of the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @throws Exception
 	 */
@@ -207,6 +207,12 @@ public class GitOperations {
 			Branch branch = Branch.from(module);
 			logger.log(module, "git push origin %s", branch);
 
+			if (!branchExists(module.getProject(), branch)) {
+
+				logger.log(module, "No branch %s in %s, skip push", branch, module.getProject().getName());
+				return;
+			}
+
 			doWithGit(module.getProject(), git -> {
 
 				Ref ref = git.getRepository().findRef(branch.toString());
@@ -240,7 +246,7 @@ public class GitOperations {
 	/**
 	 * Updates the given {@link Project}. Will either pull the latest changes or clone the project's repository if not
 	 * already available.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @throws Exception
 	 */
@@ -286,7 +292,7 @@ public class GitOperations {
 
 	/**
 	 * Retrieve a list of remote branches where their related ticket is resolved.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 */
@@ -329,7 +335,7 @@ public class GitOperations {
 
 	/**
 	 * Tags the release commits for the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration
 	 */
 	public void tagRelease(TrainIteration iteration) {
@@ -370,7 +376,7 @@ public class GitOperations {
 	/**
 	 * Commits all changes currently made to all modules of the given {@link TrainIteration}. The summary can contain a
 	 * single {@code %s} placeholder which the version of the current module will get replace into.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
@@ -398,7 +404,7 @@ public class GitOperations {
 	/**
 	 * Commits the given files for the given {@link ModuleIteration} using the given summary and details for the commit
 	 * message. If no files are given, all pending changes are committed.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
@@ -436,7 +442,7 @@ public class GitOperations {
 	 * Checks out the given {@link Branch} of the given {@link Project}. If the given branch doesn't exist yet, a tracking
 	 * branch is created assuming the branch exists in the {@code origin} remote. Pulls the latest changes from the
 	 * checked out branch will be pulled to make sure we see them.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @param branch must not be {@literal null}.
 	 */
@@ -449,7 +455,7 @@ public class GitOperations {
 	 * branch is created assuming the branch exists in the {@code origin} remote. If the {@link BranchCheckoutMode} is set
 	 * to {@code CREATE_AND_UPDATE} the latest changes from the checked out branch will be pulled to make sure we see
 	 * them.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @param branch must not be {@literal null}.
 	 * @param mode must not be {@literal null}.
@@ -545,7 +551,7 @@ public class GitOperations {
 	/**
 	 * Back-ports the change log created for the given {@link TrainIteration} to the given release {@link Train}s. If the
 	 * {@link TrainIteration} is a service iteration itself, the master branch will become an additional port target.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param targets must not be {@literal null}.
 	 */
@@ -601,7 +607,7 @@ public class GitOperations {
 
 	/**
 	 * Creates a version branch for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -676,7 +682,7 @@ public class GitOperations {
 
 	/**
 	 * Returns the {@link Tag} that represents the {@link ArtifactVersion} of the given {@link Project}.
-	 * 
+	 *
 	 * @param project
 	 * @param version
 	 * @return
