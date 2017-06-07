@@ -166,8 +166,8 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 
 		jira.createReleaseVersion(REST_HOPPER_RC1);
 
-		verify(postRequestedFor(urlPathMatching(CREATE_VERSION_URI)).withRequestBody(
-				equalToJson("{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\"}")));
+		verify(postRequestedFor(urlPathMatching(CREATE_VERSION_URI)).withRequestBody(equalToJson(
+				"{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\", \"released\":false}")));
 	}
 
 	/**
