@@ -58,14 +58,22 @@ class GitHubIssue {
 	static class Milestone {
 
 		Long number;
-		String title, description;
+		String title, description, state;
 
 		public static Milestone of(String title, String description) {
-			return new Milestone(null, title, description);
+			return new Milestone(null, title, description, null);
 		}
 
 		public boolean matches(ModuleIteration moduleIteration) {
 			return title.contains(moduleIteration.getShortVersionString());
+		}
+
+		public boolean isOpen() {
+			return "open".equals(state);
+		}
+
+		public Milestone markReleased() {
+			return new Milestone(number, null, null, "closed");
 		}
 	}
 }

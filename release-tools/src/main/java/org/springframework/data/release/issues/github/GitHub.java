@@ -61,6 +61,7 @@ class GitHub implements IssueTracker {
 	private static final String ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues?milestone={id}&state=all&assignee={assignee}";
 	private static final String ISSUES_BY_MILESTONE_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues?milestone={id}&state=all";
 	private static final String MILESTONES_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/milestones";
+	private static final String MILESTONE_BY_ID_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/milestones/{id}";
 	private static final String ISSUE_BY_ID_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues/{id}";
 	private static final String ISSUES_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues";
 
@@ -346,6 +347,36 @@ class GitHub implements IssueTracker {
 	 */
 	@Override
 	public void closeIteration(ModuleIteration module) {
+
+		// for each module
+
+		// - close all tickets
+		// -- make sure only one ticket is open
+		// -- resolve open ticket
+		// -- close tickets
+
+		// - mark version as released
+
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
+		GitProject project = GitProject.of(module.getProject());
+
+		findMilestone(module, project.getRepositoryName()) //
+				.filter(Milestone::isOpen) //
+				.map(Milestone::markReleased) //
+				.ifPresent(milestone -> {
+
+					logger.log(module, "Marking milestone %s as released.", milestone);
+
+					Map<String, Object> parameters = newUrlTemplateVariables();
+					parameters.put("repoName", project.getRepositoryName());
+					parameters.put("id", milestone.getNumber());
+
+					operations.exchange(MILESTONE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
+							new HttpEntity<Object>(milestone, httpHeaders), Map.class, parameters);
+				});
+
+		// - if no next version exists, create
 
 	}
 
