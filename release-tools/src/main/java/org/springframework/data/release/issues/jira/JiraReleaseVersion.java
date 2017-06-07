@@ -16,15 +16,16 @@
 
 package org.springframework.data.release.issues.jira;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Value;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Value object to bind REST responses to.
- * 
+ *
  * @author Mark Paluch
  */
 @Value
@@ -32,6 +33,7 @@ class JiraReleaseVersion {
 
 	String id, name, project, description;
 	boolean released;
+	boolean archived;
 
 	public static JiraReleaseVersion of(ModuleIteration moduleIteration, JiraVersion jiraVersion) {
 
@@ -39,11 +41,15 @@ class JiraReleaseVersion {
 		Assert.notNull(jiraVersion, "JiraVersion must not be null.");
 
 		return new JiraReleaseVersion(null, jiraVersion.toString(), moduleIteration.getProjectKey().getKey(),
-				jiraVersion.getDescription(), false);
+				jiraVersion.getDescription(), false, false);
 	}
 
 	public JiraReleaseVersion markReleased() {
-		return new JiraReleaseVersion(id, name, project, description, true);
+		return new JiraReleaseVersion(id, name, project, description, true, false);
+	}
+
+	public JiraReleaseVersion markArchived() {
+		return new JiraReleaseVersion(id, name, project, description, released, true);
 	}
 
 	public boolean hasSameNameAs(JiraVersion jiraVersion) {
@@ -53,5 +59,10 @@ class JiraReleaseVersion {
 	@JsonIgnore
 	public boolean isOpen() {
 		return !released;
+	}
+
+	@JsonIgnore
+	public boolean isActive() {
+		return !archived;
 	}
 }

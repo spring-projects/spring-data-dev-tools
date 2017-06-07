@@ -223,6 +223,15 @@ class GitHub implements IssueTracker {
 	}
 
 	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.tracker.IssueTracker#retireReleaseVersion(org.springframework.data.release.model.ModuleIteration)
+	 */
+	@Override
+	public void archiveReleaseVersion(ModuleIteration module) {
+		logger.log(module, "Skipping milestone archival");
+	}
+
+	/*
 	 *
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.tracker.IssueTracker#createReleaseTicket(org.springframework.data.release.model.ModuleIteration)

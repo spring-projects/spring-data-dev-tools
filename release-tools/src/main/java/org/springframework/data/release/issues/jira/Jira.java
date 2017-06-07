@@ -209,7 +209,7 @@ class Jira implements JiraConnector {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseVersion(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.jira.Credentials)
+	 * @see org.springframework.data.release.jira.JiraConnector#createReleaseVersion(org.springframework.data.release.model.ModuleIteration)
 	 */
 	@Override
 	public void createReleaseVersion(ModuleIteration moduleIteration) {
@@ -236,8 +236,34 @@ class Jira implements JiraConnector {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.release.jira.JiraConnector#findJiraReleaseVersion(org.springframework.data.release.model.ModuleIteration)
+	 * @see org.springframework.data.release.jira.JiraConnector#retireReleaseVersion(org.springframework.data.release.model.ModuleIteration)
 	 */
+	@Override
+	public void archiveReleaseVersion(ModuleIteration module) {
+
+		Assert.notNull(module, "ModuleIteration must not be null.");
+
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
+		findJiraReleaseVersion(module) //
+				.filter(JiraReleaseVersion::isActive) //
+				.map(JiraReleaseVersion::markArchived) //
+				.ifPresent(version -> {
+
+					logger.log(module, "Marking version %s as archived.", version);
+
+					Map<String, Object> parameters = newUrlTemplateVariables();
+					parameters.put("id", version.getId());
+
+					operations.exchange(VERSION_TEMPLATE, HttpMethod.PUT, new HttpEntity<Object>(version, httpHeaders), Map.class,
+							parameters);
+				});
+	}
+
+	/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.release.jira.JiraConnector#findJiraReleaseVersion(org.springframework.data.release.model.ModuleIteration)
+		 */
 	@Cacheable("release-version")
 	public Optional<JiraReleaseVersion> findJiraReleaseVersion(ModuleIteration moduleIteration) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,11 @@ class IssueTrackerCommands extends TimedCommand {
 	@CliCommand("tracker close")
 	public void closeIteration(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 		iteration.forEach(module -> getTrackerFor(module).closeIteration(module));
+	}
+
+	@CliCommand("tracker archive")
+	public void archiveIteration(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+		iteration.forEach(module -> getTrackerFor(module).archiveReleaseVersion(module));
 	}
 
 	private Changelog getChangelog(ModuleIteration module) {

@@ -56,6 +56,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 
 	static final String CREATE_ISSUE_URI = "/rest/api/2/issue";
 	static final String CREATE_VERSION_URI = "/rest/api/2/version";
+	static final String UPDATE_VERSION_URI = "/rest/api/2/version/15475";
 	static final String SEARCH_URI = "/rest/api/2/search";
 	static final String PROJECT_VERSION_URI = "/rest/api/2/project/%s/version";
 	static final String PROJECT_COMPONENTS_URI = "/rest/api/2/project/%s/components";
@@ -167,7 +168,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		jira.createReleaseVersion(REST_HOPPER_RC1);
 
 		verify(postRequestedFor(urlPathMatching(CREATE_VERSION_URI)).withRequestBody(equalToJson(
-				"{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\", \"released\":false}")));
+				"{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\", \"released\":false, \"archived\":false}")));
 	}
 
 	/**
@@ -183,6 +184,25 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		jira.createReleaseVersion(moduleIteration);
 
 		verify(0, postRequestedFor(urlPathMatching(CREATE_VERSION_URI)));
+	}
+
+	/**
+	 * @see #56
+	 */
+	@Test
+	public void archiveReleaseVersionShouldArchiveReleaseVersion() throws Exception {
+
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+
+		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
+		mockService.stubFor(put(urlPathMatching(UPDATE_VERSION_URI)).//
+				willReturn(json("versionCreated.json")));
+
+		jira.archiveReleaseVersion(moduleIteration);
+
+		verify(putRequestedFor(urlPathMatching(UPDATE_VERSION_URI))
+				.withRequestBody(equalToJson("{\"id\":\"15475\",\"name\":\"2.5 RC1 (Hopper)\","
+						+ "\"description\":\"Hopper RC1\", \"released\":true,\"archived\":true}")));
 	}
 
 	/**

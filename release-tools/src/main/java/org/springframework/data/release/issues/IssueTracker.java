@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.plugin.core.Plugin;
 
 /**
  * Interface for issue tracker operations.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -56,7 +56,7 @@ public interface IssueTracker extends Plugin<Project> {
 
 	/**
 	 * Returns the {@link Ticket} that tracks modifications in the context of a release.
-	 * 
+	 *
 	 * @param module the module to lookup the {@link Ticket} for, must not be {@literal null}.
 	 * @return
 	 */
@@ -74,16 +74,23 @@ public interface IssueTracker extends Plugin<Project> {
 
 	/**
 	 * Creates a release version if release version is missing.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 */
 	void createReleaseVersion(ModuleIteration module);
 
 	/**
+	 * Retire the release version from the active versions for a {@link ModuleIteration}.
+	 *
+	 * @param module must not be {@literal null}.
+	 */
+	void archiveReleaseVersion(ModuleIteration module);
+
+	/**
 	 * Create release ticket if release ticket is missing.
 	 * <p>
 	 * TODO: Return created ticket
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 */
 	void createReleaseTicket(ModuleIteration module);
@@ -98,7 +105,7 @@ public interface IssueTracker extends Plugin<Project> {
 
 	/**
 	 * Assigns the release ticket for the given {@link ModuleIteration} to the current user.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -106,7 +113,7 @@ public interface IssueTracker extends Plugin<Project> {
 
 	/**
 	 * Returns the {@link Changelog} for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -114,7 +121,7 @@ public interface IssueTracker extends Plugin<Project> {
 
 	/**
 	 * Closes the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 */
 	void closeIteration(ModuleIteration module);
