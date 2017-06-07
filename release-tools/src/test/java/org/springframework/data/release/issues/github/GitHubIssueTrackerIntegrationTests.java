@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.release.issues.github;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -33,8 +32,6 @@ import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.issues.Ticket;
-import org.springframework.data.release.issues.github.GitHub;
-import org.springframework.data.release.issues.github.GitHubProperties;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Projects;
@@ -50,12 +47,13 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
  * Integration Tests for {@link GitHub} using a local {@link WireMockRule} server.
- * 
+ *
  * @author Mark Paluch
  */
 public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 
 	public static final String ISSUES_URI = "/repos/spring-projects/spring-data-build/issues";
+	public static final String RELEASE_TICKET_URI = "/repos/spring-projects/spring-data-build/issues/233";
 	public static final String MILESTONES_URI = "/repos/spring-projects/spring-data-build/milestones";
 	public static final ModuleIteration BUILD_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1,
 			"Build");
@@ -75,7 +73,6 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 		Assume.assumeThat(uriComponents.getHost(), is("localhost"));
 
 		github.reset();
-
 	}
 
 	/**
@@ -214,6 +211,24 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 		github.createReleaseTicket(BUILD_HOPPER_RC1);
 
 		verify(0, postRequestedFor(urlPathMatching(MILESTONES_URI)));
+	}
+
+	/**
+	 * @see #55
+	 */
+	@Test
+	public void assignTicketToMe() {
+
+		mockGetMilestonesWith("milestones.json");
+		mockGetIssuesWith("issues.json");
+
+		mockService.stubFor(patch(urlPathMatching(RELEASE_TICKET_URI)).//
+				willReturn(json("issue.json")));
+
+		github.assignReleaseTicketToMe(BUILD_HOPPER_RC1);
+
+		verify(patchRequestedFor(urlPathMatching(RELEASE_TICKET_URI))
+				.withRequestBody(equalToJson("{\"assignees\":[\"mp911de\"]}")));
 	}
 
 	private void mockGetIssueWith(String fromClassPath, int issueId) {

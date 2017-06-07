@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,11 @@ package org.springframework.data.release.issues.github;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
@@ -29,10 +33,17 @@ import org.springframework.data.release.model.ModuleIteration;
 class GitHubIssue {
 
 	String number, title, state;
+	List<Object> assignees;
 	Object milestone;
 
 	public static GitHubIssue of(String title, Milestone milestone) {
-		return new GitHubIssue(null, title, null, milestone.number);
+		return new GitHubIssue(null, title, null, null, milestone.number);
+	}
+
+	public static GitHubIssue assignedTo(String username) {
+
+		Assert.hasText(username, "Username must not be null or empty!");
+		return new GitHubIssue(null, null, null, Collections.singletonList(username), null);
 	}
 
 	public String getId() {

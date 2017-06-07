@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,7 @@ class GitHub implements IssueTracker {
 		return Changelog.of(moduleIteration, tickets);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.plugin.core.Plugin#supports(java.lang.Object)
 	 */
@@ -222,7 +222,7 @@ class GitHub implements IssueTracker {
 	}
 
 	/*
-	 * 
+	 *
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.tracker.IssueTracker#createReleaseTicket(org.springframework.data.release.model.ModuleIteration)
 	 */
@@ -257,7 +257,6 @@ class GitHub implements IssueTracker {
 	}
 
 	/*
-	 * 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.IssueTracker#assignTicketToMe(org.springframework.data.release.jira.Ticket)
 	 */
@@ -266,15 +265,32 @@ class GitHub implements IssueTracker {
 		logger.log("Ticket", "Skipping ticket assignment for %s", ticket);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.IssueTracker#assignReleaseTicketToMe(org.springframework.data.release.model.ModuleIteration)
 	 */
 	@Override
 	public Ticket assignReleaseTicketToMe(ModuleIteration module) {
 
-		logger.log("Ticket", "Skipping ticket assignment for %s", module);
-		return null;
+		Assert.notNull(module, "ModuleIteration must not be null.");
+
+		Ticket releaseTicketFor = getReleaseTicketFor(module);
+		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+		parameters.put("id", stripHash(releaseTicketFor));
+
+		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername());
+
+		GitHubIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
+				new HttpEntity<>(edit, newUserScopedHttpHeaders()), ISSUE_TYPE, parameters).getBody();
+
+		return toTicket(response);
+	}
+
+	private String stripHash(Ticket ticket) {
+		return ticket.getId().startsWith("#") ? ticket.getId().substring(1) : ticket.getId();
 	}
 
 	private HttpHeaders newUserScopedHttpHeaders() {
@@ -324,7 +340,7 @@ class GitHub implements IssueTracker {
 		return Optional.empty();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.issues.IssueTracker#closeIteration(org.springframework.data.release.model.ModuleIteration)
 	 */

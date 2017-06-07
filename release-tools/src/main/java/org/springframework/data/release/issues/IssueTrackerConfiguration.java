@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.release.model.Project;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
@@ -78,6 +79,7 @@ class IssueTrackerConfiguration {
 		converters.add(converter);
 
 		RestTemplate template = new RestTemplate();
+		template.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 		template.setMessageConverters(converters);
 
 		return template;
