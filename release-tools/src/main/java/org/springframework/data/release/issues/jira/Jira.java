@@ -309,12 +309,12 @@ class Jira implements JiraConnector {
 			return;
 		}
 
-		JiraIssue jiraIssue = JiraIssue.create().assignTo(jiraProperties.getCredentials());
+		JiraIssueUpdate editMeta = JiraIssueUpdate.create().assignTo(jiraProperties.getUsername());
 
 		logger.log("Ticket", "Self-assignment of %s", ticket);
 
 		try {
-			operations.exchange(ISSUE_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraIssue, httpHeaders), String.class,
+			operations.exchange(ISSUE_TEMPLATE, HttpMethod.PUT, new HttpEntity<Object>(editMeta, httpHeaders), String.class,
 					parameters).getBody();
 		} catch (HttpClientErrorException e) {
 			logger.warn("Ticket", "Self-assignment of %s failed with status ", ticket, e.getStatusCode());

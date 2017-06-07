@@ -87,29 +87,6 @@ class JiraIssue {
 	}
 
 	/**
-	 * Assign to the user specified in {@link Credentials}.
-	 *
-	 * @param credentials must not be {@literal null}.
-	 * @return
-	 */
-	public JiraIssue assignTo(Credentials credentials) {
-		return assignTo(credentials.getUsername());
-	}
-
-	/**
-	 * Assign the ticket to {@code username}.
-	 *
-	 * @param username must not be empty and not {@literal null}.
-	 * @return
-	 */
-	public JiraIssue assignTo(String username) {
-
-		Assert.hasText(username, "Username must not be empty!");
-		getFields().setAssignee(JiraUser.from(username));
-		return this;
-	}
-
-	/**
 	 * Set the project to {@code projectKey}.
 	 *
 	 * @param projectKey must not be {@literal null}.

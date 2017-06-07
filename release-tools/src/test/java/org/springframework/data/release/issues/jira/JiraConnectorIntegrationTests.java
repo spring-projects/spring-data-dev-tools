@@ -54,12 +54,12 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
  */
 public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 
-	public static final String CREATE_ISSUE_URI = "/rest/api/2/issue";
-	public static final String CREATE_VERSION_URI = "/rest/api/2/version";
-	public static final String SEARCH_URI = "/rest/api/2/search";
-	public static final String PROJECT_VERSION_URI = "/rest/api/2/project/%s/version";
-	public static final String PROJECT_COMPONENTS_URI = "/rest/api/2/project/%s/components";
-	public static final ModuleIteration REST_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+	static final String CREATE_ISSUE_URI = "/rest/api/2/issue";
+	static final String CREATE_VERSION_URI = "/rest/api/2/version";
+	static final String SEARCH_URI = "/rest/api/2/search";
+	static final String PROJECT_VERSION_URI = "/rest/api/2/project/%s/version";
+	static final String PROJECT_COMPONENTS_URI = "/rest/api/2/project/%s/components";
+	static final ModuleIteration REST_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
 
 	@Rule public WireMockRule mockService = new WireMockRule(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/jira")));
@@ -265,7 +265,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	/**
-	 * @see #5
+	 * @see #5, #54
 	 */
 	@Test
 	public void assignTicketToMe() {
@@ -273,13 +273,13 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
 				willReturn(json("existingTicket.json")));
 
-		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
+		mockService.stubFor(put(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
 				willReturn(aResponse().withStatus(204)));
 
-		jira.assignTicketToMe(new Ticket("DATAREDIS-99999", "", null));
+		jira.assignTicketToMe(new Ticket("DATAREDIS-302", "", null));
 
-		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302"))
-				.withRequestBody(equalToJson("{\"fields\":{\"assignee\":{\"name\":\"dummy\"}}}")));
+		verify(putRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302"))
+				.withRequestBody(equalToJson("{\"update\":{\"assignee\":[ {\"set\":{\"name\":\"dummy\"}} ] }}")));
 	}
 
 	/**
