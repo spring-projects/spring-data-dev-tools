@@ -30,7 +30,7 @@ import org.springframework.data.release.model.Train.Iterations;
 public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
-	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY;
+	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE;
 
 	static {
 
@@ -54,10 +54,11 @@ public class ReleaseTrains {
 		Iterations iterations = new Iterations(M1, M2, M3, M4, RC1, RC2, RC3, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
 
 		KAY = INGALLS.next("Kay", Transition.MAJOR, new Module(GEODE, "2.0")).withIterations(iterations);
+		LOVELACE = KAY.next("Lovelace", Transition.MINOR);
 
 		// Trains
 
-		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY);
+		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE);
 
 		// Train names
 
