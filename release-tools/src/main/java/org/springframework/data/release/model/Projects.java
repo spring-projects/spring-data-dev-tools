@@ -32,7 +32,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 public class Projects {
 
 	public static final Project COMMONS, BUILD, REST, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
-			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP;
+			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE;
 	public static final List<Project> PROJECTS;
 
 	static {
@@ -44,16 +44,25 @@ public class Projects {
 		COMMONS = new Project("DATACMNS", "Commons", Arrays.asList(BUILD));
 		JPA = new Project("DATAJPA", "JPA", Arrays.asList(COMMONS));
 		MONGO_DB = new Project("DATAMONGO", "MongoDB", Arrays.asList(COMMONS),
-				ArtifactCoordinates.NONE.artifacts("spring-data-mongodb-cross-store", "spring-data-mongodb-log4j"));
+				ArtifactCoordinates.NONE.artifacts("spring-data-mongodb-cross-store"));
 		NEO4J = new Project("DATAGRAPH", "Neo4j", Arrays.asList(COMMONS));
-		SOLR = new Project("DATASOLR", "Solr", Arrays.asList(COMMONS)).withFullName("Spring Data for Apache Solr");
+
+		SOLR = new Project("DATASOLR", "Solr", Arrays.asList(COMMONS))//
+				.withFullName("Spring Data for Apache Solr");
+
 		COUCHBASE = new Project("DATACOUCH", "Couchbase", Arrays.asList(COMMONS));
-		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS),
-				ArtifactCoordinates.NONE.artifacts("spring-cql")).withFullName("Spring Data for Apache Cassandra");
+
+		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS)) //
+				.withFullName("Spring Data for Apache Cassandra");
+
 		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
 		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
 		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS, KEY_VALUE));
 		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS)).withSkipTests(true);
+
+		GEODE = new Project("DATAGEODE", "Geode", Arrays.asList(COMMONS)) //
+				.withFullName("Spring Data for Apache Geode") //
+				.withSkipTests(true);
 
 		REST = new Project("DATAREST", "REST",
 				Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE), ArtifactCoordinates.NONE
@@ -63,7 +72,7 @@ public class Projects {
 		LDAP = new Project("DATALDAP", "LDAP", Arrays.asList(COMMONS));
 
 		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
-				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP);
+				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP, GEODE);
 
 		DefaultDirectedGraph<Project, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
 
