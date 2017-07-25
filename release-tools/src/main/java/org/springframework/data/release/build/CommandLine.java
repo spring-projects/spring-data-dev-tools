@@ -176,6 +176,10 @@ class CommandLine {
 			return Argument.of("-D".concat(name));
 		}
 
+		public static Argument debug() {
+			return Argument.of("-X");
+		}
+
 		public Argument withValue(Object value) {
 			return new Argument(name, ArgumentValue.of(value));
 		}
