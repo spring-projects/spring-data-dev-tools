@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.build;
 
+import java.util.List;
+
 import org.springframework.data.release.model.ArtifactVersion;
 import org.xmlbeam.annotation.XBRead;
 import org.xmlbeam.annotation.XBValue;
@@ -63,6 +65,9 @@ public interface Pom {
 
 	@XBWrite("/project/dependencyManagement/dependencies/dependency[artifactId=\"{0}\"]/version")
 	Pom setDependencyManagementVersion(String artifactId, @XBValue ArtifactVersion version);
+
+	@XBRead("//dependency[substring(version, string-length(version) - string-length('-SNAPSHOT') + 1) = '-SNAPSHOT']")
+	List<Artifact> getSnapshotDependencies();
 
 	public interface Repository {
 

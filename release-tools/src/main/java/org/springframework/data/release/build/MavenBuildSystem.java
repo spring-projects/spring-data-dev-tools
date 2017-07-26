@@ -24,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.io.File;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.data.release.build.CommandLine.Argument;
 import org.springframework.data.release.build.CommandLine.Goal;
+import org.springframework.data.release.build.Pom.Artifact;
 import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
@@ -137,6 +139,16 @@ class MavenBuildSystem implements BuildSystem {
 
 				module.getProject().doWithAdditionalArtifacts(
 						additionalArtifact -> pom.setDependencyManagementVersion(additionalArtifact.getArtifactId(), version));
+			}
+
+			if (updateInformation.getPhase().equals(Phase.PREPARE)) {
+
+				// Make sure we have no snapshot leftovers
+				List<Artifact> snapshotDependencies = pom.getSnapshotDependencies();
+
+				if (!snapshotDependencies.isEmpty()) {
+					throw new IllegalStateException(String.format("Found snapshot dependencies %s!", snapshotDependencies));
+				}
 			}
 		});
 	}
@@ -301,8 +313,8 @@ class MavenBuildSystem implements BuildSystem {
 	}
 
 	/**
-	 * Triggers Maven commands to deploy to Sonatypes OSS Nexus if the given {@link ModuleIteration} refers to a version
-	 * that has to be publically released.
+	 * Triggers Maven commands to deploy to Sonatype's OSS Nexus if the given {@link ModuleIteration} refers to a version
+	 * that has to be publicly released.
 	 * 
 	 * @param module must not be {@literal null}.
 	 */

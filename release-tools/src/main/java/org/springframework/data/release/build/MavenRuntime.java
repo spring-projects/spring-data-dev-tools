@@ -24,7 +24,6 @@ import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.OsOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.Project;
@@ -52,7 +51,6 @@ class MavenRuntime {
 	 * @param logger must not be {@literal null}.
 	 * @param properties must not be {@literal null}.
 	 */
-	@Autowired
 	public MavenRuntime(Workspace workspace, OsOperations os, Logger logger, MavenProperties properties) {
 
 		this.workspace = workspace;

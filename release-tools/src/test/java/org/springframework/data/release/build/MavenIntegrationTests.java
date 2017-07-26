@@ -79,4 +79,12 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 		maven.updateProjectDescriptors(build, information);
 		maven.prepareVersion(build, Phase.PREPARE);
 	}
+
+	@Test
+	public void findsSnapshotDependencies() throws Exception {
+
+		Pom pom = projection.io().file(workspace.getFile("bom/pom.xml", Projects.BUILD)).read(Pom.class);
+
+		System.out.println(pom.getSnapshotDependencies());
+	}
 }
