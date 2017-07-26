@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.utils;
 
+import lombok.NonNull;
 import lombok.Value;
 
 import java.nio.charset.StandardCharsets;
@@ -28,8 +29,8 @@ import org.springframework.data.release.model.Password;
 @Value
 public class HttpBasicCredentials {
 
-	private final String username;
-	private final Password password;
+	private final @NonNull String username;
+	private final @NonNull Password password;
 
 	/*
 	 * (non-Javadoc)

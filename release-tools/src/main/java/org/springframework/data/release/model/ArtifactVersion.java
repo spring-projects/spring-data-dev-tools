@@ -16,6 +16,7 @@
 package org.springframework.data.release.model;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import org.springframework.util.Assert;
 
@@ -35,7 +36,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 			SNAPSHOT_SUFFIX);
 
 	private final Version version;
-	private final String suffix;
+	private final @Getter String suffix;
 
 	/**
 	 * Creates a new {@link ArtifactVersion} from the given logical {@link Version}.
@@ -102,6 +103,10 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return new ArtifactVersion(version, iteration.getName());
 	}
 
+	public boolean isVersionWithin(Version version) {
+		return this.version.toMajorMinorBugfix().startsWith(version.toString());
+	}
+
 	/**
 	 * Returns the release version for the current one.
 	 * 
@@ -138,6 +143,14 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return suffix.matches(MILESTONE_SUFFIX);
 	}
 
+	public boolean isSnapshotVersion() {
+		return suffix.matches(SNAPSHOT_SUFFIX);
+	}
+
+	public boolean isBugFixVersion() {
+		return isReleaseVersion() && !version.toMajorMinorBugfix().endsWith("0");
+	}
+
 	/**
 	 * Returns the next development version to be used for the current release version, which means next minor for GA
 	 * versions and next bug fix for service releases. Will return the current version as snapshot otherwise.
@@ -170,6 +183,19 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		}
 
 		return suffix.equals(SNAPSHOT_SUFFIX) ? this : new ArtifactVersion(version, SNAPSHOT_SUFFIX);
+	}
+
+	public String getReleaseTrainSuffix() {
+
+		if (isSnapshotVersion() || isMilestoneVersion()) {
+			return suffix;
+		}
+
+		if (isBugFixVersion()) {
+			return "SR" + version.getBugfix();
+		}
+
+		return "GA";
 	}
 
 	/* 

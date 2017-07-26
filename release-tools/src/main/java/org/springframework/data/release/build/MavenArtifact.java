@@ -22,6 +22,7 @@ import lombok.Getter;
 
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Project;
 import org.springframework.util.Assert;
 
 /**
@@ -34,8 +35,8 @@ public class MavenArtifact {
 
 	private static final GroupId GROUP_ID = GroupId.of("org.springframework.data");
 
-	private final ModuleIteration module;
-	private final Repository repository;
+	private final Project project;
+	private final @Getter Repository repository;
 	private final @Getter ArtifactVersion version;
 
 	/**
@@ -47,9 +48,20 @@ public class MavenArtifact {
 
 		Assert.notNull(module, "Module iteration must not be null!");
 
-		this.module = module;
+		this.project = module.getModule().getProject();
 		this.repository = new Repository(module.getIteration());
 		this.version = ArtifactVersion.of(module);
+	}
+
+	public MavenArtifact(Project project, ArtifactVersion version) {
+
+		this.project = project;
+		this.repository = new Repository(version);
+		this.version = version;
+	}
+
+	public String getGroupId() {
+		return GROUP_ID.getValue();
 	}
 
 	/**
@@ -59,8 +71,9 @@ public class MavenArtifact {
 	 */
 	public String getArtifactId() {
 
-		String artifactId = String.format("spring-data-%s", module.getProject().getName().toLowerCase());
-		return REST.equals(module.getProject()) ? artifactId.concat("-webmvc") : artifactId;
+		String artifactId = String.format("spring-data-%s", project.getName().toLowerCase());
+
+		return REST.equals(project) ? artifactId.concat("-webmvc") : artifactId;
 	}
 
 	public ArtifactVersion getNextDevelopmentVersion() {

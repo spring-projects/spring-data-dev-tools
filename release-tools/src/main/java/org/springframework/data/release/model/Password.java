@@ -31,6 +31,8 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Password implements Masked {
 
+	public static Password NONE = new Password("");
+
 	@Getter(AccessLevel.NONE) String value;
 
 	/**

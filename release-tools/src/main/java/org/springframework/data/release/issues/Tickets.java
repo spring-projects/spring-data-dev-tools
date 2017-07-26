@@ -18,22 +18,17 @@ package org.springframework.data.release.issues;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ListWrapperCollector;
 import org.springframework.util.StringUtils;
 
 /**
@@ -115,56 +110,6 @@ public class Tickets implements Streamable<Ticket> {
 	 * @return
 	 */
 	public static Collector<? super Ticket, ?, Tickets> toTicketsCollector() {
-
-		return new Collector<Ticket, List<Ticket>, Tickets>() {
-
-			/*
-			 * (non-Javadoc)
-			 * @see java.util.stream.Collector#supplier()
-			 */
-			@Override
-			public Supplier<List<Ticket>> supplier() {
-				return ArrayList::new;
-			}
-
-			/*
-			 * (non-Javadoc)
-			 * @see java.util.stream.Collector#accumulator()
-			 */
-			@Override
-			public BiConsumer<List<Ticket>, Ticket> accumulator() {
-				return List::add;
-			}
-
-			/*
-			 * (non-Javadoc)
-			 * @see java.util.stream.Collector#combiner()
-			 */
-			@Override
-			public BinaryOperator<List<Ticket>> combiner() {
-				return (left, right) -> {
-					left.addAll(right);
-					return left;
-				};
-			}
-
-			/*
-			 * (non-Javadoc)
-			 * @see java.util.stream.Collector#finisher()
-			 */
-			@Override
-			public Function<List<Ticket>, Tickets> finisher() {
-				return tickets -> new Tickets(tickets);
-			}
-
-			/*
-			 * (non-Javadoc)
-			 * @see java.util.stream.Collector#characteristics()
-			 */
-			@Override
-			public Set<Characteristics> characteristics() {
-				return Collections.emptySet();
-			}
-		};
+		return ListWrapperCollector.collectInto(Tickets::new);
 	}
 }

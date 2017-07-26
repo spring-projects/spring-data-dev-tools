@@ -1,5 +1,7 @@
 package org.springframework.data.release.model;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Oliver Gierke
  */
+@Getter
 public class Version implements Comparable<Version> {
 
 	private final int major;
