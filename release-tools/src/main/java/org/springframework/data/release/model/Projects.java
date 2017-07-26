@@ -58,7 +58,7 @@ public class Projects {
 
 		COUCHBASE = new Project("DATACOUCH", "Couchbase").withDependencies(COMMONS);
 
-		CASSANDRA = new Project("DATACASS", "Cassandra")//
+		CASSANDRA = new Project("DATACASS", "Cassandra") //
 				.withDependencies(COMMONS) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-cql"))
 				.withFullName("Spring Data for Apache Cassandra");
@@ -69,16 +69,16 @@ public class Projects {
 
 		REDIS = new Project("DATAREDIS", "Redis").withDependencies(KEY_VALUE);
 
-		GEMFIRE = new Project("SGF", "Gemfire")//
+		GEMFIRE = new Project("SGF", "Gemfire") //
 				.withDependencies(COMMONS)//
 				.withSkipTests(true);
 
-		GEODE = new Project("DATAGEODE", "Geode")//
+		GEODE = new Project("DATAGEODE", "Geode") //
 				.withDependencies(COMMONS) //
 				.withFullName("Spring Data for Apache Geode") //
 				.withSkipTests(true);
 
-		REST = new Project("DATAREST", "REST")//
+		REST = new Project("DATAREST", "REST") //
 				.withDependencies(JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA //
 						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser"));
