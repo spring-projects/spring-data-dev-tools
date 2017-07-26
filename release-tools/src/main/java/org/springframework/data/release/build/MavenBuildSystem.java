@@ -212,10 +212,9 @@ class MavenBuildSystem implements BuildSystem {
 
 		if (BUILD.equals(project)) {
 
-			mvn.execute(project,
-					goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion()))//
-							.and(arg("groupId").withValue("org.springframework.data"))//
-							.and(arg("artifactId").withValue("spring-data-releasetrain")));
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion()))//
+					.and(arg("groupId").withValue("org.springframework.data"))//
+					.and(arg("artifactId").withValue("spring-data-releasetrain")));
 
 			mvn.execute(project, CommandLine.of(Goal.INSTALL));
 		}
@@ -289,7 +288,7 @@ class MavenBuildSystem implements BuildSystem {
 		logger.log(module, "Deploying artifacts to Spring Artifactory…");
 
 		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
-				profile("ci,release"), //
+				profile("ci,release,artifactory"), //
 				SKIP_TESTS, //
 				arg("artifactory.server").withValue(properties.getServer().getUri()),
 				arg("artifactory.staging-repository").withValue(properties.getStagingRepository()),
@@ -322,9 +321,10 @@ class MavenBuildSystem implements BuildSystem {
 		Gpg gpg = properties.getGpg();
 
 		CommandLine arguments = CommandLine.of(Goal.DEPLOY, //
-				profile("ci,central"), //
+				profile("ci,release,central"), //
 				SKIP_TESTS, //
-				arg("gpg.executable").withValue(gpg.getExecutable()), arg("gpg.keyname").withValue(gpg.getKeyname()),
+				arg("gpg.executable").withValue(gpg.getExecutable()), //
+				arg("gpg.keyname").withValue(gpg.getKeyname()), //
 				arg("gpg.password").withValue(gpg.getPassword()));
 
 		mvn.execute(module.getProject(), arguments);
