@@ -45,9 +45,10 @@ public class Projects {
 
 		JPA = new Project("DATAJPA", "JPA").withDependencies(COMMONS);
 
-		MONGO_DB = new Project("DATAMONGO", "MongoDB")//
+		MONGO_DB = new Project("DATAMONGO", "MongoDB") //
 				.withDependencies(COMMONS) //
-				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-mongodb-cross-store"));
+				.withAdditionalArtifacts(
+						ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-mongodb-cross-store", "spring-data-mongodb-log4j"));
 
 		NEO4J = new Project("DATAGRAPH", "Neo4j").withDependencies(COMMONS);
 
