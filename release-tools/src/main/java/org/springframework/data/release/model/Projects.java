@@ -18,7 +18,6 @@ package org.springframework.data.release.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,39 +36,55 @@ public class Projects {
 
 	static {
 
-		BUILD = new Project("DATABUILD", "Build", Tracker.GITHUB, Collections.emptyList(),
-				ArtifactCoordinates.forGroupId("org.springframework.data.build")
+		BUILD = new Project("DATABUILD", "Build", Tracker.GITHUB) //
+				.withAdditionalArtifacts(ArtifactCoordinates.forGroupId("org.springframework.data.build")
 						.artifacts("spring-data-build-parent", "spring-data-build-resources")
-						.artifact(ArtifactCoordinate.of("org.springframework.data", "spring-data-releasetrain")));
-		COMMONS = new Project("DATACMNS", "Commons", Arrays.asList(BUILD));
-		JPA = new Project("DATAJPA", "JPA", Arrays.asList(COMMONS));
-		MONGO_DB = new Project("DATAMONGO", "MongoDB", Arrays.asList(COMMONS),
-				ArtifactCoordinates.NONE.artifacts("spring-data-mongodb-cross-store"));
-		NEO4J = new Project("DATAGRAPH", "Neo4j", Arrays.asList(COMMONS));
+						.and(ArtifactCoordinate.of("org.springframework.data", "spring-data-releasetrain")));
 
-		SOLR = new Project("DATASOLR", "Solr", Arrays.asList(COMMONS))//
+		COMMONS = new Project("DATACMNS", "Commons").withDependencies(BUILD);
+
+		JPA = new Project("DATAJPA", "JPA").withDependencies(COMMONS);
+
+		MONGO_DB = new Project("DATAMONGO", "MongoDB")//
+				.withDependencies(COMMONS) //
+				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-mongodb-cross-store"));
+
+		NEO4J = new Project("DATAGRAPH", "Neo4j").withDependencies(COMMONS);
+
+		SOLR = new Project("DATASOLR", "Solr") //
+				.withDependencies(COMMONS) //
 				.withFullName("Spring Data for Apache Solr");
 
-		COUCHBASE = new Project("DATACOUCH", "Couchbase", Arrays.asList(COMMONS));
+		COUCHBASE = new Project("DATACOUCH", "Couchbase").withDependencies(COMMONS);
 
-		CASSANDRA = new Project("DATACASS", "Cassandra", Arrays.asList(COMMONS)) //
+		CASSANDRA = new Project("DATACASS", "Cassandra")//
+				.withDependencies(COMMONS) //
+				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-cql"))
 				.withFullName("Spring Data for Apache Cassandra");
 
-		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Arrays.asList(COMMONS));
-		KEY_VALUE = new Project("DATAKV", "KeyValue", Arrays.asList(COMMONS));
-		REDIS = new Project("DATAREDIS", "Redis", Arrays.asList(COMMONS, KEY_VALUE));
-		GEMFIRE = new Project("SGF", "Gemfire", Arrays.asList(COMMONS)).withSkipTests(true);
+		ELASTICSEARCH = new Project("DATAES", "Elasticsearch").withDependencies(COMMONS);
 
-		GEODE = new Project("DATAGEODE", "Geode", Arrays.asList(COMMONS)) //
+		KEY_VALUE = new Project("DATAKV", "KeyValue").withDependencies(COMMONS);
+
+		REDIS = new Project("DATAREDIS", "Redis").withDependencies(KEY_VALUE);
+
+		GEMFIRE = new Project("SGF", "Gemfire")//
+				.withDependencies(COMMONS)//
+				.withSkipTests(true);
+
+		GEODE = new Project("DATAGEODE", "Geode")//
+				.withDependencies(COMMONS) //
 				.withFullName("Spring Data for Apache Geode") //
 				.withSkipTests(true);
 
-		REST = new Project("DATAREST", "REST",
-				Arrays.asList(COMMONS, JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE), ArtifactCoordinates.NONE
+		REST = new Project("DATAREST", "REST")//
+				.withDependencies(JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE) //
+				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA //
 						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser"));
 
-		ENVERS = new Project("DATAENV", "Envers", Tracker.GITHUB, Arrays.asList(JPA, COMMONS), ArtifactCoordinates.NONE);
-		LDAP = new Project("DATALDAP", "LDAP", Arrays.asList(COMMONS));
+		ENVERS = new Project("DATAENV", "Envers", Tracker.GITHUB).withDependencies(JPA);
+
+		LDAP = new Project("DATALDAP", "LDAP").withDependencies(COMMONS);
 
 		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
 				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP, GEODE);
@@ -86,12 +101,8 @@ public class Projects {
 			});
 		});
 
-		Iterator<Project> iterator = new TopologicalOrderIterator<>(graph);
 		List<Project> intermediate = new ArrayList<>(projects.size());
-
-		while (iterator.hasNext()) {
-			intermediate.add(iterator.next());
-		}
+		new TopologicalOrderIterator<>(graph).forEachRemaining(it -> intermediate.add(it));
 
 		Collections.reverse(intermediate);
 

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ArtifactCoordinates {
 
-	public static ArtifactCoordinates NONE = forGroupId("org.springframework.data");
+	public static ArtifactCoordinates SPRING_DATA = forGroupId("org.springframework.data");
 
 	private final String groupId;
 	private final @Getter(AccessLevel.PACKAGE) List<ArtifactCoordinate> coordinates;
@@ -41,18 +41,16 @@ public class ArtifactCoordinates {
 
 	public ArtifactCoordinates artifacts(String... artifactIds) {
 
-		return new ArtifactCoordinates(groupId,
-				Arrays.stream(artifactIds)//
-						.map(artifactId -> ArtifactCoordinate.of(groupId, artifactId))//
-						.collect(Collectors.toList()));
+		return new ArtifactCoordinates(groupId, Arrays.stream(artifactIds)//
+				.map(artifactId -> ArtifactCoordinate.of(groupId, artifactId))//
+				.collect(Collectors.toList()));
 	}
 
-	public ArtifactCoordinates artifact(ArtifactCoordinate coordinate) {
+	public ArtifactCoordinates and(ArtifactCoordinate coordinate) {
 
 		List<ArtifactCoordinate> artifacts = new ArrayList<>(coordinates);
 		artifacts.add(coordinate);
 
 		return new ArtifactCoordinates(groupId, artifacts);
 	}
-
 }

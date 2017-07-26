@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Wither;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -40,31 +42,25 @@ public class Project implements Comparable<Project> {
 	private final @Wither String fullName;
 	private final @Getter List<Project> dependencies;
 	private final @Getter Tracker tracker;
-	private final @Getter ArtifactCoordinates additionalArtifacts;
+	private final @Wither @Getter ArtifactCoordinates additionalArtifacts;
 	private final @Wither boolean skipTests;
 
-	Project(String key, String name, List<Project> dependencies) {
-		this(key, name, null, Tracker.JIRA, dependencies, ArtifactCoordinates.NONE);
+	Project(String key, String name) {
+		this(key, name, null, Tracker.JIRA);
 	}
 
-	Project(String key, String name, List<Project> dependencies, ArtifactCoordinates additionalArtifacts) {
-		this(key, name, null, Tracker.JIRA, dependencies, additionalArtifacts);
+	Project(String key, String name, Tracker tracker) {
+		this(key, name, null, tracker);
 	}
 
-	Project(String key, String name, Tracker tracker, List<Project> dependencies,
-			ArtifactCoordinates additionalArtifacts) {
-		this(key, name, null, tracker, dependencies, additionalArtifacts);
-	}
-
-	private Project(String key, String name, String fullName, Tracker tracker, List<Project> dependencies,
-			ArtifactCoordinates additionalArtifacts) {
+	private Project(String key, String name, String fullName, Tracker tracker) {
 
 		this.key = new ProjectKey(key);
 		this.name = name;
 		this.fullName = fullName;
-		this.dependencies = dependencies;
+		this.dependencies = Collections.emptyList();
 		this.tracker = tracker;
-		this.additionalArtifacts = additionalArtifacts;
+		this.additionalArtifacts = ArtifactCoordinates.SPRING_DATA;
 		this.skipTests = false;
 	}
 
@@ -103,6 +99,10 @@ public class Project implements Comparable<Project> {
 
 	public boolean skipTests() {
 		return this.skipTests;
+	}
+
+	public Project withDependencies(Project... project) {
+		return new Project(key, name, fullName, Arrays.asList(project), tracker, additionalArtifacts, skipTests);
 	}
 
 	/* 

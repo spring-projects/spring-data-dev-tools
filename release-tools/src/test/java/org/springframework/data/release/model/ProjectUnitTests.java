@@ -37,8 +37,6 @@ public class ProjectUnitTests {
 
 		projects.stream().map(Project::getName).forEach(System.out::println);
 
-		System.out.println();
-
 		assertThat(projects.get(0), is(Projects.BUILD));
 		assertThat(projects.get(1), is(Projects.COMMONS));
 	}
