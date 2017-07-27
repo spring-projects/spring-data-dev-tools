@@ -15,8 +15,9 @@
  */
 package org.springframework.data.release.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,5 +55,12 @@ public class ProjectUnitTests {
 
 		assertThat(Projects.BUILD.getFullName(), is("Spring Data Build"));
 		assertThat(Projects.CASSANDRA.getFullName(), is("Spring Data for Apache Cassandra"));
+	}
+
+	@Test
+	public void returnsAllDependencies() {
+
+		assertThat(Projects.REDIS.getDependencies())//
+				.contains(Projects.COMMONS, Projects.KEY_VALUE, Projects.BUILD);
 	}
 }

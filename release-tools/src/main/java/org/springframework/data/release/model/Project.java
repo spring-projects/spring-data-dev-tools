@@ -23,9 +23,12 @@ import lombok.ToString;
 import lombok.experimental.Wither;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.util.Assert;
 
@@ -40,7 +43,7 @@ public class Project implements Comparable<Project> {
 	private final @Getter ProjectKey key;
 	private final @Getter String name;
 	private final @Wither String fullName;
-	private final @Getter List<Project> dependencies;
+	private final Collection<Project> dependencies;
 	private final @Getter Tracker tracker;
 	private final @Wither @Getter ArtifactCoordinates additionalArtifacts;
 	private final @Wither boolean skipTests;
@@ -54,14 +57,7 @@ public class Project implements Comparable<Project> {
 	}
 
 	private Project(String key, String name, String fullName, Tracker tracker) {
-
-		this.key = new ProjectKey(key);
-		this.name = name;
-		this.fullName = fullName;
-		this.dependencies = Collections.emptyList();
-		this.tracker = tracker;
-		this.additionalArtifacts = ArtifactCoordinates.SPRING_DATA;
-		this.skipTests = false;
+		this(new ProjectKey(key), name, fullName, Collections.emptySet(), tracker, ArtifactCoordinates.SPRING_DATA, false);
 	}
 
 	public boolean uses(Tracker tracker) {
@@ -102,7 +98,20 @@ public class Project implements Comparable<Project> {
 	}
 
 	public Project withDependencies(Project... project) {
+
 		return new Project(key, name, fullName, Arrays.asList(project), tracker, additionalArtifacts, skipTests);
+	}
+
+	/**
+	 * Returns all dependencies of the current project including transitive ones.
+	 * 
+	 * @return
+	 */
+	public Set<Project> getDependencies() {
+
+		return dependencies.stream() //
+				.flatMap(dependency -> Stream.concat(Stream.of(dependency), dependency.getDependencies().stream())) //
+				.collect(Collectors.toSet());
 	}
 
 	/* 
