@@ -88,7 +88,7 @@ class BuildCommands extends TimedCommand {
 	/**
 	 * @param iteration must not be {@literal null}.
 	 */
-	@CliCommand("build distribute")
+	@CliCommand("build-distribute")
 	public void buildDistribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
