@@ -135,10 +135,22 @@ class MavenBuildSystem implements BuildSystem {
 
 				logger.log(BUILD, "%s", module);
 
-				pom.setDependencyManagementVersion(new MavenArtifact(module).getArtifactId(), version);
+				String moduleArtifactId = new MavenArtifact(module).getArtifactId();
+				pom.setDependencyManagementVersion(moduleArtifactId, version);
+				logger.log(BUILD, "Updated managed dependency version for %s to %s!", moduleArtifactId, version);
 
-				module.getProject().doWithAdditionalArtifacts(
-						additionalArtifact -> pom.setDependencyManagementVersion(additionalArtifact.getArtifactId(), version));
+				module.getProject().doWithAdditionalArtifacts(additionalArtifact -> {
+
+					String artifactId = additionalArtifact.getArtifactId();
+					Artifact artifact = pom.getManagedDependency(artifactId);
+
+					if (artifact != null) {
+						pom.setDependencyManagementVersion(artifactId, version);
+						logger.log(BUILD, "Updated managed dependency version for %s to %s!", artifactId, version);
+					} else {
+						logger.log(BUILD, "Artifact %s not found, skipping update!", artifactId);
+					}
+				});
 			}
 
 			if (updateInformation.getPhase().equals(Phase.PREPARE)) {

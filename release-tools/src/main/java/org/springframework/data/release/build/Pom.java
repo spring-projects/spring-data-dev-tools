@@ -66,6 +66,9 @@ public interface Pom {
 	@XBWrite("/project/dependencyManagement/dependencies/dependency[artifactId=\"{0}\"]/version")
 	Pom setDependencyManagementVersion(String artifactId, @XBValue ArtifactVersion version);
 
+	@XBRead("/project/dependencyManagement/dependencies/dependency[artifactId=\"{0}\"]")
+	Artifact getManagedDependency(String artifactId);
+
 	@XBRead("//dependency[substring(version, string-length(version) - string-length('-SNAPSHOT') + 1) = '-SNAPSHOT']")
 	List<Artifact> getSnapshotDependencies();
 
