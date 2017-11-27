@@ -309,8 +309,8 @@ class MavenBuildSystem implements BuildSystem {
 		Assert.notNull(module, "Module iteration must not be null!");
 		Assert.notNull(information, "Deployment information must not be null!");
 
-		if (module.getIteration().isPublic()) {
-			logger.log(module, "Not a public version, skipping Artifactory deployment.");
+		if (!module.getIteration().isPreview()) {
+			logger.log(module, "Not a preview version (milestone or release candidate). Skipping Artifactory deployment.");
 			return;
 		}
 

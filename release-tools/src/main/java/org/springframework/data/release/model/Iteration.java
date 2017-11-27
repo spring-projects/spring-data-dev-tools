@@ -72,6 +72,15 @@ public class Iteration {
 		return isServiceIteration() || this.equals(GA);
 	}
 
+	/**
+	 * Returns whether the current Iteration is going to produce a preview release, i.e. a milestone or release candidate.
+	 * 
+	 * @return
+	 */
+	public boolean isPreview() {
+		return !isPublic();
+	}
+
 	public boolean isServiceIteration() {
 		return name.startsWith("SR");
 	}
