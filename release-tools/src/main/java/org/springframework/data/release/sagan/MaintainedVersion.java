@@ -72,7 +72,7 @@ class MaintainedVersion implements Comparable<MaintainedVersion> {
 	 * @return
 	 */
 	MaintainedVersion nextDevelopmentVersion() {
-		return MaintainedVersion.of(project, version.getNextDevelopmentVersion(), train);
+		return MaintainedVersion.of(project, version.getNextBugfixVersion(), train);
 	}
 
 	/* 

@@ -91,9 +91,11 @@ class ReleaseCommands extends TimedCommand {
 	public void buildRelease(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "project", mandatory = false) String projectName) throws Exception {
 
-		if (projectName != null) {
-
+		if (!iteration.getIteration().isPublic()) {
 			deployment.verifyAuthentication();
+		}
+
+		if (projectName != null) {
 
 			Project project = Projects.requiredByName(projectName);
 			ModuleIteration module = iteration.getModule(project);
@@ -103,11 +105,7 @@ class ReleaseCommands extends TimedCommand {
 
 		} else {
 
-			deployment.verifyAuthentication();
-
-			List<DeploymentInformation> deploymentInformation = build.performRelease(iteration);
-
-			deploymentInformation.forEach(deployment::promote);
+			build.performRelease(iteration).forEach(deployment::promote);
 		}
 	}
 
