@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.release.model.Train.Iterations;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class ReleaseTrains {
 
@@ -54,7 +55,7 @@ public class ReleaseTrains {
 		Iterations iterations = new Iterations(M1, M2, M3, M4, RC1, RC2, RC3, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
 
 		KAY = INGALLS.next("Kay", Transition.MAJOR, new Module(GEODE, "2.0")).withIterations(iterations);
-		LOVELACE = KAY.next("Lovelace", Transition.MINOR);
+		LOVELACE = KAY.next("Lovelace", Transition.MINOR, new Module(JDBC, "1.0"));
 
 		// Trains
 

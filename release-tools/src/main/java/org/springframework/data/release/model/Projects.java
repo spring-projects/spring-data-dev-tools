@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,11 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class Projects {
 
-	public static final Project COMMONS, BUILD, REST, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
+	public static final Project COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
 			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE;
 	public static final List<Project> PROJECTS;
 
@@ -68,6 +69,8 @@ public class Projects {
 		KEY_VALUE = new Project("DATAKV", "KeyValue").withDependencies(COMMONS);
 
 		REDIS = new Project("DATAREDIS", "Redis").withDependencies(KEY_VALUE);
+
+		JDBC = new Project("DATAJDBC", "JDBC");
 
 		GEMFIRE = new Project("SGF", "Gemfire") //
 				.withDependencies(COMMONS)//
