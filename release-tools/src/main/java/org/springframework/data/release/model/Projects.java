@@ -26,6 +26,12 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 /**
+ * Central place for managing {@link Project projects} within the a release train.
+ * <p />
+ * When adding a new {@link Project} make sure to set the {@link Project#withDependencies(Project...)} and do not forget
+ * to add it to the list of projects, defining the dependency order, below. <br />
+ * Also add the a new {@link Module} to the {@link ReleaseTrains}.
+ * 
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -70,7 +76,7 @@ public class Projects {
 
 		REDIS = new Project("DATAREDIS", "Redis").withDependencies(KEY_VALUE);
 
-		JDBC = new Project("DATAJDBC", "JDBC");
+		JDBC = new Project("DATAJDBC", "JDBC").withDependencies(COMMONS);
 
 		GEMFIRE = new Project("SGF", "Gemfire") //
 				.withDependencies(COMMONS)//
@@ -90,7 +96,8 @@ public class Projects {
 
 		LDAP = new Project("DATALDAP", "LDAP").withDependencies(COMMONS);
 
-		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
+		// Specify build order to avoid maven dependency errors during build.
+		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, JDBC, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
 				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP, GEODE);
 
 		DefaultDirectedGraph<Project, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
