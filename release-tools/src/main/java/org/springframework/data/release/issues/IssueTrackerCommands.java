@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,10 +68,44 @@ class IssueTrackerCommands extends TimedCommand {
 				Tickets.toTicketsCollector()).toString();
 	}
 
+	/**
+	 * Prepare this release by self-assigning release tickets and setting them to in-progress.
+	 *
+	 * @param iteration
+	 * @return
+	 */
+	@CliCommand(value = "tracker prepare")
+	public String trackerPrepare(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		jiraSelfAssignReleaseTickets(iteration);
+
+		return jiraStartProgress(iteration);
+	}
+
+	/**
+	 * Prepare a new, upcoming release by creating release versions and release tickets.
+	 *
+	 * @param iteration
+	 * @return
+	 */
+	@CliCommand(value = "tracker setup-next")
+	public String trackerSetupNext(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		jiraCreateReleaseVersions(iteration);
+
+		return createReleaseTickets(iteration);
+	}
+
 	@CliCommand(value = "tracker self-assign releasetickets")
 	public String jiraSelfAssignReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
 		return runAndReturn(iteration, module -> getTrackerFor(module).assignReleaseTicketToMe(module),
+				Tickets.toTicketsCollector()).toString();
+	}
+
+	public String jiraStartProgress(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		return runAndReturn(iteration, module -> getTrackerFor(module).startReleaseTicketProgress(module),
 				Tickets.toTicketsCollector()).toString();
 	}
 

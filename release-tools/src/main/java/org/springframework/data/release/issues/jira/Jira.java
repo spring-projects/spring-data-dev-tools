@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.issues.jira.JiraIssue.Fields;
 import org.springframework.data.release.issues.jira.JiraIssue.Resolution;
 import org.springframework.data.release.issues.jira.JiraIssue.Status;
+import org.springframework.data.release.issues.jira.JiraIssue.StatusCategory;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectKey;
@@ -49,6 +50,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriTemplate;
 
@@ -62,13 +65,16 @@ class Jira implements JiraConnector {
 	private static final String BASE_URI = "{jiraBaseUrl}/rest/api/2";
 	private static final String CREATE_ISSUES_TEMPLATE = BASE_URI + "/issue";
 	private static final String ISSUE_TEMPLATE = BASE_URI + "/issue/{ticketId}";
+	private static final String TRANSITION_TEMPLATE = BASE_URI + "/issue/{ticketId}/transitions";
 	private static final String PROJECT_VERSIONS_TEMPLATE = BASE_URI + "/project/{project}/version?startAt={startAt}";
 	private static final String PROJECT_COMPONENTS_TEMPLATE = BASE_URI + "/project/{project}/components";
 	private static final String VERSIONS_TEMPLATE = BASE_URI + "/version";
 	private static final String VERSION_TEMPLATE = BASE_URI + "/version/{id}";
 	private static final String SEARCH_TEMPLATE = BASE_URI + "/search?jql={jql}&fields={fields}&startAt={startAt}";
 
-	public static final String INFRASTRUCTURE_COMPONENT_NAME = "Infrastructure";
+	private static final String INFRASTRUCTURE_COMPONENT_NAME = "Infrastructure";
+	private static final String IN_PROGRESS_STATUS_CATEGORY = "indeterminate";
+	private static final int IN_PROGRESS_TRANSITION = 4;
 
 	private final RestOperations operations;
 	private final Logger logger;
@@ -230,8 +236,12 @@ class Jira implements JiraConnector {
 
 		JiraReleaseVersion jiraReleaseVersion = JiraReleaseVersion.of(moduleIteration, jiraVersion);
 
-		operations.exchange(VERSIONS_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraReleaseVersion, httpHeaders),
-				JiraReleaseVersion.class, parameters).getBody();
+		try {
+			operations.exchange(VERSIONS_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraReleaseVersion, httpHeaders),
+					JiraReleaseVersion.class, parameters).getBody();
+		} catch (HttpStatusCodeException e) {
+			System.out.println(e.getResponseBodyAsString());
+		}
 	}
 
 	/*
@@ -357,6 +367,57 @@ class Jira implements JiraConnector {
 		Ticket ticket = getReleaseTicketFor(module);
 		assignTicketToMe(ticket);
 		return ticket;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.IssueTracker#startReleaseTicketProgress(org.springframework.data.release.model.ModuleIteration)
+	 */
+	@Override
+	public Ticket startReleaseTicketProgress(ModuleIteration module) {
+
+		Ticket ticket = getReleaseTicketFor(module);
+		startProgress(ticket);
+		return ticket;
+	}
+
+	private void startProgress(Ticket ticket) {
+
+		Assert.notNull(ticket, "Ticket must not be null.");
+
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("ticketId", ticket.getId());
+
+		JiraIssue currentIssue = getJiraIssue(ticket.getId())
+				.orElseThrow(() -> new IllegalStateException(String.format("Ticket %s does not exist", ticket.getId())));
+
+		if (isInProgress(currentIssue.getFields())) {
+			return;
+		}
+
+		JiraIssueUpdate editMeta = JiraIssueUpdate.create().transition(IN_PROGRESS_TRANSITION);
+
+		logger.log("Ticket", "Start progress of %s", ticket);
+
+		try {
+			operations.exchange(TRANSITION_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(editMeta, httpHeaders),
+					String.class, parameters).getBody();
+		} catch (HttpClientErrorException e) {
+			logger.warn("Ticket", "Start progress of %s failed with status ", ticket, e.getStatusCode());
+		}
+	}
+
+	private static boolean isInProgress(Fields fields) {
+
+		if (fields.getStatus() == null) {
+			return false;
+		}
+
+		StatusCategory statusCategory = fields.getStatus().getStatusCategory();
+
+		return statusCategory != null && statusCategory.getKey().equals(IN_PROGRESS_STATUS_CATEGORY);
 	}
 
 	/*
