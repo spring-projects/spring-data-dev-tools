@@ -28,16 +28,17 @@ import org.springframework.data.release.io.OsOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.shell.support.util.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Slf4j
 @Component
 class MavenRuntime {
 
-	private final Invoker invoker;
 	private final Workspace workspace;
 	private final OsOperations os;
 	private final Logger logger;
@@ -45,7 +46,7 @@ class MavenRuntime {
 
 	/**
 	 * Creates a new {@link MavenRuntime} for the given {@link Workspace} and Maven home.
-	 * 
+	 *
 	 * @param workspace must not be {@literal null}.
 	 * @param os must not be {@literal null}.
 	 * @param logger must not be {@literal null}.
@@ -57,20 +58,21 @@ class MavenRuntime {
 		this.os = os;
 		this.logger = logger;
 		this.properties = properties;
+	}
 
-		this.invoker = new DefaultInvoker();
-		this.invoker.setMavenHome(properties.getMavenHome());
-		this.invoker.setOutputHandler(line -> log.info(line));
-		this.invoker.setErrorHandler(line -> log.info(line));
+	public void execute(Project project, CommandLine arguments) {
+
+		String logPrefix = StringUtils.padRight(project.getName(), 10);
+		Invoker invoker = new DefaultInvoker();
+		invoker.setMavenHome(properties.getMavenHome());
+		invoker.setOutputHandler(line -> log.info(logPrefix + ": " + line));
+		invoker.setErrorHandler(line -> log.warn(logPrefix + ": " + line));
 
 		File localRepository = properties.getLocalRepository();
 
 		if (localRepository != null) {
-			this.invoker.setLocalRepositoryDirectory(localRepository);
+			invoker.setLocalRepositoryDirectory(localRepository);
 		}
-	}
-
-	public void execute(Project project, CommandLine arguments) {
 
 		DefaultInvocationRequest request = new DefaultInvocationRequest();
 		request.setJavaHome(os.getJavaHome());
