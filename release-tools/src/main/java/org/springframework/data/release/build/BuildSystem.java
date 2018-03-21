@@ -56,7 +56,15 @@ interface BuildSystem extends Plugin<Project> {
 	DeploymentInformation deploy(ModuleIteration module);
 
 	/**
-	 * Runs the distribution build.
+	 * Runs the distribution build preparation.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @return
+	 */
+	Module prepareDistributionBuild(Module module);
+
+	/**
+	 * Runs the distribution build. Requires {@link #prepareDistributionBuild(Module) a preparation run}.
 	 *
 	 * @param module must not be {@literal null}.
 	 * @return

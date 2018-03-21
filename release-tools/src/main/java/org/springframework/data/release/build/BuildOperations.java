@@ -31,6 +31,8 @@ import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ExecutionUtils;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -45,6 +47,7 @@ public class BuildOperations {
 
 	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
 	private final @NonNull MavenProperties properties;
+	private final @NonNull Logger logger;
 
 	/**
 	 * Updates all inter-project dependencies based on the given {@link TrainIteration} and release {@link Phase}.
@@ -78,12 +81,18 @@ public class BuildOperations {
 	/**
 	 * Triggers the distribution builds for all modules participating in the given {@link Train}.
 	 *
-	 * @param iteration must not be {@literal null}.
+	 * @param train must not be {@literal null}.
 	 */
 	public void distributeResources(Train train) {
 
 		Assert.notNull(train, "Train must not be null!");
 
+		logger.log(train, "Preparing distribution build…");
+		ExecutionUtils.run(train, module -> {
+			doWithBuildSystem(module, BuildSystem::prepareDistributionBuild);
+		});
+
+		logger.log(train, "Running distribution build…");
 		doWithBuildSystem(train, BuildSystem::triggerDistributionBuild);
 	}
 

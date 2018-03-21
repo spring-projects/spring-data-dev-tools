@@ -97,10 +97,41 @@ class MavenBuildSystem implements BuildSystem {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.release.build.BuildSystem#prepareDistributionBuild(org.springframework.data.release.model.Module)
+	 */
+	@Override
+	public Module prepareDistributionBuild(Module module) {
+
+		return doWithDistributionBuild(module, project -> {
+
+			logger.log(project, "Preparing distribution build…");
+
+			mvn.execute(project, CommandLine.of(Goal.CLEAN, goal("generate-sources"), //
+					profile("distribute"), Argument.of("-B")));
+
+			logger.log(project, "Successfully prepared distribution build!");
+		});
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.release.build.BuildSystem#triggerDistributionBuild(org.springframework.data.release.model.Module)
 	 */
 	@Override
 	public Module triggerDistributionBuild(Module module) {
+
+		return doWithDistributionBuild(module, project -> {
+
+			logger.log(project, "Triggering distribution build…");
+
+			mvn.execute(project, CommandLine.of(Goal.DEPLOY, //
+					SKIP_TESTS, profile("distribute"), Argument.of("-B")));
+
+			logger.log(project, "Successfully finished distribution build!");
+		});
+	}
+
+	private Module doWithDistributionBuild(Module module, Consumer<Project> consumer) {
 
 		Project project = module.getProject();
 
@@ -113,12 +144,7 @@ class MavenBuildSystem implements BuildSystem {
 			return module;
 		}
 
-		logger.log(project, "Triggering distribution build…");
-
-		mvn.execute(project, CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
-				SKIP_TESTS, profile("distribute"), Argument.of("-B")));
-
-		logger.log(project, "Successfully finished distribution build!");
+		consumer.accept(project);
 
 		return module;
 	}
