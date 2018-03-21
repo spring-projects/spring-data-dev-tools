@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -103,10 +104,9 @@ public class GitOperations {
 	}
 
 	/**
-	 * Checks out all projects of the given {@link TrainIteration}.
+	 * Checks out all projects of the given {@link Train}.
 	 *
 	 * @param train
-	 * @throws Exception
 	 */
 	public void checkout(Train train) {
 
@@ -114,6 +114,7 @@ public class GitOperations {
 
 		update(train);
 
+		AtomicBoolean masterSwitch = new AtomicBoolean();
 		ExecutionUtils.run(train, module -> {
 
 			Project project = module.getProject();
@@ -121,6 +122,15 @@ public class GitOperations {
 			doWithGit(project, git -> {
 
 				Branch branch = Branch.from(module);
+
+				if (!branchExists(project, branch) && !branchExists(project, Branch.from("origin/" + branch.toString()))) {
+
+					logger.warn(project, "Branch %s does not exist. Using %s.", branch, Branch.MASTER);
+
+					masterSwitch.set(true);
+					branch = Branch.MASTER;
+				}
+
 				CheckoutCommand command = git.checkout().setName(branch.toString());
 
 				if (!branchExists(project, branch)) {
@@ -129,7 +139,6 @@ public class GitOperations {
 					command.setCreateBranch(true)//
 							.setStartPoint("origin/".concat(branch.toString()))//
 							.call();
-
 				} else {
 
 					logger.log(project, "git checkout %s", branch);
@@ -140,7 +149,13 @@ public class GitOperations {
 			});
 		});
 
-		logger.log(train, "Successfully checked out projects.");
+		if (masterSwitch.get()) {
+			logger.warn(train,
+					"Successfully checked out projects. There were switches to master for certain projects. This happens if the train has no branches yet.");
+		} else {
+			logger.log(train, "Successfully checked out projects.");
+		}
+
 	}
 
 	/**

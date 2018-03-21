@@ -37,6 +37,7 @@ import org.springframework.data.release.deployment.DeploymentProperties;
 import org.springframework.data.release.deployment.DeploymentProperties.Gpg;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
@@ -51,6 +52,7 @@ import org.xmlbeam.io.XBFileIO;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 @Order(100)
@@ -66,7 +68,7 @@ class MavenBuildSystem implements BuildSystem {
 	MavenRuntime mvn;
 	DeploymentProperties properties;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.build.BuildSystem#updateProjectDescriptors(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.model.TrainIteration, org.springframework.data.release.model.Phase)
 	 */
@@ -93,12 +95,12 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.release.build.BuildSystem#triggerDistributionBuild(org.springframework.data.release.model.ModuleIteration)
+	 * @see org.springframework.data.release.build.BuildSystem#triggerDistributionBuild(org.springframework.data.release.model.Module)
 	 */
 	@Override
-	public ModuleIteration triggerDistributionBuild(ModuleIteration module) {
+	public Module triggerDistributionBuild(Module module) {
 
 		Project project = module.getProject();
 
@@ -192,7 +194,7 @@ class MavenBuildSystem implements BuildSystem {
 
 	/**
 	 * Triggers building the distribution artifacts for all Maven projects of the given {@link Train}.
-	 * 
+	 *
 	 * @param iteration
 	 * @throws Exception
 	 */
@@ -246,7 +248,7 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.build.BuildSystem#deploy(org.springframework.data.release.model.ModuleIteration)
 	 */
@@ -263,7 +265,7 @@ class MavenBuildSystem implements BuildSystem {
 		return information;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.build.BuildSystem#triggerBuild(org.springframework.data.release.model.ModuleIteration)
 	 */
@@ -289,7 +291,7 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.plugin.core.Plugin#supports(java.lang.Object)
 	 */
@@ -300,7 +302,7 @@ class MavenBuildSystem implements BuildSystem {
 
 	/**
 	 * Triggers Maven commands to deploy module artifacts to Spring Artifactory.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param information must not be {@literal null}.
 	 */
@@ -332,7 +334,7 @@ class MavenBuildSystem implements BuildSystem {
 	/**
 	 * Triggers Maven commands to deploy to Sonatype's OSS Nexus if the given {@link ModuleIteration} refers to a version
 	 * that has to be publicly released.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 */
 	private void deployToMavenCentral(ModuleIteration module) {
@@ -392,7 +394,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		/**
 		 * Creates a new {@link ReleaseVersion} for the given {@link ModuleIteration}.
-		 * 
+		 *
 		 * @param module must not be {@literal null}.
 		 * @return
 		 */
@@ -408,7 +410,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		/**
 		 * Returns the Maven profiles to be used during the distribution build.
-		 * 
+		 *
 		 * @return
 		 */
 		public Argument getDistributionProfiles() {

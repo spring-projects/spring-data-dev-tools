@@ -25,10 +25,13 @@ import java.util.Optional;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
+import org.springframework.data.release.cli.TrainIterationConverter;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -86,14 +89,30 @@ class BuildCommands extends TimedCommand {
 	}
 
 	/**
-	 * @param iteration must not be {@literal null}.
+	 * @param trainOrIteration must not be {@literal null}. Accepts release train names and train iterations.
 	 */
 	@CliCommand("build-distribute")
-	public void buildDistribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+	public void buildDistribute(@CliOption(key = "", mandatory = true) String trainOrIteration) {
 
-		Assert.notNull(iteration, "Train iteration must not be null!");
+		Assert.hasText(trainOrIteration, "Train or iteration must not be null or empty!");
 
-		git.prepare(iteration);
-		build.distributeResources(iteration);
+		if (trainOrIteration.contains(" ")) {
+
+			TrainIteration trainIteration = new TrainIterationConverter().convertFromText(trainOrIteration,
+					TrainIteration.class, null);
+
+			Assert.notNull(trainIteration, "TrainIteration must not be null!");
+			git.prepare(trainIteration);
+			build.distributeResources(trainIteration);
+
+			return;
+		}
+
+		Train train = ReleaseTrains.getTrainByName(trainOrIteration);
+
+		Assert.notNull(train, "Train must not be null!");
+
+		git.checkout(train);
+		build.distributeResources(train);
 	}
 }

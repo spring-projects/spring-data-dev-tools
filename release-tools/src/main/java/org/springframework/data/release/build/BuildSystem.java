@@ -16,6 +16,7 @@
 package org.springframework.data.release.build;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
+import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
@@ -23,14 +24,15 @@ import org.springframework.plugin.core.Plugin;
 
 /**
  * Plugin interface to back different build systems.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 interface BuildSystem extends Plugin<Project> {
 
 	/**
 	 * Updates the project descriptors for the given {@link ModuleIteration} using the given {@link UpdateInformation}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param updateInformation must not be {@literal null}.
 	 */
@@ -38,7 +40,7 @@ interface BuildSystem extends Plugin<Project> {
 
 	/**
 	 * Prepares the project descriptor of the {@link ModuleIteration} for the given release {@link Phase}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param phase must not be {@literal null}.
 	 * @return
@@ -47,7 +49,7 @@ interface BuildSystem extends Plugin<Project> {
 
 	/**
 	 * Deploy artifacts for the given {@link ModuleIteration} and return the {@link DeploymentInformation}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -55,17 +57,17 @@ interface BuildSystem extends Plugin<Project> {
 
 	/**
 	 * Runs the distribution build.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
-	ModuleIteration triggerDistributionBuild(ModuleIteration module);
+	Module triggerDistributionBuild(Module module);
 
 	ModuleIteration triggerBuild(ModuleIteration module);
 
 	/**
 	 * Triggers the pre-release checks for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */

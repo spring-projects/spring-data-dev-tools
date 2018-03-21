@@ -25,9 +25,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
+import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 @RequiredArgsConstructor
@@ -45,7 +48,7 @@ public class BuildOperations {
 
 	/**
 	 * Updates all inter-project dependencies based on the given {@link TrainIteration} and release {@link Phase}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param phase must not be {@literal null}.
 	 * @throws Exception
@@ -62,19 +65,31 @@ public class BuildOperations {
 
 	/**
 	 * Triggers the distribution builds for all modules participating in the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 */
 	public void distributeResources(TrainIteration iteration) {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		doWithBuildSystem(iteration, BuildSystem::triggerDistributionBuild);
+		distributeResources(iteration.getTrain());
+	}
+
+	/**
+	 * Triggers the distribution builds for all modules participating in the given {@link Train}.
+	 *
+	 * @param iteration must not be {@literal null}.
+	 */
+	public void distributeResources(Train train) {
+
+		Assert.notNull(train, "Train must not be null!");
+
+		doWithBuildSystem(train, BuildSystem::triggerDistributionBuild);
 	}
 
 	/**
 	 * Performs the release build for all modules in the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @return
 	 */
@@ -84,7 +99,7 @@ public class BuildOperations {
 
 	/**
 	 * Performs the release build for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -94,7 +109,7 @@ public class BuildOperations {
 
 	/**
 	 * Prepares the versions of the given {@link TrainIteration} depending on the given {@link Phase}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param phase must not be {@literal null}.
 	 */
@@ -108,7 +123,7 @@ public class BuildOperations {
 
 	/**
 	 * Prepares the version of the given {@link ModuleIteration} depending on the given {@link Phase}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param phase must not be {@literal null}.
 	 * @return
@@ -123,7 +138,7 @@ public class BuildOperations {
 
 	/**
 	 * Returns the {@link Path} of the local artifact repository.
-	 * 
+	 *
 	 * @return
 	 */
 	public Path getLocalRepository() {
@@ -132,7 +147,7 @@ public class BuildOperations {
 
 	/**
 	 * Builds the release for the given {@link ModuleIteration} and deploys it to the staging repository.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -142,7 +157,7 @@ public class BuildOperations {
 
 	/**
 	 * Triggers a nomarl build for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -152,7 +167,7 @@ public class BuildOperations {
 
 	/**
 	 * Triggers the pre-release checks for all modules of the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 */
 	public void runPreReleaseChecks(TrainIteration iteration) {
@@ -165,7 +180,7 @@ public class BuildOperations {
 	/**
 	 * Selects the build system for each {@link ModuleIteration} contained in the given {@link TrainIteration} and
 	 * executes the given function for it.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param function must not be {@literal null}.
 	 * @return
@@ -179,14 +194,47 @@ public class BuildOperations {
 	}
 
 	/**
+	 * Selects the build system for each {@link Module} contained in the given {@link Train} and executes the given
+	 * function for it.
+	 *
+	 * @param train must not be {@literal null}.
+	 * @param function must not be {@literal null}.
+	 * @return
+	 */
+	private <T> List<T> doWithBuildSystem(Train train, BiFunction<BuildSystem, Module, T> function) {
+
+		return train.stream()//
+				.map(module -> doWithBuildSystem(module, function))//
+				.collect(Collectors.toList());
+	}
+
+	/**
 	 * Selects the build system for the module contained in the given {@link ModuleIteration} and executes the given
 	 * function with it.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param function must not be {@literal null}.
 	 * @return
 	 */
 	private <T> T doWithBuildSystem(ModuleIteration module, BiFunction<BuildSystem, ModuleIteration, T> function) {
+
+		Assert.notNull(module, "ModuleIteration must not be null!");
+
+		Supplier<IllegalStateException> exception = () -> new IllegalStateException(
+				String.format("No build system plugin found for project %s!", module.getProject()));
+
+		return function.apply(buildSystems.getPluginFor(module.getProject(), exception), module);
+	}
+
+	/**
+	 * Selects the build system for the module contained in the given {@link Module} and executes the given function with
+	 * it.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @param function must not be {@literal null}.
+	 * @return
+	 */
+	private <T> T doWithBuildSystem(Module module, BiFunction<BuildSystem, Module, T> function) {
 
 		Assert.notNull(module, "ModuleIteration must not be null!");
 
