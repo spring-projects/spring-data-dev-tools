@@ -22,8 +22,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.build.BuildOperations;
@@ -57,7 +55,7 @@ class ReleaseCommands extends TimedCommand {
 	@NonNull BuildOperations build;
 
 	@CliCommand("release predict")
-	public String predictTrainAndIteration() throws Exception {
+	public String predictTrainAndIteration() {
 
 		return git.getTags(COMMONS).getLatest().toArtifactVersion().//
 				map(ReleaseCommands::getTrainNameForCommonsVersion).//
@@ -66,9 +64,8 @@ class ReleaseCommands extends TimedCommand {
 
 	/**
 	 * Prepares the release of the given iteration of the given train.
-	 * 
-	 * @param trainName the name of the release train (ignoring case).
-	 * @param iterationName the name of the iteration.
+	 *
+	 * @param iteration
 	 * @throws Exception
 	 */
 	@CliCommand(value = "release prepare", help = "Prepares the release of the iteration of the given train.")
@@ -89,7 +86,7 @@ class ReleaseCommands extends TimedCommand {
 
 	@CliCommand(value = "release build")
 	public void buildRelease(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
-			@CliOption(key = "project", mandatory = false) String projectName) throws Exception {
+			@CliOption(key = "project", mandatory = false) String projectName) {
 
 		if (!iteration.getIteration().isPublic()) {
 			deployment.verifyAuthentication();
@@ -111,7 +108,7 @@ class ReleaseCommands extends TimedCommand {
 
 	/**
 	 * Concludes the release of the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration
 	 * @throws Exception
 	 */
@@ -151,13 +148,12 @@ class ReleaseCommands extends TimedCommand {
 
 	/**
 	 * Triggers the distribution of release artifacts for all projects.
-	 * 
-	 * @param trainName
-	 * @param iterationName
+	 *
+	 * @param iteration
 	 * @throws Exception
 	 */
 	@CliCommand("release distribute")
-	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
 		git.checkout(iteration);
 		build.distributeResources(iteration);
