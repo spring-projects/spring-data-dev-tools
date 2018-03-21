@@ -54,19 +54,19 @@ public class Logger {
 	}
 
 	public void warn(ModuleIteration module, Object template, Object... args) {
-		log(module.getProject(), template, args);
+		warn(module.getProject(), template, args);
 	}
 
 	public void warn(Project project, Object template, Object... args) {
-		log(project.getName(), template, args);
+		warn(project.getName(), template, args);
 	}
 
 	public void warn(TrainIteration iteration, Object template, Object... args) {
-		log(iteration.toString(), template, args);
+		warn(iteration.toString(), template, args);
 	}
 
 	public void warn(Train train, Object template, Object... args) {
-		log(train.getName(), template, args);
+		warn(train.getName(), template, args);
 	}
 
 	public void warn(String context, Object template, Object... args) {

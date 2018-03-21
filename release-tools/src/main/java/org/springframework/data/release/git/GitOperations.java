@@ -603,7 +603,7 @@ public class GitOperations {
 				checkout(project, branch);
 			} catch (RuntimeException o_O) {
 
-				logger.log(project, "Couldn't check out branch %s. Skipping cherrypick of commit %s.", branch, id.getName());
+				logger.warn(project, "Couldn't check out branch %s. Skipping cherrypick of commit %s.", branch, id.getName());
 				return;
 			}
 

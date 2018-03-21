@@ -18,6 +18,7 @@ package org.springframework.data.release.utils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -28,7 +29,7 @@ import org.springframework.util.Assert;
 
 /**
  * Utility method to easily execute functionality in parallel.
- * 
+ *
  * @author Oliver Gierke
  */
 @Slf4j
@@ -38,7 +39,7 @@ public class ExecutionUtils {
 	 * Runs the given {@link ConsumerWithException} for each element in the given {@link Iterable} in parallel waiting for
 	 * all executions to complete before returning. Exceptions being thrown in the {@link ConsumerWithException} will be
 	 * converted into {@link RuntimeException}s.
-	 * 
+	 *
 	 * @param streamable must not be {@literal null}.
 	 * @param consumer must not be {@literal null}.
 	 */
@@ -55,13 +56,13 @@ public class ExecutionUtils {
 						log.error(o_O.getMessage(), o_O);
 						throw new RuntimeException(o_O);
 					}
-				})).collect(Collectors.toList()).forEach(future -> future.join());
+				})).collect(Collectors.toList()).forEach(CompletableFuture::join);
 	}
 
 	/**
 	 * Runs the given {@link Function} for each element in the given {@link Streamable} in parallel waiting for all
 	 * executions to complete before returning the results.
-	 * 
+	 *
 	 * @param streamable must not be {@literal null}.
 	 * @param function must not be {@literal null}.
 	 * @return
@@ -78,10 +79,10 @@ public class ExecutionUtils {
 
 		return streamable.stream().//
 				map(it -> CompletableFuture.supplyAsync(() -> function.apply(it))).//
-				filter(it -> it != null).//
+				filter(Objects::nonNull).//
 				collect(Collectors.toList()).//
 				stream().//
-				map(future -> future.join()).//
+				map(CompletableFuture::join).//
 				collect(collector);
 	}
 
