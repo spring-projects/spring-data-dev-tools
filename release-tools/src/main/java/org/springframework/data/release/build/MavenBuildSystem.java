@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,12 +234,14 @@ class MavenBuildSystem implements BuildSystem {
 
 		CommandLine goals = CommandLine.of(goal("versions:set"), goal("versions:commit"));
 
-		mvn.execute(project, goals.and(arg("newVersion").withValue(information.getProjectVersionToSet(project))));
+		mvn.execute(project, goals.and(arg("newVersion").withValue(information.getProjectVersionToSet(project)))
+				.and(arg("generateBackupPoms").withValue("false")));
 
 		if (BUILD.equals(project)) {
 
-			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion()))//
-					.and(arg("groupId").withValue("org.springframework.data"))//
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
+					.and(arg("generateBackupPoms").withValue("false")) //
+					.and(arg("groupId").withValue("org.springframework.data")) //
 					.and(arg("artifactId").withValue("spring-data-releasetrain")));
 
 			mvn.execute(project, CommandLine.of(Goal.INSTALL));
