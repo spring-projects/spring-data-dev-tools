@@ -24,11 +24,16 @@ import org.springframework.util.Assert;
  * Value object to represent an individual release train iteration.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value
 public class Iteration {
 
-	public static final Iteration SR12 = new Iteration("SR12", null);
+	public static final Iteration SR16 = new Iteration("SR16", null);
+	public static final Iteration SR15 = new Iteration("SR15", SR16);
+	public static final Iteration SR14 = new Iteration("SR14", SR15);
+	public static final Iteration SR13 = new Iteration("SR13", SR14);
+	public static final Iteration SR12 = new Iteration("SR12", SR13);
 	public static final Iteration SR11 = new Iteration("SR11", SR12);
 	public static final Iteration SR10 = new Iteration("SR10", SR11);
 	public static final Iteration SR9 = new Iteration("SR9", SR10);

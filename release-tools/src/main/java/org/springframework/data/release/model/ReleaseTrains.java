@@ -52,7 +52,7 @@ public class ReleaseTrains {
 		Iteration M2 = new Iteration("M2", M3);
 		Iteration M1 = new Iteration("M1", M2);
 
-		Iterations kayIterations = new Iterations(M1, M2, M3, M4, RC1, RC2, RC3, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
+		Iterations kayIterations = new Iterations(M1, M2, M3, M4, RC1, RC2, RC3, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7, SR8, SR9);
 		KAY = INGALLS.next("Kay", Transition.MAJOR, new Module(GEODE, "2.0")).withIterations(kayIterations);
 
 		Iterations lovelaceIterations = new Iterations(M1, M2, M3, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7);
