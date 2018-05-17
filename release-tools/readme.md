@@ -22,9 +22,9 @@
 Make sure that:
 
 * Upgrade dependencies in Spring Data Build parent pom (mind minor/major version rules)
-* All release tickets are present (`$ tracker releasetickets`)
+* All release tickets are present (`$ tracker releasetickets $trainIteration`)
 * Review open tickets for release
-* Self-assign release tickets
+* Self-assign release tickets (`$ tracker prepare $trainIteration`)
 * Announce release preparations to mailing list
 
 5. Commands to execute
@@ -42,6 +42,16 @@ $ foreach $target -> git push $target
 
 6. Post-release tasks
 
-* Create release tickets for next release 
-  `$ tracker create releaseversions` and `$ tracker create releasetickets`
-* Announce release (Blog, Twitter) and notify downstream dependency projects as needed
+* Close Jira tickets and GitHub release tickets.
+* Create release tickets for the next train iteration, archive old release versions. Close Jira versions/GitHub milestones.
+
+```
+$ tracker close $trainIteration
+$ tracker create releaseversions $trainIteration.next
+$ tracker create releasetickets $trainIteration.next
+$ tracker archive $trainIteration.previous
+```
+
+* Update versions in Sagan with `$ sagan update $releasetrains`. 
+* Announce release (Blog, Twitter) and notify downstream dependency projects as needed. Dev-tools can assist you with `$ announcement $trainIteration`. Make sure to remove the changelog link to Envers as this module has no changelog.
+
