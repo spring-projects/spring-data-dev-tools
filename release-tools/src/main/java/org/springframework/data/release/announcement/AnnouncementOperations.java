@@ -32,7 +32,7 @@ public class AnnouncementOperations {
 
 	/**
 	 * Returns the project list and links to be included in the release announcement for the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param iteration must not be {@literal null}.
 	 * @return
 	 */
@@ -58,7 +58,7 @@ public class AnnouncementOperations {
 
 			StaticResources resources = new StaticResources(module);
 
-			builder.append(getMarkDownLink("JavaDocs", resources.getJavaDocUrl())).append(" - ");
+			builder.append(getMarkDownLink("Javadoc", resources.getJavaDocUrl())).append(" - ");
 			builder.append(getMarkDownLink("Documentation", resources.getDocumentationUrl())).append(" - ");
 			builder.append(getMarkDownLink("Changelog", resources.getChangelogUrl()));
 
