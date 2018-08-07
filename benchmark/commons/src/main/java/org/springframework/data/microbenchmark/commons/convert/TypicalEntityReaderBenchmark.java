@@ -105,6 +105,11 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	}
 
 	@Benchmark
+	public Object simpleEntityReflectiveConstructorArgsCreation() {
+		return read(simpleEntityData, SimpleEntityWithReflectiveConstructor.class, true);
+	}
+
+	@Benchmark
 	public Object kotlinDataClass() {
 		return read(simpleEntityData, MyDataClass.class, false);
 	}
@@ -135,7 +140,18 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 		public String lastname;
 	}
 
-	static class SimpleEntityWithConstructor {
+	static class SimpleEntityWithReflectiveConstructor {
+
+		final String firstname;
+		final String lastname;
+
+		public SimpleEntityWithReflectiveConstructor(String firstname, String lastname) {
+			this.firstname = firstname;
+			this.lastname = lastname;
+		}
+	}
+
+	public static class SimpleEntityWithConstructor {
 
 		final String firstname;
 		final String lastname;
