@@ -19,6 +19,7 @@
 
 	<modules>
 		<module>support</module>
+		<module>commons</module>
 		<module>mongodb</module>
 	</modules>
 
