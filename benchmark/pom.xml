@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-benchmark-parent</artifactId>
+	<packaging>pom</packaging>
+
+	<name>Spring Data Benchmarks</name>
+	<description>JMH Benchmarks for Spring Data</description>
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>2.1.0.BUILD-SNAPSHOT</version>
+	</parent>
+
+	<modules>
+		<module>support</module>
+		<module>mongodb</module>
+	</modules>
+
+	<properties>
+		<releasetrain.version>Lovelace-BUILD-SNAPSHOT</releasetrain.version>
+		<jmh.version>1.19</jmh.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>spring-data-releasetrain</artifactId>
+				<version>${releasetrain.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>spring-data-benchmark-support</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-core</artifactId>
+			<version>${jmh.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-generator-annprocess</artifactId>
+			<version>${jmh.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>2.2.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<testSourceDirectory>${project.build.sourceDirectory}</testSourceDirectory>
+					<testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+					<excludes>
+						<exclude>**/AbstractMicrobenchmark.java</exclude>
+						<exclude>**/*$*.class</exclude>
+						<exclude>**/generated/*.class</exclude>
+					</excludes>
+					<includes>
+						<include>**/*Benchmark*</include>
+					</includes>
+					<systemPropertyVariables>
+						<benchmarkReportDir>${project.build.directory}/reports/performance</benchmarkReportDir>
+						<project.version>${project.version}</project.version>
+						<git.dirty>${git.dirty}</git.dirty>
+						<git.commit.id>${git.commit.id}</git.commit.id>
+						<git.branch>${git.branch}</git.branch>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>https://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-libs-milestone</id>
+			<url>https://repo.spring.io/libs-milestone</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>
