@@ -145,6 +145,7 @@ public class Microbenchmark extends BlockJUnit4ClassRunner {
 				if (filter.shouldRun(describeChild(it))) {
 					try {
 						filter.apply(it);
+						return true;
 					} catch (NoTestsRemainException e) {
 						return false;
 					}
