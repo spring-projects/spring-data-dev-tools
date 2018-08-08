@@ -34,6 +34,7 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PreferredConstructor.Parameter;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
@@ -59,6 +60,17 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	private final ConversionService conversionService = DefaultConversionService.getSharedInstance();
 	private final CustomConversions customConversions = new CustomConversions(StoreConversions.NONE,
 			Collections.emptyList());
+	private final ParameterValueProvider<MyPersistentProperty> NONE = new ParameterValueProvider<TypicalEntityReaderBenchmark.MyPersistentProperty>() {
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.data.mapping.model.ParameterValueProvider#getParameterValue(org.springframework.data.mapping.PreferredConstructor.Parameter)
+		 */
+		@Override
+		public <T> T getParameterValue(Parameter<T, MyPersistentProperty> parameter) {
+			return null;
+		}
+	};
 
 	private final Map<String, Object> simpleEntityData = new HashMap<>();
 
@@ -178,6 +190,24 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 		}
 
 		MyPersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(classToRead);
+		PreferredConstructor<?, MyPersistentProperty> constructor = persistentEntity.getPersistenceConstructor();
+
+		ParameterValueProvider<MyPersistentProperty> provider = constructor.isNoArgConstructor() //
+				? NONE //
+				: new ParameterValueProvider<MyPersistentProperty>() {
+
+					@Override
+					public <T> T getParameterValue(Parameter<T, MyPersistentProperty> parameter) {
+						return (T) getValue(data, parameter.getName(), parameter.getType().getType(), queryCustomConversions);
+					}
+				};
+
+		EntityInstantiator instantiator = instantiators.getInstantiatorFor(persistentEntity);
+		Object instance = instantiator.createInstance(persistentEntity, provider);
+
+		if (!persistentEntity.requiresPropertyPopulation()) {
+			return instance;
+		}
 
 		PropertyValueProvider<MyPersistentProperty> valueProvider = new PropertyValueProvider<MyPersistentProperty>() {
 
@@ -186,16 +216,6 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 				return (T) getValue(data, property.getName(), property.getType(), queryCustomConversions);
 			}
 		};
-
-		ParameterValueProvider<MyPersistentProperty> provider = new ParameterValueProvider<MyPersistentProperty>() {
-			@Override
-			public <T> T getParameterValue(Parameter<T, MyPersistentProperty> parameter) {
-				return (T) getValue(data, parameter.getName(), parameter.getType().getType(), queryCustomConversions);
-			}
-		};
-
-		EntityInstantiator instantiator = instantiators.getInstantiatorFor(persistentEntity);
-		Object instance = instantiator.createInstance(persistentEntity, provider);
 
 		PersistentPropertyAccessor<?> accessor = new ConvertingPropertyAccessor<>(
 				persistentEntity.getPropertyAccessor(instance), conversionService);
@@ -244,7 +264,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	 */
 	static class MyMappingContext extends AbstractMappingContext<MyPersistentEntity<?>, MyPersistentProperty> {
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
 		 */
@@ -253,7 +273,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 			return new MyPersistentEntity<T>(typeInformation);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(org.springframework.data.mapping.model.Property, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
 		 */
@@ -274,7 +294,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 			super(property, owner, simpleTypeHolder);
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.mapping.model.AbstractPersistentProperty#createAssociation()
 		 */
