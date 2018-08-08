@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -47,6 +48,7 @@ import org.openjdk.jmh.results.BenchmarkResult;
 import org.openjdk.jmh.results.IterationResult;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Defaults;
+import org.openjdk.jmh.runner.NoBenchmarksException;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.format.OutputFormat;
 import org.openjdk.jmh.runner.format.OutputFormatFactory;
@@ -189,18 +191,33 @@ public class Microbenchmark extends BlockJUnit4ClassRunner {
 		Collection<FrameworkMethod> methods = getFilteredChildren();
 		CacheFunction cache = new CacheFunction(methods, this::describeChild);
 
+		if (methods.isEmpty()) {
+			return new Statement() {
+				@Override
+				public void evaluate() {}
+			};
+		}
+
 		return new Statement() {
 
 			@Override
 			public void evaluate() throws Throwable {
-				doRun(notifier, methods, cache);
+				try {
+					doRun(notifier, methods, cache);
+				} catch (NoBenchmarksException | NoTestsRemainException e) {
+					methods.forEach(it -> notifier.fireTestIgnored(describeChild(it)));
+				}
 			}
 		};
 	}
 
-	private void doRun(RunNotifier notifier, Collection<FrameworkMethod> methods, CacheFunction cache) throws Exception {
+	void doRun(RunNotifier notifier, Collection<FrameworkMethod> methods, CacheFunction cache) throws Exception {
 
-		List<String> includes = jmhRunner.includes(methods);
+		List<String> includes = jmhRunner.includes(getTestClass().getJavaClass(), methods);
+
+		if (includes.isEmpty()) {
+			throw new NoTestsRemainException();
+		}
 
 		ChainedOptionsBuilder optionsBuilder = jmhRunner.options();
 
@@ -466,7 +483,11 @@ public class Microbenchmark extends BlockJUnit4ClassRunner {
 		public Description apply(String benchmarkName) {
 
 			FrameworkMethod frameworkMethod = methodMap.computeIfAbsent(benchmarkName, key -> {
-				return methods.stream().filter(method -> getBenchmarkName(method).equals(key)).findFirst().get();
+
+				Optional<FrameworkMethod> method = methods.stream().filter(it -> getBenchmarkName(it).equals(key)).findFirst();
+
+				return method.orElseThrow(() -> new IllegalArgumentException(
+						String.format("Cannot resolve %s to a FrameworkMethod!", benchmarkName)));
 			});
 
 			return describeFunction.apply(frameworkMethod);

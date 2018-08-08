@@ -58,9 +58,10 @@ class JmhSupport {
 	 * name separator.
 	 *
 	 * @return never {@literal null}.
+	 * @param name
 	 * @param methods
 	 */
-	protected List<String> includes(Collection<FrameworkMethod> methods) {
+	protected List<String> includes(Class<?> testClass, Collection<FrameworkMethod> methods) {
 
 		String tests = environment.getProperty("benchmark", String.class);
 
@@ -70,12 +71,16 @@ class JmhSupport {
 					.collect(Collectors.toList());
 		}
 
-		if (!tests.contains("#")) {
-			return Collections.singletonList(".*" + tests + ".*");
+		if (tests.contains(testClass.getName()) || tests.contains(testClass.getSimpleName())) {
+			if (!tests.contains("#")) {
+				return Collections.singletonList(".*" + tests + ".*");
+			}
+
+			String[] args = tests.split("#");
+			return Collections.singletonList(".*" + args[0] + "." + args[1]);
 		}
 
-		String[] args = tests.split("#");
-		return Collections.singletonList(".*" + args[0] + "." + args[1]);
+		return Collections.emptyList();
 	}
 
 	/**
