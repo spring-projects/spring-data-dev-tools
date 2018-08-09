@@ -67,7 +67,8 @@ class JmhSupport {
 
 		if (!StringUtils.hasText(tests)) {
 
-			return methods.stream().map(it -> Pattern.quote(it.getDeclaringClass().getName()) + "\\." + it.getName())
+			return methods.stream()
+					.map(it -> Pattern.quote(it.getDeclaringClass().getName()) + "\\." + Pattern.quote(it.getName()) + "$")
 					.collect(Collectors.toList());
 		}
 
