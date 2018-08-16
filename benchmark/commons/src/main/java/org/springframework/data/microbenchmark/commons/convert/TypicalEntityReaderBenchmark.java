@@ -16,6 +16,7 @@
 package org.springframework.data.microbenchmark.commons.convert;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 			Collections.emptyList());
 	private final ParameterValueProvider<MyPersistentProperty> NONE = new ParameterValueProvider<TypicalEntityReaderBenchmark.MyPersistentProperty>() {
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.mapping.model.ParameterValueProvider#getParameterValue(org.springframework.data.mapping.PreferredConstructor.Parameter)
 		 */
@@ -92,8 +93,13 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	}
 
 	@Benchmark
-	public Object simpleEntityReflectivePropertyAccess() {
+	public Object simpleEntityReflectiveFieldAccess() {
 		return read(simpleEntityData, SimpleEntity.class, false);
+	}
+
+	@Benchmark
+	public Object simpleEntityReflectivePropertyAccess() {
+		return read(simpleEntityData, SimpleEntityPropertyAccess.class, false);
 	}
 
 	@Benchmark
@@ -103,7 +109,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 
 	@Benchmark
 	public Object simpleEntityGeneratedPropertyAccess() {
-		return read(simpleEntityData, SimpleAccessibleEntityFieldAccess.class, false);
+		return read(simpleEntityData, SimpleAccessibleEntityPropertyAccess.class, false);
 	}
 
 	@Benchmark
@@ -112,13 +118,33 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	}
 
 	@Benchmark
-	public Object simpleEntityConstructorArgsCreation() {
-		return read(simpleEntityData, SimpleEntityWithConstructor.class, true);
+	public Object simpleEntityGeneratedConstructorArgsCreation() {
+		return read(simpleEntityData, SimpleEntityWithConstructor.class, false);
 	}
 
 	@Benchmark
 	public Object simpleEntityReflectiveConstructorArgsCreation() {
-		return read(simpleEntityData, SimpleEntityWithReflectiveConstructor.class, true);
+		return read(simpleEntityData, SimpleEntityWithReflectiveConstructor.class, false);
+	}
+
+	@Benchmark
+	public Object simpleEntityReflectiveConstructorAndProperty() {
+		return read(simpleEntityData, SimpleEntityWithConstructorAndProperty.class, false);
+	}
+
+	@Benchmark
+	public Object simpleEntityReflectiveConstructorAndField() {
+		return read(simpleEntityData, SimpleEntityWithConstructorAndField.class, false);
+	}
+
+	@Benchmark
+	public Object simpleEntityGeneratedConstructorAndProperty() {
+		return read(simpleEntityData, SimpleEntityWithGeneratedConstructorAndProperty.class, false);
+	}
+
+	@Benchmark
+	public Object simpleEntityGeneratedConstructorAndField() {
+		return read(simpleEntityData, SimpleEntityWithGeneratedConstructorAndField.class, false);
 	}
 
 	@Benchmark
@@ -131,47 +157,74 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 		return read(simpleEntityData, MyDataClassWithDefaulting.class, false);
 	}
 
-	static class SimpleEntity {
-
-		String firstname;
-		String lastname;
+	@Benchmark
+	public boolean hasReadTarget() {
+		return customConversions.hasCustomReadTarget(String.class, Object.class);
 	}
 
-	@AccessType(Type.PROPERTY)
-	@Data
-	public static class SimpleAccessibleEntityPropertyAccess {
+	static class SimpleEntity {
+		String firstname, lastname;
+	}
 
-		String firstname;
-		String lastname;
+	@Data
+	@AccessType(Type.PROPERTY)
+	static class SimpleEntityPropertyAccess {
+		String firstname, lastname;
+	}
+
+	@Data
+	@AccessType(Type.PROPERTY)
+	public static class SimpleAccessibleEntityPropertyAccess {
+		String firstname, lastname;
 	}
 
 	@Data
 	public static class SimpleAccessibleEntityFieldAccess {
-
-		public String firstname;
-		public String lastname;
+		public String firstname, lastname;
 	}
 
-	static class SimpleEntityWithReflectiveConstructor {
-
-		final String firstname;
-		final String lastname;
-
-		public SimpleEntityWithReflectiveConstructor(String firstname, String lastname) {
-			this.firstname = firstname;
-			this.lastname = lastname;
-		}
-	}
-
+	@RequiredArgsConstructor
 	public static class SimpleEntityWithConstructor {
+		final String firstname, lastname;
+	}
+
+	@RequiredArgsConstructor
+	static class SimpleEntityWithReflectiveConstructor {
+		final String firstname, lastname;
+	}
+
+	@Data
+	@RequiredArgsConstructor
+	static class SimpleEntityWithConstructorAndField {
 
 		final String firstname;
-		final String lastname;
+		String lastname;
+	}
 
-		public SimpleEntityWithConstructor(String firstname, String lastname) {
-			this.firstname = firstname;
-			this.lastname = lastname;
-		}
+	@Data
+	@AccessType(Type.PROPERTY)
+	@RequiredArgsConstructor
+	static class SimpleEntityWithConstructorAndProperty {
+
+		final String firstname;
+		String lastname;
+	}
+
+	@Data
+	@AccessType(Type.PROPERTY)
+	@RequiredArgsConstructor
+	public static class SimpleEntityWithGeneratedConstructorAndProperty {
+
+		final String firstname;
+		String lastname;
+	}
+
+	@Data
+	@RequiredArgsConstructor
+	public static class SimpleEntityWithGeneratedConstructorAndField {
+
+		final String firstname;
+		String lastname;
 	}
 
 	/**
