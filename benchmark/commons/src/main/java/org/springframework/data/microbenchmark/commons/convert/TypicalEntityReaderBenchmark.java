@@ -168,7 +168,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 
 	@Data
 	@AccessType(Type.PROPERTY)
-	static class SimpleEntityPropertyAccess {
+	private static class SimpleEntityPropertyAccess {
 		String firstname, lastname;
 	}
 
@@ -189,13 +189,13 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	}
 
 	@RequiredArgsConstructor
-	static class SimpleEntityWithReflectiveConstructor {
+	private static class SimpleEntityWithReflectiveConstructor {
 		final String firstname, lastname;
 	}
 
 	@Data
 	@RequiredArgsConstructor
-	static class SimpleEntityWithConstructorAndField {
+	private static class SimpleEntityWithConstructorAndField {
 
 		final String firstname;
 		String lastname;
@@ -204,7 +204,7 @@ public class TypicalEntityReaderBenchmark extends AbstractMicrobenchmark {
 	@Data
 	@AccessType(Type.PROPERTY)
 	@RequiredArgsConstructor
-	static class SimpleEntityWithConstructorAndProperty {
+	private static class SimpleEntityWithConstructorAndProperty {
 
 		final String firstname;
 		String lastname;
