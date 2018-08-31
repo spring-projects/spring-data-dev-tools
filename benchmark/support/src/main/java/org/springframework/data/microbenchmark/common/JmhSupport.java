@@ -89,14 +89,14 @@ class JmhSupport {
 	 * @return never {@literal null}.
 	 * @throws Exception
 	 */
-	protected ChainedOptionsBuilder options() throws Exception {
+	protected ChainedOptionsBuilder options(Class<?> jmhTestClass) throws Exception {
 
 		ChainedOptionsBuilder optionsBuilder = new OptionsBuilder().jvmArgs(jvmArgs());
 
 		optionsBuilder = warmup(optionsBuilder);
 		optionsBuilder = measure(optionsBuilder);
 		optionsBuilder = forks(optionsBuilder);
-		optionsBuilder = report(optionsBuilder);
+		optionsBuilder = report(optionsBuilder, jmhTestClass);
 
 		return optionsBuilder;
 	}
@@ -174,7 +174,7 @@ class JmhSupport {
 	 *
 	 * @return
 	 */
-	protected String reportFilename() {
+	protected String reportFilename(Class<?> jmhTestClass) {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -186,7 +186,7 @@ class JmhSupport {
 
 		sb.append(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
 		sb.append("_");
-		sb.append(org.springframework.util.ClassUtils.getShortName(getClass()));
+		sb.append(org.springframework.util.ClassUtils.getShortName(jmhTestClass));
 		sb.append(".json");
 		return sb.toString();
 	}
@@ -265,7 +265,7 @@ class JmhSupport {
 	 * @throws IOException if report file cannot be created.
 	 * @see #getReportDirectory()
 	 */
-	private ChainedOptionsBuilder report(ChainedOptionsBuilder optionsBuilder) throws IOException {
+	private ChainedOptionsBuilder report(ChainedOptionsBuilder optionsBuilder, Class<?> jmhTestClass) throws IOException {
 
 		String reportDir = getReportDirectory();
 
@@ -273,7 +273,7 @@ class JmhSupport {
 			return optionsBuilder;
 		}
 
-		String reportFilePath = reportDir + (reportDir.endsWith(File.separator) ? "" : File.separator) + reportFilename();
+		String reportFilePath = reportDir + (reportDir.endsWith(File.separator) ? "" : File.separator) + reportFilename(jmhTestClass);
 		File file = ResourceUtils.getFile(reportFilePath);
 
 		if (file.exists()) {

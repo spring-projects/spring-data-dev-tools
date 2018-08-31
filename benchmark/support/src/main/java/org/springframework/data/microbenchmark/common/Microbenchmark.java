@@ -213,13 +213,14 @@ public class Microbenchmark extends BlockJUnit4ClassRunner {
 
 	void doRun(RunNotifier notifier, Collection<FrameworkMethod> methods, CacheFunction cache) throws Exception {
 
-		List<String> includes = jmhRunner.includes(getTestClass().getJavaClass(), methods);
+		Class<?> jmhTestClass = getTestClass().getJavaClass();
+		List<String> includes = jmhRunner.includes(jmhTestClass, methods);
 
 		if (includes.isEmpty()) {
 			throw new NoTestsRemainException();
 		}
 
-		ChainedOptionsBuilder optionsBuilder = jmhRunner.options();
+		ChainedOptionsBuilder optionsBuilder = jmhRunner.options(jmhTestClass);
 
 		includes.forEach(optionsBuilder::include);
 
