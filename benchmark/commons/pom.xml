@@ -14,6 +14,10 @@
 
 	<name>Spring Data Benchmarks - Commons Microbenchmarks</name>
 
+	<properties>
+		<target.project.name>spring-data-commons</target.project.name>
+	</properties>
+
 	<dependencies>
 
 		<dependency>

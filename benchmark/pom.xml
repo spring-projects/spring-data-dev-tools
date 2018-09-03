@@ -105,6 +105,7 @@
 					<systemPropertyVariables>
 						<benchmarkReportDir>${project.build.directory}/reports/performance</benchmarkReportDir>
 						<project.version>${project.version}</project.version>
+						<project.name>${target.project.name}</project.name>
 						<git.dirty>${git.dirty}</git.dirty>
 						<git.commit.id>${git.commit.id}</git.commit.id>
 						<git.branch>${git.branch}</git.branch>

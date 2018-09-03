@@ -51,6 +51,29 @@ mvn clean test -D publishTo=mongodb://127.0.0.1:27017
 
 NOTE: If the uri does not explicitly define a database the default `spring-data-mongodb-benchmarks` is used. 
 
+## Elastic
+
+Results can be directly piped to Elasticsearch by providing a connection string via the `publishTo` command line argument.
+
+```bash
+mvn clean test -D publishTo=elastic://127.0.0.1:9200
+```
+
+``RunResult``s are added to the `jmh_*` collection where `*` is replaced by the ClassName the `@Benchmark` resides in.
+
+Using [Kibana](https://www.elastic.co/downloads/kibana) one may create visualizations by choosing a line charts with
+
+```text
+Metrics:
+Y-Axis: Average -> primaryMetric.score
+
+Buckets:
+X-Axis: Date Histogram -> date
+X-Axis: Split Series Terms -> benchmark_name.keyword 
+```
+ 
+![JMH Dashboard](/benchmark/KibanaDashboard_JMH.png?raw=true)
+
 ## HTTP Endpoint
 
 The benchmark report can also be posted as `application/json` to an HTTP Endpoint by providing a valid URl via the `publishTo` command line argument.
