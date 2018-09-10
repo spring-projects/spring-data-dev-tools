@@ -58,7 +58,7 @@ public class Train implements Streamable<Module> {
 		this(name, Modules.of(modules), Iterations.DEFAULT, false);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
@@ -83,7 +83,7 @@ public class Train implements Streamable<Module> {
 
 	/**
 	 * Returns the {@link Module} for the given {@link Project} in the current release {@link Train}.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 * @throws IllegalArgumentException in case no {@link Module} can be found for the given {@link Project} in the
@@ -99,7 +99,7 @@ public class Train implements Streamable<Module> {
 
 	/**
 	 * Returns the {@link Module} for the given {@link Project} in the current release {@link Train}.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return the {@link Module} wrapped into an {@link Optional} if present, {@link Optional#empty()} otherwise.
 	 */
@@ -178,7 +178,7 @@ public class Train implements Streamable<Module> {
 
 	/**
 	 * Value object to represent a set of {@link Iteration}s.
-	 * 
+	 *
 	 * @author Oliver Gierke
 	 */
 	@EqualsAndHashCode
@@ -186,13 +186,13 @@ public class Train implements Streamable<Module> {
 	public static class Iterations implements Iterable<Iteration> {
 
 		public static Iterations DEFAULT = new Iterations(M1, RC1, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7, SR8, SR9, SR10,
-				SR11, SR12, SR13, SR14, SR15, SR16);
+				SR11, SR12, SR13, SR14, SR15, SR16, SR17, SR18);
 
 		private final List<Iteration> iterations;
 
 		/**
 		 * Creates a new {@link Iterations} from the given {@link Iteration}.
-		 * 
+		 *
 		 * @param iterations
 		 */
 		Iterations(Iteration... iterations) {
@@ -201,7 +201,7 @@ public class Train implements Streamable<Module> {
 
 		/**
 		 * Returns the iteration with the given name.
-		 * 
+		 *
 		 * @param name must not be {@literal null} or empty.
 		 * @return
 		 */
@@ -223,7 +223,7 @@ public class Train implements Streamable<Module> {
 							String.format("Could not find previous iteration for %s!", iteration)));
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Iterable#iterator()
 		 */

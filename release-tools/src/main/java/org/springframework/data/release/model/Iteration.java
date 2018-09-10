@@ -22,14 +22,16 @@ import org.springframework.util.Assert;
 
 /**
  * Value object to represent an individual release train iteration.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
 @Value
 public class Iteration {
 
-	public static final Iteration SR16 = new Iteration("SR16", null);
+	public static final Iteration SR18 = new Iteration("SR18", null);
+	public static final Iteration SR17 = new Iteration("SR17", SR18);
+	public static final Iteration SR16 = new Iteration("SR16", SR17);
 	public static final Iteration SR15 = new Iteration("SR15", SR16);
 	public static final Iteration SR14 = new Iteration("SR14", SR15);
 	public static final Iteration SR13 = new Iteration("SR13", SR14);
@@ -70,7 +72,7 @@ public class Iteration {
 	/**
 	 * Returns whether the {@link Iteration} is considered public, i.e. the artifacts produced by the iteration are
 	 * supposed to be published to Maven Central.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isPublic() {
@@ -79,7 +81,7 @@ public class Iteration {
 
 	/**
 	 * Returns whether the current Iteration is going to produce a preview release, i.e. a milestone or release candidate.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isPreview() {
