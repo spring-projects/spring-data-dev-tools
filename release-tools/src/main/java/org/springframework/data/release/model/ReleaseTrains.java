@@ -31,7 +31,7 @@ import org.springframework.data.release.model.Train.Iterations;
 public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
-	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE;
+	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE;
 
 	static {
 
@@ -59,9 +59,11 @@ public class ReleaseTrains {
 		LOVELACE = KAY.next("Lovelace", Transition.MINOR, new Module(JDBC, "1.0"), new Module(SOLR, "4.0"))
 				.withIterations(lovelaceIterations);
 
+		MOORE = LOVELACE.next("Moore", Transition.MINOR);
+
 		// Trains
 
-		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE);
+		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE);
 
 		// Train names
 
