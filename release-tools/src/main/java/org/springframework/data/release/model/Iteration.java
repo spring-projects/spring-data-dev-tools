@@ -29,7 +29,13 @@ import org.springframework.util.Assert;
 @Value
 public class Iteration {
 
-	public static final Iteration SR18 = new Iteration("SR18", null);
+	public static final Iteration SR24 = new Iteration("SR23", null);
+	public static final Iteration SR23 = new Iteration("SR23", SR24);
+	public static final Iteration SR22 = new Iteration("SR22", SR23);
+	public static final Iteration SR21 = new Iteration("SR21", SR22);
+	public static final Iteration SR20 = new Iteration("SR20", SR21);
+	public static final Iteration SR19 = new Iteration("SR19", SR20);
+	public static final Iteration SR18 = new Iteration("SR18", SR19);
 	public static final Iteration SR17 = new Iteration("SR17", SR18);
 	public static final Iteration SR16 = new Iteration("SR16", SR17);
 	public static final Iteration SR15 = new Iteration("SR15", SR16);
