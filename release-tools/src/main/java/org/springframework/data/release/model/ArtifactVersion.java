@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
 
 /**
  * Value object to represent version of a particular artifact.
- * 
+ *
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
@@ -40,7 +40,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Creates a new {@link ArtifactVersion} from the given logical {@link Version}.
-	 * 
+	 *
 	 * @param version must not be {@literal null}.
 	 * @param suffix must not be {@literal null} or empty.
 	 */
@@ -48,7 +48,6 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 		Assert.notNull(version, "Version must not be null!");
 		Assert.hasText(suffix, "Suffix must not be null or empty!");
-		;
 
 		this.version = version;
 		this.suffix = suffix;
@@ -60,7 +59,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Parses the given {@link String} into an {@link ArtifactVersion}.
-	 * 
+	 *
 	 * @param source must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -80,7 +79,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Creates a new {@link ArtifactVersion} from the given {@link IterationVersion}.
-	 * 
+	 *
 	 * @param iterationVersion must not be {@literal null}.
 	 * @return
 	 */
@@ -109,7 +108,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Returns the release version for the current one.
-	 * 
+	 *
 	 * @return
 	 */
 	public ArtifactVersion getReleaseVersion() {
@@ -118,7 +117,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Returns the snapshot version of the current one.
-	 * 
+	 *
 	 * @return
 	 */
 	public ArtifactVersion getSnapshotVersion() {
@@ -127,7 +126,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Returns whether the version is a release version.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isReleaseVersion() {
@@ -136,7 +135,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Returns whether the version is a milestone version.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isMilestoneVersion() {
@@ -154,7 +153,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	/**
 	 * Returns the next development version to be used for the current release version, which means next minor for GA
 	 * versions and next bug fix for service releases. Will return the current version as snapshot otherwise.
-	 * 
+	 *
 	 * @return
 	 */
 	public ArtifactVersion getNextDevelopmentVersion() {
@@ -173,7 +172,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	/**
 	 * Returns the next bug fix version for the current version if it's a release version or the snapshot version of the
 	 * current one otherwise.
-	 * 
+	 *
 	 * @return
 	 */
 	public ArtifactVersion getNextBugfixVersion() {
@@ -198,7 +197,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return "GA";
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
@@ -220,7 +219,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	/**
 	 * Returns the {@link String} of the plain version (read: x.y.z, omitting trailing bug fix zeros).
-	 * 
+	 *
 	 * @return
 	 */
 	public String toShortString() {
