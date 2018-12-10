@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.sagan;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -23,9 +24,10 @@ import org.springframework.data.release.model.ReleaseTrains;
 
 /**
  * Integration tests for {@link SaganOperations}.
- * 
+ *
  * @author Oliver Gierke
  */
+@Ignore("I will write to production systems")
 public class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired SaganOperations sagan;

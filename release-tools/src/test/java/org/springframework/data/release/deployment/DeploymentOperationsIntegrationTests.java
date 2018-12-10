@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.deployment;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -29,6 +30,7 @@ import org.springframework.data.release.model.Train;
 /**
  * @author Oliver Gierke
  */
+@Ignore("I will deploy an artifact")
 public class DeploymentOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired GitOperations git;
