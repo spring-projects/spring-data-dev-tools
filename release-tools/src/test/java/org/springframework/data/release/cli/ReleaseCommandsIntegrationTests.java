@@ -17,7 +17,13 @@ package org.springframework.data.release.cli;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -31,6 +37,19 @@ public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired ReleaseCommands releaseCommands;
 	@Autowired GitOperations git;
+
+	@BeforeClass
+	public static void beforeClass() {
+
+		try {
+			URL url = new URL("https://github.com");
+			URLConnection urlConnection = url.openConnection();
+			urlConnection.connect();
+			urlConnection.getInputStream().close();
+		} catch (IOException e) {
+			assumeTrue("Test requires connectivity to GitHub:" + e.toString(), false);
+		}
+	}
 
 	@Test
 	public void predictsReleaseTrainCorrectly() throws Exception {

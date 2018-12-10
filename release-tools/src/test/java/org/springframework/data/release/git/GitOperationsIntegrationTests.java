@@ -17,8 +17,14 @@ package org.springframework.data.release.git;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 import static org.springframework.data.release.model.Projects.*;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -31,6 +37,19 @@ import org.springframework.data.release.model.TestReleaseTrains;
 public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired GitOperations gitOperations;
+
+	@BeforeClass
+	public static void beforeClass() {
+
+		try {
+			URL url = new URL("https://github.com");
+			URLConnection urlConnection = url.openConnection();
+			urlConnection.connect();
+			urlConnection.getInputStream().close();
+		} catch (IOException e) {
+			assumeTrue("Test requires connectivity to GitHub:" + e.toString(), false);
+		}
+	}
 
 	@Test
 	public void updatesGitRepositories() throws Exception {

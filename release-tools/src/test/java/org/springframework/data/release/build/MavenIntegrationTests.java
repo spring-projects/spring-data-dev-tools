@@ -15,8 +15,13 @@
  */
 package org.springframework.data.release.build;
 
-import java.io.IOException;
+import static org.junit.Assume.*;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -24,12 +29,7 @@ import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.TrainIteration;
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.io.XBFileIO;
 
@@ -42,6 +42,19 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 	@Autowired ProjectionFactory projection;
 	@Autowired MavenBuildSystem maven;
 	@Autowired GitOperations git;
+
+	@BeforeClass
+	public static void beforeClass() {
+
+		try {
+			URL url = new URL("https://github.com");
+			URLConnection urlConnection = url.openConnection();
+			urlConnection.connect();
+			urlConnection.getInputStream().close();
+		} catch (IOException e) {
+			assumeTrue("Test requires connectivity to GitHub:" + e.toString(), false);
+		}
+	}
 
 	@Test
 	public void modifiesParentPomCorrectly() throws IOException {
@@ -65,19 +78,6 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 		pom.setRepositoryUrl("spring-libs-release", "https://repo.spring.io/libs-release");
 
 		// System.out.println(projection.asString(pom));
-	}
-
-	@Test
-	public void testname() throws Exception {
-
-		git.update(ReleaseTrains.HOPPER);
-
-		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
-		ModuleIteration build = iteration.getModule(Projects.BUILD);
-		UpdateInformation information = UpdateInformation.of(iteration, Phase.PREPARE);
-
-		maven.updateProjectDescriptors(build, information);
-		maven.prepareVersion(build, Phase.PREPARE);
 	}
 
 	@Test
