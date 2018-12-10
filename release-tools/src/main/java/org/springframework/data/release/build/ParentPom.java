@@ -21,12 +21,13 @@ import org.xmlbeam.annotation.XBWrite;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public interface ParentPom extends Pom {
 
 	@XBWrite("/project/properties/releasetrain")
 	void setReleaseTrain(@XBValue String releaseTrain);
 
-	@XBWrite("/project/profiles/profile[id=\"distribute\"]/dependencies/dependency/version")
+	@XBWrite("/project/profiles/profile[id=\"distribute\"]/dependencies/dependency[artifactId=\"spring-data-build-resources\"]/version")
 	void setSharedResourcesVersion(@XBValue ArtifactVersion value);
 }

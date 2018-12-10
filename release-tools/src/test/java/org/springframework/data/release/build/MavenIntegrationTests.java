@@ -15,8 +15,10 @@
  */
 package org.springframework.data.release.build;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -31,10 +33,12 @@ import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Projects;
 import org.xmlbeam.ProjectionFactory;
+import org.xmlbeam.evaluation.XPathEvaluator;
 import org.xmlbeam.io.XBFileIO;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class MavenIntegrationTests extends AbstractIntegrationTests {
 
@@ -64,7 +68,12 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 		ParentPom pom = io.read(ParentPom.class);
 		pom.setSharedResourcesVersion(ArtifactVersion.of("1.2.0.RELEASE"));
 
-		System.out.println(projection.asString(pom));
+		String xml = projection.asString(pom);
+		XPathEvaluator xPathEvaluator = projection.io().stream(new ByteArrayInputStream(xml.getBytes())).evalXPath(
+				"/project/profiles/profile[id=\"distribute\"]/dependencies/dependency[artifactId=\"spring-data-build-resources\"]/version");
+
+		assertThat(xPathEvaluator.asString()).isEqualToIgnoringCase("1.2.0.RELEASE");
+
 	}
 
 	@Test
