@@ -31,7 +31,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
  * When adding a new {@link Project} make sure to set the {@link Project#withDependencies(Project...)} and do not forget
  * to add it to the list of projects, defining the dependency order, below. <br />
  * Also add the a new {@link Module} to the {@link ReleaseTrains}.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -76,7 +76,9 @@ public class Projects {
 
 		REDIS = new Project("DATAREDIS", "Redis").withDependencies(KEY_VALUE);
 
-		JDBC = new Project("DATAJDBC", "JDBC").withDependencies(COMMONS);
+		JDBC = new Project("DATAJDBC", "JDBC")
+				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational"))
+				.withDependencies(COMMONS);
 
 		GEMFIRE = new Project("SGF", "Gemfire") //
 				.withDependencies(COMMONS)//
