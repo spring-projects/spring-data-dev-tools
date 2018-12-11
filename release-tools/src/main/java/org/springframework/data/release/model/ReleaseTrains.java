@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.data.release.model.Train.Iterations;
+
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -54,7 +56,7 @@ public class ReleaseTrains {
 
 		LOVELACE = KAY.next("Lovelace", Transition.MINOR, new Module(JDBC, "1.0"), new Module(SOLR, "4.0"));
 
-		MOORE = LOVELACE.next("Moore", Transition.MINOR);
+		MOORE = LOVELACE.next("Moore", Transition.MINOR).withIterations(new Iterations(M1, M2, RC1));
 
 		// Trains
 
