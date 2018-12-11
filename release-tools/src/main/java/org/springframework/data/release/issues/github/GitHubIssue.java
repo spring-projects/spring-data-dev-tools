@@ -46,6 +46,10 @@ class GitHubIssue {
 		return new GitHubIssue(null, null, null, Collections.singletonList(username), null);
 	}
 
+	public GitHubIssue close() {
+		return new GitHubIssue(this.number, this.title, "closed", this.assignees, this.milestone);
+	}
+
 	public String getId() {
 		return number == null ? null : "#".concat(number);
 	}

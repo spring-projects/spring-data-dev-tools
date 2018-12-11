@@ -298,8 +298,8 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 
 		jira.assignTicketToMe(new Ticket("DATAREDIS-302", "", null));
 
-		verify(putRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302"))
-				.withRequestBody(equalToJson("{\"update\":{\"assignee\":[ {\"set\":{\"name\":\"dummy\"}} ] }}")));
+		verify(putRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).withRequestBody(equalToJson(
+				"{\"update\":{\"assignee\":[ {\"set\":{\"name\":\"dummy\"}} ] }, \"transition\":{}, \"fields\":{}}")));
 	}
 
 	/**
@@ -319,6 +319,28 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		jira.assignTicketToMe(new Ticket("DATACASS-302", "", null));
 
 		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/issue/DATACASS-302")));
+	}
+
+	/**
+	 * @see #94
+	 */
+	@Test
+	public void closeIterationShouldResolveReleaseTicket() {
+
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+
+		properties.setUsername("mp911de");
+
+		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
+		mockSearchWith("releaseTickets.json");
+
+		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREST-782")).//
+				willReturn(json("releaseTicket.json")));
+
+		jira.closeIteration(moduleIteration);
+
+		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREST-782")).withRequestBody(
+				equalToJson("{\"update\":{},\"transition\":{\"id\":5},\"fields\":{\"resolution\":{\"name\":\"Complete\"}}}")));
 	}
 
 	private void mockSearchWith(String fromClassPath) {

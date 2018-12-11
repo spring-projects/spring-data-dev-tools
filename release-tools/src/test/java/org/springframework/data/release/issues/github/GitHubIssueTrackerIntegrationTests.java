@@ -147,8 +147,8 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 
 		github.createReleaseVersion(BUILD_HOPPER_RC1);
 
-		verify(postRequestedFor(urlPathMatching(MILESTONES_URI))
-				.withRequestBody(equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\"}")));
+		verify(postRequestedFor(urlPathMatching(MILESTONES_URI)).withRequestBody(
+				equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\",\"open\":false}")));
 	}
 
 	/**
@@ -229,6 +229,27 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 
 		verify(patchRequestedFor(urlPathMatching(RELEASE_TICKET_URI))
 				.withRequestBody(equalToJson("{\"assignees\":[\"mp911de\"]}")));
+	}
+
+	/**
+	 * @see #94
+	 */
+	@Test
+	public void closeIterationShouldResolveReleaseTicket() {
+
+		mockGetMilestonesWith("milestones.json");
+		mockGetIssuesWith("issues.json");
+
+		mockService.stubFor(patch(urlPathMatching(RELEASE_TICKET_URI)).//
+				willReturn(json("issue.json")));
+
+		mockService.stubFor(patch(urlPathMatching(MILESTONES_URI + "/45")).//
+				willReturn(aResponse().withStatus(200)));
+
+		github.closeIteration(BUILD_HOPPER_RC1);
+
+		verify(patchRequestedFor(urlPathMatching(RELEASE_TICKET_URI))
+				.withRequestBody(equalToJson("{\"state\":\"closed\",\"assignees\":[\"mp911de\"]}")));
 	}
 
 	private void mockGetIssueWith(String fromClassPath, int issueId) {

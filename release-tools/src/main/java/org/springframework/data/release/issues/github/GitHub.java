@@ -23,6 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,6 +48,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -308,6 +313,31 @@ class GitHub implements IssueTracker {
 		return getReleaseTicketFor(module);
 	}
 
+	/**
+	 * Close the release ticket.
+	 *
+	 * @param module
+	 * @return
+	 */
+	public Ticket closeReleaseTicket(ModuleIteration module) {
+
+		Assert.notNull(module, "ModuleIteration must not be null.");
+
+		Ticket releaseTicketFor = getReleaseTicketFor(module);
+		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+		parameters.put("id", stripHash(releaseTicketFor));
+
+		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername()).close();
+
+		GitHubIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
+				new HttpEntity<>(edit, newUserScopedHttpHeaders()), ISSUE_TYPE, parameters).getBody();
+
+		return toTicket(response);
+	}
+
 	private String stripHash(Ticket ticket) {
 		return ticket.getId().startsWith("#") ? ticket.getId().substring(1) : ticket.getId();
 	}
@@ -330,7 +360,9 @@ class GitHub implements IssueTracker {
 
 	private Optional<Milestone> findMilestone(ModuleIteration moduleIteration, String repositoryName) {
 
-		for (String state : Arrays.asList("close", "open")) {
+		AtomicReference<Milestone> milestoneRef = new AtomicReference<>();
+
+		for (String state : Arrays.asList("open", "closed")) {
 
 			Map<String, Object> parameters = newUrlTemplateVariables();
 			parameters.put("repoName", repositoryName);
@@ -340,23 +372,83 @@ class GitHub implements IssueTracker {
 
 			logger.log(moduleIteration, "Looking up milestone from %s…", milestoneUri);
 
-			List<GitHubIssue.Milestone> milestones = operations.exchange(MILESTONE_URI, HttpMethod.GET,
-					new HttpEntity<>(newUserScopedHttpHeaders()), MILESTONES_TYPE, parameters).getBody();
+			doWithPaging(MILESTONE_URI, HttpMethod.GET, parameters, new HttpEntity<>(newUserScopedHttpHeaders()),
+					MILESTONES_TYPE, milestones -> {
 
-			Optional<GitHubIssue.Milestone> milestone = milestones.stream(). //
-					filter(m -> m.matches(moduleIteration)). //
-					findFirst(). //
-					map(m -> {
-						logger.log(moduleIteration, "Found milestone %s.", m);
-						return m;
+						Optional<GitHubIssue.Milestone> milestone = milestones.stream(). //
+						filter(m -> m.matches(moduleIteration)). //
+						findFirst(). //
+						map(m -> {
+							logger.log(moduleIteration, "Found milestone %s.", m);
+							return m;
+						});
+
+						if (milestone.isPresent()) {
+							milestoneRef.set(milestone.get());
+							return false;
+						}
+
+						return true;
 					});
 
-			if (milestone.isPresent()) {
-				return milestone;
+			if (milestoneRef.get() != null) {
+				break;
 			}
 		}
 
-		return Optional.empty();
+		return Optional.ofNullable(milestoneRef.get());
+	}
+
+	/**
+	 * Apply a {@link Predicate callback} with GitHub paging starting at {@code endpointUri}. The given
+	 * {@link Predicate#test(Object)} outcome controls whether paging continues by returning {@literal true} or stops.
+	 *
+	 * @param endpointUri
+	 * @param method
+	 * @param parameters
+	 * @param entity
+	 * @param type
+	 * @param callbackContinue
+	 * @param <T>
+	 */
+	private <T> void doWithPaging(String endpointUri, HttpMethod method, Map<String, Object> parameters,
+			HttpEntity<?> entity, ParameterizedTypeReference<T> type, Predicate<T> callbackContinue) {
+
+		ResponseEntity<T> exchange = operations.exchange(endpointUri, method, entity, type, parameters);
+
+		Pattern pattern = Pattern.compile("<([^ ]*)>; rel=\"(\\w+)\"");
+
+		while (true) {
+
+			if (!callbackContinue.test(exchange.getBody())) {
+				return;
+			}
+
+			HttpHeaders responseHeaders = exchange.getHeaders();
+			List<String> links = responseHeaders.getValuesAsList("Link");
+
+			if (links.isEmpty()) {
+				return;
+			}
+
+			String nextLink = null;
+			for (String link : links) {
+
+				Matcher matcher = pattern.matcher(link);
+				if (matcher.find()) {
+					if (matcher.group(2).equals("next")) {
+						nextLink = matcher.group(1);
+						break;
+					}
+				}
+			}
+
+			if (nextLink == null) {
+				return;
+			}
+
+			exchange = operations.exchange(nextLink, method, entity, type, parameters);
+		}
 	}
 
 	/*
@@ -396,6 +488,7 @@ class GitHub implements IssueTracker {
 
 		// - if no next version exists, create
 
+		closeReleaseTicket(module);
 	}
 
 	private Tickets getTicketsFor(ModuleIteration moduleIteration, boolean forCurrentUser) {

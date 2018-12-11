@@ -51,7 +51,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriTemplate;
 
@@ -74,7 +73,14 @@ class Jira implements JiraConnector {
 
 	private static final String INFRASTRUCTURE_COMPONENT_NAME = "Infrastructure";
 	private static final String IN_PROGRESS_STATUS_CATEGORY = "indeterminate";
+
+	/**
+	 * Values/Id's originate from https://jira.spring.io/rest/api/2/issue/(Ticket)/transitions?expand=transitions.fields
+	 */
 	private static final int IN_PROGRESS_TRANSITION = 4;
+	private static final int CLOSE_TRANSITION = 2;
+	private static final int RESOLVE_TRANSITION = 5;
+	private static final String COMPLETE_RESOLUTION = "Complete";
 
 	private final RestOperations operations;
 	private final Logger logger;
@@ -409,6 +415,34 @@ class Jira implements JiraConnector {
 		}
 	}
 
+	private void resolve(Ticket ticket) {
+
+		Assert.notNull(ticket, "Ticket must not be null.");
+
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("ticketId", ticket.getId());
+
+		JiraIssue currentIssue = getJiraIssue(ticket.getId())
+				.orElseThrow(() -> new IllegalStateException(String.format("Ticket %s does not exist", ticket.getId())));
+
+		if (isInProgress(currentIssue.getFields())) {
+
+			JiraIssueUpdate editMeta = JiraIssueUpdate.create().transition(RESOLVE_TRANSITION)
+					.resolution(COMPLETE_RESOLUTION);
+
+			logger.log("Ticket", "Resolving %s", ticket);
+
+			try {
+				operations.exchange(TRANSITION_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(editMeta, httpHeaders),
+						String.class, parameters).getBody();
+			} catch (HttpClientErrorException e) {
+				logger.warn("Ticket", "Resolution of %s failed with status ", ticket, e.getStatusCode());
+			}
+		}
+	}
+
 	private static boolean isInProgress(Fields fields) {
 
 		if (fields.getStatus() == null) {
@@ -483,6 +517,8 @@ class Jira implements JiraConnector {
 					operations.exchange(VERSION_TEMPLATE, HttpMethod.PUT, new HttpEntity<Object>(version, httpHeaders), Map.class,
 							parameters);
 				});
+
+		resolve(getReleaseTicketFor(module));
 
 		// - if no next version exists, create
 	}
@@ -627,8 +663,14 @@ class Jira implements JiraConnector {
 		parameters.put("fields", "summary,status,resolution,fixVersions");
 		parameters.put("startAt", startAt);
 
-		return operations.exchange(PROJECT_VERSIONS_TEMPLATE, HttpMethod.GET, new HttpEntity<>(headers),
-				JiraReleaseVersions.class, parameters).getBody();
+		try {
+			return operations.exchange(PROJECT_VERSIONS_TEMPLATE, HttpMethod.GET, new HttpEntity<>(headers),
+					JiraReleaseVersions.class, parameters).getBody();
+		} catch (HttpStatusCodeException e) {
+
+			System.out.println(e.getResponseBodyAsString());
+			throw e;
+		}
 	}
 
 	private Ticket toTicket(JiraIssue issue) {

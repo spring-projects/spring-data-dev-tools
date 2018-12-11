@@ -1,0 +1,22 @@
+{
+  "expand": "operations,editmeta,changelog,transitions,renderedFields",
+  "id": "67908",
+  "self": "https://jira.spring.io/rest/api/2/issue/67908",
+  "key": "DATAREST-782",
+  "fields": {
+	"summary": "Release 2.5 RC1 (Hopper)",
+	"resolution": {
+	  "self": "https://jira.spring.io/rest/api/2/resolution/1",
+	  "id": "1",
+	  "description": "A fix for this issue is checked into the tree and tested.",
+	  "name": "Fixed"
+	},
+	"status": {
+	  "name": "In Progress",
+	  "id": "6",
+	  "statusCategory": {
+		"key": "indeterminate"
+	  }
+	}
+  }
+}

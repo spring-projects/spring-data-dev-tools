@@ -43,6 +43,7 @@ class JiraIssueUpdate {
 
 	private final Map<String, Object> update;
 	private final Map<String, Object> transition;
+	private final Map<String, Map<String, Object>> fields;
 
 	/**
 	 * Create an empty {@link JiraIssueUpdate}.
@@ -50,7 +51,7 @@ class JiraIssueUpdate {
 	 * @return
 	 */
 	public static JiraIssueUpdate create() {
-		return new JiraIssueUpdate(Collections.emptyMap(), Collections.emptyMap());
+		return new JiraIssueUpdate(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
 	}
 
 	/**
@@ -66,7 +67,24 @@ class JiraIssueUpdate {
 		Map<String, Object> update = new LinkedHashMap<>(this.update);
 		update.put("assignee", new AssignTo(userId));
 
-		return new JiraIssueUpdate(update, this.transition);
+		return new JiraIssueUpdate(update, this.transition, this.fields);
+	}
+
+	/**
+	 * Assign a {@code resolution} the issue.
+	 *
+	 * @param resolution must not be {@literal null} or empty.
+	 * @return
+	 */
+	public JiraIssueUpdate resolution(String resolution) {
+
+		Assert.hasText(resolution, "Resolution must not be null or empty!");
+
+		Map<String, Map<String, Object>> fields = new LinkedHashMap<>(this.fields);
+		Map<String, Object> resolutionField = fields.computeIfAbsent("resolution", k -> new LinkedHashMap<>());
+		resolutionField.put("name", resolution);
+
+		return new JiraIssueUpdate(this.update, this.transition, fields);
 	}
 
 	/**
@@ -80,7 +98,7 @@ class JiraIssueUpdate {
 		Map<String, Object> transition = new LinkedHashMap<>(this.transition);
 		transition.put("id", transitionId);
 
-		return new JiraIssueUpdate(this.update, transition);
+		return new JiraIssueUpdate(this.update, transition, this.fields);
 	}
 
 	/**
