@@ -27,12 +27,17 @@ import org.springframework.data.release.model.ArtifactVersion;
  * Value object to represent an SCM tag.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Tag implements Comparable<Tag> {
 
 	private final String name;
+
+	Tag(ArtifactVersion version) {
+		this(version.toString());
+	}
 
 	public static Tag of(String source) {
 

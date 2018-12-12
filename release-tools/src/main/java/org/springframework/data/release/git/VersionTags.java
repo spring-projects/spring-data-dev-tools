@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * Value object to represent a collection of {@link Tag}s.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @EqualsAndHashCode
 public class VersionTags implements Streamable<Tag> {
@@ -60,6 +61,11 @@ public class VersionTags implements Streamable<Tag> {
 	}
 
 	public Tag createTag(ModuleIteration iteration) {
+
+		if (tags.isEmpty()) {
+			return new Tag(ArtifactVersion.of(iteration));
+		}
+
 		return getLatest().createNew(ArtifactVersion.of(iteration));
 	}
 
