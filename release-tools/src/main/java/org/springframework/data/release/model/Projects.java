@@ -38,7 +38,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 public class Projects {
 
 	public static final Project COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
-			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE;
+			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE, R2DBC;
 	public static final List<Project> PROJECTS;
 
 	static {
@@ -80,6 +80,8 @@ public class Projects {
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational"))
 				.withDependencies(COMMONS);
 
+		R2DBC = new Project("DATAR2DBC", "R2DBC", Tracker.GITHUB).withDependencies(COMMONS, JDBC);
+
 		GEMFIRE = new Project("SGF", "Gemfire") //
 				.withDependencies(COMMONS)//
 				.withSkipTests(true);
@@ -100,7 +102,7 @@ public class Projects {
 
 		// Specify build order to avoid maven dependency errors during build.
 		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, JDBC, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
-				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP, GEODE);
+				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP, GEODE, R2DBC);
 
 		DefaultDirectedGraph<Project, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
 
