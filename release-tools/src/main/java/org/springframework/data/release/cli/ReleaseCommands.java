@@ -84,6 +84,17 @@ class ReleaseCommands extends TimedCommand {
 		git.commit(iteration, "Release version %s.");
 	}
 
+	/**
+	 * Prepares the release of an individual module.
+	 *
+	 * @param moduleIteration
+	 * @throws Exception
+	 */
+	@CliCommand(value = "release module prepare", help = "Prepares the release of an individual module.")
+	public void prepareModule(@CliOption(key = "", mandatory = true) ModuleIteration moduleIteration) throws Exception {
+		prepare(TrainIteration.from(moduleIteration));
+	}
+
 	@CliCommand(value = "release build")
 	public void buildRelease(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "project", mandatory = false) String projectName) {
@@ -104,6 +115,16 @@ class ReleaseCommands extends TimedCommand {
 
 			build.performRelease(iteration).forEach(deployment::promote);
 		}
+	}
+
+	/**
+	 * Release an individual module.
+	 *
+	 * @param moduleIteration
+	 */
+	@CliCommand(value = "release module build")
+	public void buildModule(@CliOption(key = "", mandatory = true) ModuleIteration moduleIteration) {
+		buildRelease(TrainIteration.from(moduleIteration), null);
 	}
 
 	/**
@@ -147,6 +168,17 @@ class ReleaseCommands extends TimedCommand {
 	}
 
 	/**
+	 * Concludes the release of the given individual module.
+	 *
+	 * @param moduleIteration
+	 * @throws Exception
+	 */
+	@CliCommand(value = "release module conclude")
+	public void conclude(@CliOption(key = "", mandatory = true) ModuleIteration moduleIteration) throws Exception {
+		conclude(TrainIteration.from(moduleIteration));
+	}
+
+	/**
 	 * Triggers the distribution of release artifacts for all projects.
 	 *
 	 * @param iteration
@@ -157,6 +189,17 @@ class ReleaseCommands extends TimedCommand {
 
 		git.checkout(iteration);
 		build.distributeResources(iteration);
+	}
+
+	/**
+	 * Triggers the distribution of release artifacts for an individual module.
+	 *
+	 * @param moduleIteration
+	 * @throws Exception
+	 */
+	@CliCommand("release module distribute")
+	public void distribute(@CliOption(key = "", mandatory = true) ModuleIteration moduleIteration) {
+		distribute(TrainIteration.from(moduleIteration));
 	}
 
 	private static String getTrainNameForCommonsVersion(ArtifactVersion version) {

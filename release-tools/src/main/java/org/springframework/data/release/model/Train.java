@@ -49,13 +49,14 @@ public class Train implements Streamable<Module> {
 	private final Modules modules;
 	private @Wither Iterations iterations;
 	private @Wither boolean alwaysUseBranch;
+	private @Wither boolean detached;
 
 	public Train(String name, Module... modules) {
 		this(name, Arrays.asList(modules));
 	}
 
 	public Train(String name, Collection<Module> modules) {
-		this(name, Modules.of(modules), Iterations.DEFAULT, false);
+		this(name, Modules.of(modules), Iterations.DEFAULT, false, false);
 	}
 
 	/*
@@ -205,7 +206,7 @@ public class Train implements Streamable<Module> {
 		 * @param name must not be {@literal null} or empty.
 		 * @return
 		 */
-		Iteration getIterationByName(String name) {
+		public Iteration getIterationByName(String name) {
 
 			Assert.hasText(name, "Name must not be null or empty!");
 

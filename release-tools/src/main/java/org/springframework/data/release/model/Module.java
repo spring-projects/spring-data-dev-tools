@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value
 public class Module implements VersionAware, Comparable<Module> {
@@ -43,6 +44,14 @@ public class Module implements VersionAware, Comparable<Module> {
 				: new Iteration(customFirstIteration, Iteration.RC1);
 	}
 
+	public static Module create(Project project, Version version) {
+
+		Assert.notNull(project, "Project must not be null!");
+		Assert.notNull(version, "Version must not be null!");
+
+		return new Module(project, String.format("%d.%d", version.getMajor(), version.getMinor()));
+	}
+
 	public boolean hasName(String name) {
 		return project.getName().equalsIgnoreCase(name);
 	}
@@ -59,7 +68,7 @@ public class Module implements VersionAware, Comparable<Module> {
 
 	/**
 	 * Returns whether the current {@link Module} refers to the same project as the given one.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -67,7 +76,7 @@ public class Module implements VersionAware, Comparable<Module> {
 		return this.project.equals(module.project);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

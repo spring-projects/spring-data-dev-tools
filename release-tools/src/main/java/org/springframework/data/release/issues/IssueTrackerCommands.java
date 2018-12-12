@@ -125,6 +125,16 @@ class IssueTrackerCommands extends TimedCommand {
 		return releaseTickets(iteration);
 	}
 
+	@CliCommand(value = "tracker module create releasetickets")
+	public String createReleaseTickets(@CliOption(key = "", mandatory = true) ModuleIteration iteration) {
+
+		getTrackerFor(iteration).createReleaseTicket(iteration);
+
+		evict();
+
+		return releaseTickets(TrainIteration.from(iteration));
+	}
+
 	@CliCommand("tracker changelog")
 	public String changelog(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "module") String moduleName) {

@@ -15,23 +15,49 @@
  */
 package org.springframework.data.release.model;
 
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.data.release.Streamable;
+import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
-@Value
+@Getter
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
+@EqualsAndHashCode
 public class TrainIteration implements Streamable<ModuleIteration> {
 
 	private final Train train;
 	private final Iteration iteration;
 
-	/* 
+	/**
+	 * Create a {@link TrainIteration} for a single module.
+	 *
+	 * @param moduleIteration
+	 * @return
+	 */
+	public static TrainIteration from(ModuleIteration moduleIteration) {
+
+		Train dependencyDescriptors = ReleaseTrains.getTrainByName(moduleIteration.getTrain().getName());
+
+		if (dependencyDescriptors != null) {
+			return new AssociatedTrainIteration(moduleIteration.getTrain(), moduleIteration, dependencyDescriptors);
+		}
+
+		return new TrainIteration(moduleIteration.getTrain(), moduleIteration.getIteration());
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
@@ -73,5 +99,38 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 	@Override
 	public String toString() {
 		return String.format("%s %s", train.getName(), iteration.getName());
+	}
+
+	/**
+	 * A release {@link TrainIteration} for a single {@link Module} while associating related dependency versions from a
+	 * related {@link Train release train}. Detached {@link TrainIteration} allows to release a single module while
+	 * considering specific associated dependency versions.
+	 */
+	private static class AssociatedTrainIteration extends TrainIteration {
+
+		private final ModuleIteration moduleIteration;
+		private final Train dependencyDescriptors;
+
+		AssociatedTrainIteration(Train detached, ModuleIteration moduleIteration, Train dependencyDescriptors) {
+
+			super(detached, moduleIteration.getIteration());
+
+			Assert.isTrue(detached.isDetached(), "Detached Train must have detached flag set");
+			Assert.isTrue(!dependencyDescriptors.isDetached(),
+					"Dependency descriptors train must not have detached flag set");
+
+			this.moduleIteration = moduleIteration;
+			this.dependencyDescriptors = dependencyDescriptors;
+		}
+
+		@Override
+		public ArtifactVersion getModuleVersion(Project project) {
+
+			if (moduleIteration.getProject().equals(project)) {
+				return super.getModuleVersion(project);
+			}
+
+			return dependencyDescriptors.getModuleVersion(project, moduleIteration.getIteration());
+		}
 	}
 }

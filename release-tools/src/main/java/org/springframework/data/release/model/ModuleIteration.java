@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 @EqualsAndHashCode
@@ -60,7 +61,8 @@ public class ModuleIteration implements IterationVersion {
 	public Iteration getIteration() {
 
 		return trainIteration.getIteration().isInitialIteration() && this.module.hasCustomFirstIteration()
-				? module.getCustomFirstIteration() : this.trainIteration.getIteration();
+				? module.getCustomFirstIteration()
+				: this.trainIteration.getIteration();
 	}
 
 	/* 
@@ -99,6 +101,17 @@ public class ModuleIteration implements IterationVersion {
 
 		Iteration iteration = trainIteration.getIteration();
 
+		if (getTrain().isDetached()) {
+
+			if (iteration.isServiceIteration()) {
+				builder.append(" (").append(iteration.getName()).append(")");
+			} else {
+				builder.append(" ").append(iteration.getName());
+			}
+
+			return builder.toString();
+		}
+
 		if (iteration.isServiceIteration()) {
 			builder.append(" (").append(trainIteration.toString());
 		} else {
@@ -118,6 +131,11 @@ public class ModuleIteration implements IterationVersion {
 	public String getFullVersionString() {
 
 		String result = ArtifactVersion.of(this).toString();
+
+		if (getTrain().isDetached()) {
+			return result.concat(" (").concat(trainIteration.getIteration().getName()).concat(")");
+		}
+
 		return result.concat(" (").concat(trainIteration.toString()).concat(")");
 	}
 

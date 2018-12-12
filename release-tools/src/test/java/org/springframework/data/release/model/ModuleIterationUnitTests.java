@@ -22,6 +22,7 @@ import org.junit.Test;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public class ModuleIterationUnitTests {
 
@@ -37,6 +38,17 @@ public class ModuleIterationUnitTests {
 	}
 
 	@Test
+	public void abbreviatesTrailingZerosForStandaloneNonServiceReleases() {
+
+		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA.withDetached(true), Iteration.M1);
+		ModuleIteration module = iteration.getModule(Projects.JPA);
+
+		assertThat(module.getShortVersionString(), is("1.6 M1"));
+		assertThat(module.getMediumVersionString(), is("1.6 M1"));
+		assertThat(module.getFullVersionString(), is("1.6.0.M1"));
+	}
+
+	@Test
 	public void doesNotListIterationSuffixForServiceReleases() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.SR1);
@@ -45,5 +57,16 @@ public class ModuleIterationUnitTests {
 		assertThat(module.getShortVersionString(), is("1.6.1"));
 		assertThat(module.getMediumVersionString(), is("1.6.1 (Dijkstra SR1)"));
 		assertThat(module.getFullVersionString(), is("1.6.1.RELEASE (Dijkstra SR1)"));
+	}
+
+	@Test
+	public void doesNotListIterationSuffixForStandaloneServiceReleases() {
+
+		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA.withDetached(true), Iteration.SR1);
+		ModuleIteration module = iteration.getModule(Projects.JPA);
+
+		assertThat(module.getShortVersionString(), is("1.6.1"));
+		assertThat(module.getMediumVersionString(), is("1.6.1 (SR1)"));
+		assertThat(module.getFullVersionString(), is("1.6.1.RELEASE (SR1)"));
 	}
 }
