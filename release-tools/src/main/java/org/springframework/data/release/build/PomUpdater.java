@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 class PomUpdater {
@@ -52,16 +53,27 @@ class PomUpdater {
 		project.getDependencies().forEach(dependency -> {
 
 			String dependencyProperty = dependency.getDependencyProperty();
-
-			if (pom.getProperty(dependencyProperty) == null) {
-				return;
-			}
-
 			ArtifactVersion version = information.getProjectVersionToSet(dependency);
 
-			logger.log(project, "Updating %s dependency version property %s to %s.", dependency.getFullName(),
-					dependencyProperty, version);
-			pom.setProperty(dependencyProperty, version);
+			if (pom.getProperty(dependencyProperty) != null) {
+
+				logger.log(project, "Updating %s dependency version property %s to %s.", dependency.getFullName(),
+						dependencyProperty, version);
+				pom.setProperty(dependencyProperty, version);
+			}
+
+			dependency.getAdditionalArtifacts().forEach(artifact -> {
+
+				String innerDependencyProperty = artifact.getDependencyProperty();
+
+				if (pom.getProperty(innerDependencyProperty) == null) {
+					return;
+				}
+
+				logger.log(project, "Updating %s dependency version property %s to %s.", artifact.getArtifactId(),
+						innerDependencyProperty, version);
+				pom.setProperty(innerDependencyProperty, version);
+			});
 		});
 	}
 

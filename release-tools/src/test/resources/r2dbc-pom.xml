@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-r2dbc</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+
+	<name>Spring Data R2DBC</name>
+	<description>Spring Data module for R2DBC.</description>
+	<url>http://projects.spring.io/spring-data-r2dbc</url>
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>2.2.0.BUILD-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+
+		<dist.key>DATAR2DBC</dist.key>
+
+		<springdata.commons>2.2.0.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.relational>1.1.0.BUILD-SNAPSHOT</springdata.relational>
+		<java-module-name>spring.data.r2dbc</java-module-name>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+
+		<degraph-check.version>0.1.4</degraph-check.version>
+		<hsqldb.version>2.4.1</hsqldb.version>
+		<postgresql.version>42.2.5</postgresql.version>
+		<mssql-jdbc.version>7.1.2.jre8-preview</mssql-jdbc.version>
+		<r2dbc-spi.version>1.0.0.M6</r2dbc-spi.version>
+		<r2dbc-postgresql.version>1.0.0.M6</r2dbc-postgresql.version>
+		<r2dbc-h2.version>1.0.0.M6</r2dbc-h2.version>
+		<r2dbc-mssql.version>1.0.0.M6</r2dbc-mssql.version>
+		<reactive-streams.version>1.0.1</reactive-streams.version>
+		<testcontainers.version>1.10.1</testcontainers.version>
+
+	</properties>
+
+	<inceptionYear>2018</inceptionYear>
+
+	<developers>
+		<developer>
+			<id>mpaluch</id>
+			<name>Mark Paluch</name>
+			<email>mpaluch(at)pivotal.io</email>
+			<organization>Pivotal Software, Inc.</organization>
+			<organizationUrl>https://pivotal.io</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>ogierke</id>
+			<name>Oliver Gierke</name>
+			<email>ogierke(at)pivotal.io</email>
+			<organization>Pivotal Software, Inc.</organization>
+			<organizationUrl>https://pivotal.io</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<inherited>false</inherited>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>no-jacoco</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>jacoco-initialize</id>
+								<phase>none</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+		</profile>
+
+		<profile>
+			<id>all-dbs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>mysql-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/*IntegrationTests.java</include>
+									</includes>
+									<excludes>
+										<exclude>**/*HsqlIntegrationTests.java</exclude>
+									</excludes>
+									<systemPropertyVariables>
+										<spring.profiles.active>mysql</spring.profiles.active>
+									</systemPropertyVariables>
+								</configuration>
+							</execution>
+							<execution>
+								<id>postgres-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/*IntegrationTests.java</include>
+									</includes>
+									<excludes>
+										<exclude>**/*HsqlIntegrationTests.java</exclude>
+									</excludes>
+									<systemPropertyVariables>
+										<spring.profiles.active>postgres</spring.profiles.active>
+									</systemPropertyVariables>
+								</configuration>
+							</execution>
+							<execution>
+								<id>mariadb-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/*IntegrationTests.java</include>
+									</includes>
+									<excludes>
+										<exclude>**/*HsqlIntegrationTests.java</exclude>
+									</excludes>
+									<systemPropertyVariables>
+										<spring.profiles.active>mariadb</spring.profiles.active>
+									</systemPropertyVariables>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<version>${springdata.commons}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-data-relational</artifactId>
+			<version>${springdata.relational}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-spi</artifactId>
+			<version>${r2dbc-spi.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<version>${mssql-jdbc.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-postgresql</artifactId>
+			<version>${r2dbc-postgresql.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-h2</artifactId>
+			<version>${r2dbc-h2.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-mssql</artifactId>
+			<version>${r2dbc-mssql.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.schauderhaft.degraph</groupId>
+			<artifactId>degraph-check</artifactId>
+			<version>${degraph-check.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mysql</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<!--
+				 Jacoco plugin redeclared to make sure it's downloaded and
+				 the agents can be explicitly added to the test executions.
+			-->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.2</version>
+				<configuration>
+					<destFile>${jacoco.destfile}</destFile>
+				</configuration>
+				<executions>
+					<execution>
+						<id>jacoco-initialize</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<configuration>
+							<includes>
+								<include>**/*Tests.java</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<configuration>
+					<sourceDirectory>${project.root}/src/main/asciidoc</sourceDirectory>
+					<sourceDocumentName>index.adoc</sourceDocumentName>
+					<doctype>book</doctype>
+					<attributes>
+						<version>${project.version}</version>
+						<projectName>${project.name}</projectName>
+						<projectVersion>${project.version}</projectVersion>
+						<aspectjVersion>${aspectj}</aspectjVersion>
+						<querydslVersion>${querydsl}</querydslVersion>
+						<springVersion>${spring}</springVersion>
+						<r2dbcVersion>${r2dbc-spi.version}</r2dbcVersion>
+						<reactiveStreamsVersion>${reactive-streams.version}</reactiveStreamsVersion>
+						<releasetrainVersion>${releasetrain}</releasetrainVersion>
+						<allow-uri-read>true</allow-uri-read>
+						<toclevels>3</toclevels>
+						<numbered>true</numbered>
+					</attributes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-snapshot</id>
+			<url>https://repo.spring.io/plugins-snapshot</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>

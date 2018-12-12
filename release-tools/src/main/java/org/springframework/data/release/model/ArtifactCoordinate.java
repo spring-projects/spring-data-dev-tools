@@ -19,6 +19,7 @@ import lombok.Value;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value(staticConstructor = "of")
 public class ArtifactCoordinate {
@@ -29,5 +30,9 @@ public class ArtifactCoordinate {
 
 		String[] parts = coordinate.split(":");
 		return new ArtifactCoordinate(parts[0], parts[1]);
+	}
+
+	public String getDependencyProperty() {
+		return "springdata.".concat(artifactId.toLowerCase().replaceAll("spring-data-", ""));
 	}
 }

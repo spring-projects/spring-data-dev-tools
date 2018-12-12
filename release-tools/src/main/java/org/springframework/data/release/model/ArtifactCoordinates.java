@@ -22,10 +22,12 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 public class ArtifactCoordinates {
@@ -37,6 +39,14 @@ public class ArtifactCoordinates {
 
 	public static ArtifactCoordinates forGroupId(String groupId) {
 		return new ArtifactCoordinates(groupId, new ArrayList<>());
+	}
+
+	/**
+	 * Performs the given action for each element of the {@code Iterable} until all elements have been processed or the
+	 * action throws an exception.
+	 */
+	public void forEach(Consumer<? super ArtifactCoordinate> action) {
+		getCoordinates().forEach(action);
 	}
 
 	public ArtifactCoordinates artifacts(String... artifactIds) {
