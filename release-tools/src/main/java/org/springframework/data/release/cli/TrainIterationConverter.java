@@ -49,6 +49,11 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 	public TrainIteration convertFromText(String value, Class<?> targetType, String optionContext) {
 
 		String[] parts = value.split(" ");
+
+		if (parts.length != 2) {
+			throw new IllegalArgumentException(String.format("Cannot resolve TrainIteration from '%s'", value));
+		}
+
 		Train train = ReleaseTrains.getTrainByName(parts[0].trim());
 		Iteration iteration = train.getIteration(parts[1].trim());
 

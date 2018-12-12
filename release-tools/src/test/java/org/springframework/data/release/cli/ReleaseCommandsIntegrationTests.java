@@ -54,8 +54,8 @@ public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void predictsReleaseTrainCorrectly() throws Exception {
 
-		git.update(ReleaseTrains.GOSLING);
+		git.update(ReleaseTrains.MOORE);
 
-		assertThat(releaseCommands.predictTrainAndIteration(), is("Gosling"));
+		assertThat(releaseCommands.predictTrainAndIteration(), is("Moore"));
 	}
 }
