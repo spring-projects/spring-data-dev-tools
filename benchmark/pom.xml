@@ -45,6 +45,12 @@
 				<version>${project.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>com.github.mp911de.microbenchmark-runner</groupId>
+				<artifactId>microbenchmark-runner-junit4</artifactId>
+				<version>0.1.0.RELEASE</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -118,6 +124,10 @@
 		<repository>
 			<id>spring-libs-snapshot</id>
 			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 

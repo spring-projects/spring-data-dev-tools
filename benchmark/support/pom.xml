@@ -21,6 +21,11 @@
 			<artifactId>spring-data-mongodb</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.github.mp911de.microbenchmark-runner</groupId>
+			<artifactId>microbenchmark-runner-junit4</artifactId>
+		</dependency>
+
 	</dependencies>
 
 </project>

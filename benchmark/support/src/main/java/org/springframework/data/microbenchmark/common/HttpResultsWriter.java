@@ -15,8 +15,10 @@
  */
 package org.springframework.data.microbenchmark.common;
 
-import lombok.SneakyThrows;
+import jmh.mbr.core.ResultsWriter;
+import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -26,29 +28,36 @@ import java.time.Duration;
 import java.util.Collection;
 
 import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.runner.format.OutputFormat;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.CollectionUtils;
 
 /**
- * {@link ResultsWriter} implementation of {@link URLConnection}.
- *
- * @since 2.0
+ * {@link ResultsWriterOld} implementation of {@link URLConnection}.
+ * 
+ * @author Christoph Strobl
+ * @author Mark Paluch
  */
+@RequiredArgsConstructor
 class HttpResultsWriter implements ResultsWriter {
 
 	private final String url;
 
-	HttpResultsWriter(String url) {
-		this.url = url;
-	}
-
 	@Override
-	@SneakyThrows
-	public void write(Collection<RunResult> results) {
+	public void write(OutputFormat output, Collection<RunResult> results) {
 
 		if (CollectionUtils.isEmpty(results)) {
 			return;
 		}
+
+		try {
+			doWrite(results);
+		} catch (IOException e) {
+			output.println("Failed to write results: " + e.toString());
+		}
+	}
+
+	private void doWrite(Collection<RunResult> results) throws IOException {
 
 		StandardEnvironment env = new StandardEnvironment();
 

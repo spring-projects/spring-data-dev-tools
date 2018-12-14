@@ -15,13 +15,18 @@
  */
 package org.springframework.data.microbenchmark.common;
 
+import jmh.mbr.core.ResultsWriter;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.bson.Document;
 import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.runner.format.OutputFormat;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -32,21 +37,31 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
 
 /**
- * MongoDB specific {@link ResultsWriter} implementation.
+ * MongoDB specific {@link ResultsWriterOld} implementation.
  *
  * @author Christoph Strobl
- * @since 2.0
+ * @author Mark Paluch
  */
+@RequiredArgsConstructor
 class MongoResultsWriter implements ResultsWriter {
 
 	private final String uri;
 
-	MongoResultsWriter(String uri) {
-		this.uri = uri;
+	@Override
+	public void write(OutputFormat output, Collection<RunResult> results) {
+
+		if (CollectionUtils.isEmpty(results)) {
+			return;
+		}
+
+		try {
+			doWrite(results);
+		} catch (RuntimeException e) {
+			output.println("Failed to write results: " + e.toString());
+		}
 	}
 
-	@Override
-	public void write(Collection<RunResult> results) {
+	private void doWrite(Collection<RunResult> results) {
 
 		Date now = new Date();
 		StandardEnvironment env = new StandardEnvironment();
@@ -89,7 +104,7 @@ class MongoResultsWriter implements ResultsWriter {
 	 * @param doc
 	 * @return
 	 */
-	private Document fixDocumentKeys(Document doc) {
+	private static Document fixDocumentKeys(Document doc) {
 
 		Document sanitized = new Document();
 
