@@ -15,6 +15,8 @@
  */
 package org.springframework.data.microbenchmark.common;
 
+import jmh.mbr.junit4.Microbenchmark;
+
 import org.junit.runner.RunWith;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
@@ -29,9 +31,10 @@ import org.openjdk.jmh.annotations.Warmup;
  * @author Mark Paluch
  * @see Microbenchmark
  */
-@Warmup(iterations = JmhSupport.WARMUP_ITERATIONS)
-@Measurement(iterations = JmhSupport.MEASUREMENT_ITERATIONS)
-@Fork(JmhSupport.FORKS)
+@Warmup(iterations = 5)
+@Measurement(iterations = 10)
+@Fork(value = 1, jvmArgs = { "-server", "-XX:+HeapDumpOnOutOfMemoryError", "-Xms1024m", "-Xmx1024m",
+		"-XX:MaxDirectMemorySize=1024m" })
 @State(Scope.Thread)
 @RunWith(Microbenchmark.class)
 public abstract class AbstractMicrobenchmark {
