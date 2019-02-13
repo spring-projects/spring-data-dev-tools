@@ -24,6 +24,8 @@ import java.util.List;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -72,6 +74,7 @@ class GitHubIssue {
 			return title.contains(moduleIteration.getShortVersionString());
 		}
 
+		@JsonIgnore
 		public boolean isOpen() {
 			return "open".equals(state);
 		}
