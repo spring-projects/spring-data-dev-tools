@@ -27,7 +27,7 @@ import org.springframework.data.release.model.Project;
 @RequiredArgsConstructor
 public class StaticResources {
 
-	private static final String URL_TEMPLATE = "http://docs.spring.io/spring-data/%s/docs/%s";
+	private static final String URL_TEMPLATE = "https://docs.spring.io/spring-data/%s/docs/%s";
 
 	private final String baseUrl;
 
