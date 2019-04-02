@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.data.release.model;
 import static org.springframework.data.release.model.Iteration.*;
 import static org.springframework.data.release.model.Projects.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,19 +55,11 @@ public class ReleaseTrains {
 
 		LOVELACE = KAY.next("Lovelace", Transition.MINOR, new Module(JDBC, "1.0"), new Module(SOLR, "4.0"));
 
-		MOORE = LOVELACE.next("Moore", Transition.MINOR).withIterations(new Iterations(M1, M2, M3, RC1, RC2));
+		MOORE = LOVELACE.next("Moore", Transition.MINOR).withIterations(new Iterations(M1, M2, M3, RC1, RC2, GA));
 
 		// Trains
 
 		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE);
-
-		// Train names
-
-		List<String> names = new ArrayList<>(TRAINS.size());
-
-		for (Train train : TRAINS) {
-			names.add(train.getName());
-		}
 	}
 
 	private static Train codd() {
@@ -107,23 +98,17 @@ public class ReleaseTrains {
 
 	public static Train getTrainByName(String name) {
 
-		for (Train train : TRAINS) {
-			if (train.getName().equalsIgnoreCase(name)) {
-				return train;
-			}
-		}
-
-		return null;
+		return TRAINS.stream() //
+				.filter(it -> it.getName().equalsIgnoreCase(name)) //
+				.findFirst() //
+				.orElse(null);
 	}
 
 	public static Project getProjectByName(String name) {
 
-		for (Project project : PROJECTS) {
-			if (project.getName().equalsIgnoreCase(name)) {
-				return project;
-			}
-		}
-
-		return null;
+		return PROJECTS.stream() //
+				.filter(it -> it.getName().equalsIgnoreCase(name)) //
+				.findFirst() //
+				.orElse(null);
 	}
 }

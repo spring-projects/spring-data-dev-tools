@@ -48,6 +48,7 @@ import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
@@ -121,15 +122,14 @@ public class GitOperations {
 
 			doWithGit(project, git -> {
 
-				Branch branch = Branch.from(module);
+				ModuleIteration gaIteration = train.getModuleIteration(project, Iteration.GA);
+				Optional<Tag> gaTag = findTagFor(project, ArtifactVersion.of(gaIteration));
 
-				if (!branchExists(project, branch) && !branchExists(project, Branch.from("origin/" + branch.toString()))) {
-
-					logger.warn(project, "Branch %s does not exist. Using %s.", branch, Branch.MASTER);
-
-					masterSwitch.set(true);
-					branch = Branch.MASTER;
+				if (!gaTag.isPresent()) {
+					logger.log(project, "Checking out master branch as no GA release tag could be found!");
 				}
+
+				Branch branch = gaTag.isPresent() ? Branch.from(module) : Branch.MASTER;
 
 				CheckoutCommand command = git.checkout().setName(branch.toString());
 
@@ -284,9 +284,6 @@ public class GitOperations {
 
 				logger.log(project, "git fetch --tags");
 				git.fetch().setTagOpt(TagOpt.FETCH_TAGS).call();
-
-				logger.log(project, "git pull");
-				git.pull().call();
 
 			} else {
 				clone(project);
