@@ -22,3 +22,7 @@ jira.url=https://jira.spring.io
 deployment.gpg.keyname=
 deployment.gpg.password=
 # deployment.gpg.executable=/usr/local/bin/gpg2
+
+# A GitHub token with user:email, read:user and read:org scopes.
+# User needs to be part of the Spring team on GitHub as well.
+sagan.key=

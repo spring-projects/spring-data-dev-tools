@@ -15,6 +15,8 @@
 - `deployment.api-key` - The API key to use for artifact promotion.
 - `deployment.password` - The password of the deployment user (buildmaster).
 
+See `application-local.template` for details.
+
 3. Run `mvn package appassembler:assemble && sh target/appassembler/bin/spring-data-release-shell`
 
 4. Pre-release checks
@@ -52,6 +54,6 @@ $ tracker create releasetickets $trainIteration.next
 $ tracker archive $trainIteration.previous
 ```
 
-* Update versions in Sagan with `$ sagan update $releasetrains`. 
+* Update versions in Sagan with `$ sagan update $releasetrains`.
 * Announce release (Blog, Twitter) and notify downstream dependency projects as needed. Dev-tools can assist you with `$ announcement $trainIteration`. Make sure to remove the changelog link to Envers as this module has no changelog.
 
