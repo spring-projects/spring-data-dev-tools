@@ -109,4 +109,13 @@ public class Iteration {
 	public int getBugfixValue() {
 		return name.startsWith("SR") ? Integer.parseInt(name.substring(2)) : 0;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return name;
+	}
 }

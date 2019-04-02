@@ -21,12 +21,13 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 
 /**
  * Unit tests for {@link GitProject}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class GitProjectUnitTests {
@@ -36,7 +37,7 @@ public class GitProjectUnitTests {
 
 		Train codd = ReleaseTrains.CODD;
 		GitServer server = new GitServer();
-		Module module = codd.getModule("Commons");
+		Module module = codd.getModule(Projects.COMMONS);
 		Project project = module.getProject();
 
 		GitProject gitProject = new GitProject(project, server);

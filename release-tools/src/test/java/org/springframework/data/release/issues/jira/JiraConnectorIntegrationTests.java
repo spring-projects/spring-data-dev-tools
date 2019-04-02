@@ -60,7 +60,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	static final String SEARCH_URI = "/rest/api/2/search";
 	static final String PROJECT_VERSION_URI = "/rest/api/2/project/%s/version";
 	static final String PROJECT_COMPONENTS_URI = "/rest/api/2/project/%s/components";
-	static final ModuleIteration REST_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+	static final ModuleIteration REST_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 	@Rule public WireMockRule mockService = new WireMockRule(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/jira")));
@@ -177,7 +177,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void createReleaseVersionShouldFindExistingReleaseVersion() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 
@@ -192,7 +192,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void archiveReleaseVersionShouldArchiveReleaseVersion() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 		mockService.stubFor(put(urlPathMatching(UPDATE_VERSION_URI)).//
@@ -211,7 +211,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void createReleaseTicketShouldCreateReleaseTicket() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 		mockGetProjectComponentsWith("projectComponents.json", moduleIteration.getProjectKey());
@@ -233,7 +233,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void createReleaseTicketShouldCreateReleaseTicketWithoutComponent() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 		mockGetProjectComponentsWith("emptyProjectComponents.json", moduleIteration.getProjectKey());
@@ -257,7 +257,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		expectedException.expect(IllegalStateException.class);
 		expectedException.expectMessage("Did not find a release version for Spring Data REST 2.5 RC1");
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockSearchWith("emptyTickets.json");
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", moduleIteration.getProjectKey());
@@ -273,7 +273,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void createReleaseTicketShouldFindExistingTicket() throws Exception {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockGetProjectVersionsWith("releaseVersions.json", moduleIteration.getProjectKey());
 		mockGetProjectComponentsWith("projectComponents.json", moduleIteration.getProjectKey());
@@ -327,7 +327,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	public void closeIterationShouldResolveReleaseTicket() {
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "REST");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		properties.setUsername("mp911de");
 

@@ -24,6 +24,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 
@@ -42,7 +43,7 @@ public class DeploymentOperationsIntegrationTests extends AbstractIntegrationTes
 	public void testname() {
 
 		Train train = ReleaseTrains.HOPPER;
-		ModuleIteration buildModule = train.getModuleIteration(Iteration.M1, "build");
+		ModuleIteration buildModule = train.getModuleIteration(Projects.BUILD, Iteration.M1);
 
 		git.update(train);
 		build.prepareVersion(buildModule, Phase.PREPARE);

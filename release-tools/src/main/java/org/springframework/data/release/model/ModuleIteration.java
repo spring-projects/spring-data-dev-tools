@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * @author Oliver Gierke
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @EqualsAndHashCode
 public class ModuleIteration implements IterationVersion {
 
@@ -44,7 +45,7 @@ public class ModuleIteration implements IterationVersion {
 		return module.getProject();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.model.IterationVersion#getVersion()
 	 */
@@ -60,10 +61,11 @@ public class ModuleIteration implements IterationVersion {
 	public Iteration getIteration() {
 
 		return trainIteration.getIteration().isInitialIteration() && this.module.hasCustomFirstIteration()
-				? module.getCustomFirstIteration() : this.trainIteration.getIteration();
+				? module.getCustomFirstIteration()
+				: this.trainIteration.getIteration();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.model.IterationVersion#isBranchVersion()
 	 */
@@ -75,7 +77,7 @@ public class ModuleIteration implements IterationVersion {
 	/**
 	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}. This will
 	 * abbreviate trailing zeros and not include the release train name.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getShortVersionString() {
@@ -112,7 +114,7 @@ public class ModuleIteration implements IterationVersion {
 	/**
 	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}. This will use the
 	 * technical version string and append the train iteration.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getFullVersionString() {

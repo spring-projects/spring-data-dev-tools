@@ -55,8 +55,8 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 	public static final String ISSUES_URI = "/repos/spring-projects/spring-data-build/issues";
 	public static final String RELEASE_TICKET_URI = "/repos/spring-projects/spring-data-build/issues/233";
 	public static final String MILESTONES_URI = "/repos/spring-projects/spring-data-build/milestones";
-	public static final ModuleIteration BUILD_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1,
-			"Build");
+	public static final ModuleIteration BUILD_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Projects.BUILD,
+			Iteration.RC1);
 
 	@Rule public WireMockRule mockService = new WireMockRule(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/github")));
@@ -189,7 +189,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 		expectedException.expect(IllegalStateException.class);
 		expectedException.expectMessage("No milestone for Spring Data Build found containing 1.8 RC1!");
 
-		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Iteration.RC1, "Build");
+		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.BUILD, Iteration.RC1);
 
 		mockGetIssuesWith("emptyIssues.json");
 		mockGetMilestonesWith("emptyMilestones.json");

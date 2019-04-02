@@ -17,12 +17,13 @@ package org.springframework.data.release.deployment;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
  * Deployment functionality.
- * 
+ *
  * @author Oliver Gierke
  */
 @Component
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
 public class DeploymentOperations {
 
 	private final ArtifactoryClient client;
+	private final Logger logger;
 
 	public void verifyAuthentication() {
 		client.verify();
@@ -37,12 +39,18 @@ public class DeploymentOperations {
 
 	/**
 	 * Promotes the artifacts identified by the given {@link DeploymentInformation}.
-	 * 
+	 *
 	 * @param information must not be {@literal null}.
 	 */
 	public void promote(DeploymentInformation information) {
 
 		Assert.notNull(information, "DeploymentInformation must not be null!");
+
+		if (information.getModule().getIteration().isPublic()) {
+			logger.log(information.getModule(),
+					"Skipping build promotion as it's a public version and was deployed to Maven Central directly,");
+			return;
+		}
 
 		client.promote(information);
 	}

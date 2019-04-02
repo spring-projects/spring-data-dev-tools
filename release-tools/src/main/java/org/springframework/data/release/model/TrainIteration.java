@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.util.Iterator;
@@ -26,12 +27,13 @@ import org.springframework.data.release.Streamable;
  * @author Oliver Gierke
  */
 @Value
+@RequiredArgsConstructor
 public class TrainIteration implements Streamable<ModuleIteration> {
 
 	private final Train train;
 	private final Iteration iteration;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
@@ -44,12 +46,8 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 		return train.getModuleVersion(project, iteration);
 	}
 
-	public ModuleIteration getModule(String name) {
-		return train.getModuleIteration(iteration, name);
-	}
-
 	public ModuleIteration getModule(Project project) {
-		return train.getModuleIteration(iteration, project.getName());
+		return train.getModuleIteration(project, iteration);
 	}
 
 	public List<ModuleIteration> getModulesExcept(Project... exclusions) {
@@ -63,7 +61,7 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 	public ModuleIteration getPreviousIteration(ModuleIteration module) {
 
 		Iteration previousIteration = train.getIterations().getPreviousIteration(iteration);
-		return train.getModuleIteration(previousIteration, module.getProject().getName());
+		return train.getModuleIteration(module.getProject(), previousIteration);
 	}
 
 	/*

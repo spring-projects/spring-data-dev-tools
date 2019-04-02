@@ -19,9 +19,9 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.data.release.issues.github.GithubMilestone;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 
 /**
@@ -47,7 +47,7 @@ public class GithubMilestoneUnitTests {
 	@Test
 	public void usesCustomModuleIterationStartVersion() {
 
-		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.M1);
 
 		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.toString(), is("1.0 M1 (Dijkstra)"));
@@ -56,7 +56,7 @@ public class GithubMilestoneUnitTests {
 	@Test
 	public void doesNotUseCustomIterationOnNonFirstiterations() {
 
-		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.RC1, "Elasticsearch");
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.RC1);
 
 		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.toString(), is("1.0 RC1 (Dijkstra)"));
@@ -65,7 +65,7 @@ public class GithubMilestoneUnitTests {
 	@Test
 	public void rendersDescriptionCorrectly() {
 
-		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Iteration.M1, "Elasticsearch");
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.M1);
 
 		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.getDescription(), is("Dijkstra M2"));
@@ -73,7 +73,7 @@ public class GithubMilestoneUnitTests {
 
 	private void assertIterationVersion(Iteration iteration, String expected) {
 
-		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(iteration, "Commons");
+		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.COMMONS, iteration);
 
 		GithubMilestone version = new GithubMilestone(module);
 		assertThat(version.toString(), is(expected));

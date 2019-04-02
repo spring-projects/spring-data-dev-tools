@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrainIterationConverter implements Converter<TrainIteration> {
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.Converter#supports(java.lang.Class, java.lang.String)
 	 */
@@ -41,7 +41,7 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 		return TrainIteration.class.equals(type);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.Converter#convertFromText(java.lang.String, java.lang.Class, java.lang.String)
 	 */
@@ -55,12 +55,11 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 		}
 
 		Train train = ReleaseTrains.getTrainByName(parts[0].trim());
-		Iteration iteration = train.getIteration(parts[1].trim());
 
-		return new TrainIteration(train, iteration);
+		return train.getIteration(parts[1].trim());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.Converter#getAllPossibleValues(java.util.List, java.lang.Class, java.lang.String, java.lang.String, org.springframework.shell.core.MethodTarget)
 	 */
@@ -71,7 +70,10 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 		for (Train train : ReleaseTrains.TRAINS) {
 
 			for (Iteration iteration : train.getIterations()) {
-				completions.add(new Completion(new TrainIteration(train, iteration).toString()));
+
+				TrainIteration trainIteration = train.getIteration(iteration.getName());
+
+				completions.add(new Completion(trainIteration.toString()));
 			}
 		}
 

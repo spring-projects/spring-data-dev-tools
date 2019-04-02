@@ -26,11 +26,12 @@ import org.junit.Test;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.Iteration;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 
 /**
  * Unit tests for {@link Tickets}.
- * 
+ *
  * @author Mark Paluch
  */
 public class TicketsUnitTests {
@@ -41,7 +42,7 @@ public class TicketsUnitTests {
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
+		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
 		assertThat(result, is(true));
 	}
 
@@ -51,7 +52,7 @@ public class TicketsUnitTests {
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
+		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
 		assertThat(result, is(false));
 	}
 
@@ -61,7 +62,8 @@ public class TicketsUnitTests {
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		Ticket releaseTicket = tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
+		Ticket releaseTicket = tickets
+				.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
 		assertThat(releaseTicket, is(ticket));
 	}
 
@@ -71,7 +73,7 @@ public class TicketsUnitTests {
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
+		tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
 		fail("Missing IllegalStateException");
 	}
 
@@ -81,7 +83,8 @@ public class TicketsUnitTests {
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(true, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		Ticket releaseTicket = tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA"));
+		Ticket releaseTicket = tickets
+				.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
 		assertThat(releaseTicket, is(ticket));
 	}
 
@@ -92,7 +95,7 @@ public class TicketsUnitTests {
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Tickets result = tickets
-				.getReleaseTickets(ReleaseTrains.HOPPER.getModuleIteration(Iteration.GA, "JPA").getTrainIteration());
+				.getReleaseTickets(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA).getTrainIteration());
 		assertThat(result.getTickets().contains(ticket), is(true));
 	}
 }

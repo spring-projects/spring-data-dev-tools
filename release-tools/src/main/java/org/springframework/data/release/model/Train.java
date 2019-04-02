@@ -73,14 +73,6 @@ public class Train implements Streamable<Module> {
 				anyMatch(module -> module.getProject().equals(project));
 	}
 
-	public Module getModule(String name) {
-
-		return modules.stream().//
-				filter(module -> module.getProject().getName().equals(name)).//
-				findFirst().//
-				orElseThrow(() -> new IllegalArgumentException(String.format("No Module found with name %s!", name)));
-	}
-
 	/**
 	 * Returns the {@link Module} for the given {@link Project} in the current release {@link Train}.
 	 *
@@ -121,14 +113,21 @@ public class Train implements Streamable<Module> {
 		return new Train(name, collect);
 	}
 
-	public ModuleIteration getModuleIteration(Iteration iteration, String moduleName) {
+	/**
+	 * Returns the {@link ModuleIteration} for the given {@link Project} and {@link Iteration}.
+	 *
+	 * @param project must not be {@literal null}.
+	 * @param iteration must not be {@literal null}.
+	 * @return will never be {@literal null}.
+	 */
+	public ModuleIteration getModuleIteration(Project project, Iteration iteration) {
 
-		return modules.stream().//
-				filter(module -> module.hasName(moduleName)).//
-				findFirst().//
-				map(module -> new ModuleIteration(module, new TrainIteration(this, iteration))).//
-				orElseThrow(
-						() -> new IllegalArgumentException(String.format("No module found with module name %s!", moduleName)));
+		Assert.notNull(project, "Project must not be null!");
+		Assert.notNull(iteration, "Iteration must not be null!");
+
+		Module module = getModule(project);
+
+		return new ModuleIteration(module, getIteration(iteration));
 	}
 
 	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration) {
@@ -145,8 +144,8 @@ public class Train implements Streamable<Module> {
 				collect(Collectors.toList());
 	}
 
-	public Iteration getIteration(String name) {
-		return iterations.getIterationByName(name);
+	public TrainIteration getIteration(String name) {
+		return new TrainIteration(this, iterations.getIterationByName(name));
 	}
 
 	public ArtifactVersion getModuleVersion(Project project, Iteration iteration) {
@@ -174,6 +173,21 @@ public class Train implements Streamable<Module> {
 				collect(Collectors.joining(OsUtils.LINE_SEPARATOR)));
 
 		return builder.toString();
+	}
+
+	/**
+	 * Returns the {@link TrainIteration} for the given {@link Iteration} contained in this train.
+	 *
+	 * @param iteration must not be {@literal null}.
+	 * @return
+	 * @throws IllegalArgumentException in case the given {@link Iteration} is not available in this {@link Train}.
+	 */
+	private TrainIteration getIteration(Iteration iteration) {
+
+		Assert.isTrue(iterations.contains(iteration),
+				String.format("Iteration %s is not a valid one for the configured iterations %s!", iteration, iterations));
+
+		return new TrainIteration(this, iteration);
 	}
 
 	/**
@@ -221,6 +235,10 @@ public class Train implements Streamable<Module> {
 					filter(candidate -> candidate.isNext(iteration)).//
 					findFirst().orElseThrow(() -> new IllegalArgumentException(
 							String.format("Could not find previous iteration for %s!", iteration)));
+		}
+
+		boolean contains(Iteration iteration) {
+			return iterations.contains(iteration);
 		}
 
 		/*

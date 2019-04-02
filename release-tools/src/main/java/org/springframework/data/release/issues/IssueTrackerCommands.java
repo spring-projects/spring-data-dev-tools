@@ -29,6 +29,7 @@ import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.plugin.core.PluginRegistry;
@@ -131,7 +132,9 @@ class IssueTrackerCommands extends TimedCommand {
 
 		if (StringUtils.hasText(moduleName)) {
 
-			ModuleIteration module = iteration.getModule(moduleName);
+			Project project = Projects.requiredByName(moduleName);
+
+			ModuleIteration module = iteration.getModule(project);
 			return getTrackerFor(module).getChangelogFor(module).toString();
 		}
 
