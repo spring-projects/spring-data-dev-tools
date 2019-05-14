@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 @RequiredArgsConstructor
@@ -61,7 +62,7 @@ public class ReleaseOperations {
 
 	/**
 	 * Creates {@link Changelog} instances for all modules of the given {@link Train} and {@link Iteration}.
-	 * 
+	 *
 	 * @param train must not be {@literal null}.
 	 * @param iteration must not be {@literal null}.
 	 * @throws Exception
@@ -74,7 +75,7 @@ public class ReleaseOperations {
 
 			Changelog changelog = trackers
 					.getRequiredPluginFor(module.getProject(),
-							() -> String.format("No issue tracker found for project %!", module.getProject()))//
+							() -> String.format("No issue tracker found for project %s!", module.getProject()))//
 					.getChangelogFor(module);
 
 			for (String location : CHANGELOG_LOCATIONS) {
