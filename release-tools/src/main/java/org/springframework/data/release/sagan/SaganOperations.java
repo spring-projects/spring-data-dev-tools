@@ -44,7 +44,6 @@ import org.springframework.util.Assert;
 class SaganOperations {
 
 	private static final List<Project> TO_FILTER = Arrays.asList(Projects.COMMONS, //
-			Projects.GEODE, //
 			Projects.KEY_VALUE);
 
 	GitOperations git;
@@ -53,7 +52,7 @@ class SaganOperations {
 
 	/**
 	 * Updates the project metadata for the modules in the given release {@link Train}s.
-	 * 
+	 *
 	 * @param trains must not be {@literal null}.
 	 */
 	void updateProjectMetadata(Train... trains) {
@@ -72,7 +71,7 @@ class SaganOperations {
 
 	/**
 	 * Returns all {@link MaintainedVersions} grouped by {@link Project} for the given release {@link Train}.
-	 * 
+	 *
 	 * @param trains must not be {@literal null}.
 	 * @return will never be {@literal null}.
 	 */
@@ -115,7 +114,7 @@ class SaganOperations {
 
 	/**
 	 * Returns whether the given {@link Tag} is one that logically belongs to the given version.
-	 * 
+	 *
 	 * @param tag must not be {@literal null}.
 	 * @param version must not be {@literal null}.
 	 * @return
