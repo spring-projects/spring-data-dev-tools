@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.1.0.BUILD-SNAPSHOT</version>
+		<version>2.2.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<modules>
@@ -24,7 +24,7 @@
 	</modules>
 
 	<properties>
-		<releasetrain.version>Lovelace-BUILD-SNAPSHOT</releasetrain.version>
+		<releasetrain.version>Moore-BUILD-SNAPSHOT</releasetrain.version>
 		<jmh.version>1.19</jmh.version>
 	</properties>
 
