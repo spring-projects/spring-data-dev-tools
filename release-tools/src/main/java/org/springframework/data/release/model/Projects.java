@@ -94,7 +94,8 @@ public class Projects {
 		REST = new Project("DATAREST", "REST") //
 				.withDependencies(JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA //
-						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser"));
+						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser",
+								"spring-data-rest-hal-explorer"));
 
 		ENVERS = new Project("DATAENV", "Envers", Tracker.GITHUB).withDependencies(JPA);
 
