@@ -45,7 +45,7 @@ public class Project implements Comparable<Project> {
 	private final @Wither String fullName;
 	private final Collection<Project> dependencies;
 	private final @Getter Tracker tracker;
-	private final @Wither @Getter ArtifactCoordinates additionalArtifacts;
+	private final @Wither ArtifactCoordinates additionalArtifacts;
 	private final @Wither boolean skipTests;
 
 	Project(String key, String name) {
@@ -82,7 +82,7 @@ public class Project implements Comparable<Project> {
 
 	/**
 	 * Returns whether the current project depends on the given one.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 */
@@ -104,7 +104,7 @@ public class Project implements Comparable<Project> {
 
 	/**
 	 * Returns all dependencies of the current project including transitive ones.
-	 * 
+	 *
 	 * @return
 	 */
 	public Set<Project> getDependencies() {
@@ -114,7 +114,7 @@ public class Project implements Comparable<Project> {
 				.collect(Collectors.toSet());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

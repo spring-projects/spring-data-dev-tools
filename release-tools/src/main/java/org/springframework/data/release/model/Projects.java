@@ -37,8 +37,8 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
  */
 public class Projects {
 
-	public static final Project COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA, ELASTICSEARCH,
-			REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE, R2DBC;
+	public static final Project COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
+			ELASTICSEARCH, REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE, R2DBC;
 	public static final List<Project> PROJECTS;
 
 	static {
