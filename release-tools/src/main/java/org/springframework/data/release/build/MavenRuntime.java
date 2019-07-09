@@ -15,15 +15,22 @@
  */
 package org.springframework.data.release.build;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
-import org.apache.maven.shared.invoker.MavenInvocationException;
+
 import org.springframework.data.release.io.OsOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.Project;
@@ -62,37 +69,126 @@ class MavenRuntime {
 
 	public void execute(Project project, CommandLine arguments) {
 
-		String logPrefix = StringUtils.padRight(project.getName(), 10);
-		Invoker invoker = new DefaultInvoker();
-		invoker.setMavenHome(properties.getMavenHome());
-		invoker.setOutputHandler(line -> log.info(logPrefix + ": " + line));
-		invoker.setErrorHandler(line -> log.warn(logPrefix + ": " + line));
-
-		File localRepository = properties.getLocalRepository();
-
-		if (localRepository != null) {
-			invoker.setLocalRepositoryDirectory(localRepository);
-		}
-
-		DefaultInvocationRequest request = new DefaultInvocationRequest();
-		request.setJavaHome(os.getJavaHome());
-		request.setShellEnvironmentInherited(true);
-		request.setBaseDirectory(workspace.getProjectDirectory(project));
-
 		logger.log(project, "Executing mvn %s", arguments.toString());
 
-		request.setGoals(arguments.toCommandLine(it -> properties.getFullyQualifiedPlugin(it.getGoal())));
+		try (MavenLogger mavenLogger = getLogger(project, arguments.getGoals())) {
 
-		try {
+			Invoker invoker = new DefaultInvoker();
+			invoker.setMavenHome(properties.getMavenHome());
+			invoker.setOutputHandler(mavenLogger::info);
+			invoker.setErrorHandler(mavenLogger::warn);
+
+			File localRepository = properties.getLocalRepository();
+
+			if (localRepository != null) {
+				invoker.setLocalRepositoryDirectory(localRepository);
+			}
+
+			DefaultInvocationRequest request = new DefaultInvocationRequest();
+			request.setJavaHome(os.getJavaHome());
+			request.setShellEnvironmentInherited(true);
+			request.setBaseDirectory(workspace.getProjectDirectory(project));
+
+			request.setGoals(arguments.toCommandLine(it -> properties.getFullyQualifiedPlugin(it.getGoal())));
 
 			InvocationResult result = invoker.execute(request);
 
 			if (result.getExitCode() != 0) {
 				throw new RuntimeException(result.getExecutionException());
 			}
-
-		} catch (MavenInvocationException o_O) {
-			throw new RuntimeException(o_O);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
+
+	private MavenLogger getLogger(Project project, List<CommandLine.Goal> goals) {
+
+		if (this.properties.isConsoleLogger()) {
+			return new SlfLogger(log, project);
+		}
+
+		return new FileLogger(log, project, this.workspace.getLogsDirectory(), goals);
+	}
+
+	/**
+	 * Maven Logging Forwarder.
+	 */
+	interface MavenLogger extends Closeable {
+
+		void info(String message);
+
+		void warn(String message);
+	}
+
+	@RequiredArgsConstructor
+	static class SlfLogger implements MavenLogger {
+
+		private final org.slf4j.Logger logger;
+		private final String logPrefix;
+
+		SlfLogger(org.slf4j.Logger logger, Project project) {
+			this.logger = logger;
+			this.logPrefix = StringUtils.padRight(project.getName(), 10);
+		}
+
+		@Override
+		public void info(String message) {
+			logger.info(logPrefix + ": " + message);
+		}
+
+		@Override
+		public void warn(String message) {
+			logger.warn(logPrefix + ": " + message);
+		}
+
+		@Override
+		public void close() throws IOException {
+			// no-op
+		}
+	}
+
+	static class FileLogger implements MavenLogger {
+
+		private final PrintWriter printWriter;
+		private final FileOutputStream outputStream;
+
+		FileLogger(org.slf4j.Logger logger, Project project, File logsDirectory, List<CommandLine.Goal> goals) {
+
+			if (!logsDirectory.exists()) {
+				logsDirectory.mkdirs();
+			}
+
+			String goalNames = goals.stream().map(CommandLine.Goal::getGoal).collect(Collectors.joining("-"));
+
+			String filename = String.format("mvn-%s-%s.log", project.getName(), goalNames);
+
+			try {
+				File file = new File(logsDirectory, filename);
+				logger.info("Routing Maven output to " + file.getCanonicalPath());
+				outputStream = new FileOutputStream(file, true);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+
+			printWriter = new PrintWriter(outputStream, true);
+		}
+
+		@Override
+		public void info(String message) {
+			printWriter.println(message);
+
+		}
+
+		@Override
+		public void warn(String message) {
+			printWriter.println(message);
+		}
+
+		@Override
+		public void close() throws IOException {
+			printWriter.close();
+			outputStream.close();
+		}
+	}
+
 }

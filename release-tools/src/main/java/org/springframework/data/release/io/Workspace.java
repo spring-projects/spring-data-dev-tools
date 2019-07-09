@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
 
 /**
  * Abstraction of the workspace that is used to work with the {@link Project}'s repositories, execute builds, etc.
- * 
+ *
  * @author Oliver Gierke
  */
 @Component
@@ -64,7 +64,7 @@ public class Workspace {
 
 	/**
 	 * Returns the current working directory.
-	 * 
+	 *
 	 * @return
 	 */
 	public File getWorkingDirectory() {
@@ -72,17 +72,30 @@ public class Workspace {
 	}
 
 	/**
+	 * Returns the current logs directory.
+	 *
+	 * @return
+	 */
+	public File getLogsDirectory() {
+		return ioProperties.getLogs();
+	}
+
+	/**
 	 * Cleans up the working directory by removing all files and folders in it.
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	public void cleanup() throws IOException {
 
-		logger.log("Workspace", "Cleaning up workspace directory at %s.", getWorkingDirectory().getAbsolutePath());
+		delete(getWorkingDirectory().toPath(), "workspace");
+		delete(getLogsDirectory().toPath(), "logs");
+	}
 
-		Path workingDirPath = getWorkingDirectory().toPath();
+	private void delete(Path path, String type) throws IOException {
 
-		Files.walkFileTree(workingDirPath, new SimpleFileVisitor<Path>() {
+		logger.log("Workspace", "Cleaning up %s directory at %s.", type, path.toAbsolutePath());
+
+		Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -93,7 +106,7 @@ public class Workspace {
 			@Override
 			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
 
-				if (!workingDirPath.equals(dir)) {
+				if (!path.equals(dir)) {
 					Files.delete(dir);
 				}
 
@@ -130,7 +143,7 @@ public class Workspace {
 
 	/**
 	 * Returns the directory for the given {@link Project}.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 */
@@ -142,7 +155,7 @@ public class Workspace {
 
 	/**
 	 * Returns whether the project directory for the given project already exists.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 */
@@ -154,7 +167,7 @@ public class Workspace {
 
 	/**
 	 * Returns a file with the given name relative to the working directory for the given {@link Project}.
-	 * 
+	 *
 	 * @param name must not be {@literal null} or empty.
 	 * @param project must not be {@literal null}.
 	 * @return
@@ -218,7 +231,7 @@ public class Workspace {
 
 	/**
 	 * Initializes the working directory and creates the folders if necessary.
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	@PostConstruct

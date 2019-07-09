@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Slf4j
 @Data
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "io")
 class IoProperties {
 
-	private File workDir, javaHome;
+	private File workDir, javaHome, logs;
 
 	public void setWorkDir(String workDir) {
 

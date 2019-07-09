@@ -28,6 +28,7 @@ import org.springframework.web.util.UriTemplate;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Data
 @Component
@@ -56,6 +57,11 @@ public class DeploymentProperties {
 	 */
 	private String stagingRepository;
 
+	/**
+	 * The repository to deploy docs/schemas to.
+	 */
+	private String distributionRepository;
+
 	private String repositoryPrefix = "";
 
 	private Gpg gpg;
@@ -64,9 +70,13 @@ public class DeploymentProperties {
 		return repositoryPrefix.concat(stagingRepository);
 	}
 
+	public String getDistributionRepository() {
+		return repositoryPrefix.concat(distributionRepository);
+	}
+
 	/**
 	 * Returns the URI of the staging repository.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getStagingRepositoryUrl() {
@@ -88,7 +98,7 @@ public class DeploymentProperties {
 
 		/**
 		 * Returns the URI to the resource that a promotion can be triggered at.
-		 * 
+		 *
 		 * @param information must not be {@literal null}.
 		 * @return
 		 */

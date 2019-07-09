@@ -27,8 +27,9 @@ import org.springframework.util.Assert;
 
 /**
  * Maven configuration properties.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Slf4j
 @Data
@@ -39,11 +40,12 @@ class MavenProperties {
 	private File mavenHome;
 	private File localRepository;
 	private Map<String, String> plugins;
+	private boolean consoleLogger = true;
 
 	/**
 	 * Configures the local Maven repository location to use. In case the given folder does not already exists it's
 	 * created.
-	 * 
+	 *
 	 * @param localRepository must not be {@literal null} or empty.
 	 */
 	public void setLocalRepository(String localRepository) {
@@ -61,7 +63,7 @@ class MavenProperties {
 
 	/**
 	 * Returns the fully-qualified plugin goal for the given local one.
-	 * 
+	 *
 	 * @param goal must not be {@literal null} or empty.
 	 * @return
 	 */

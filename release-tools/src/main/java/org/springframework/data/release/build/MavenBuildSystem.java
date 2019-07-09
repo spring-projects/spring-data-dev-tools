@@ -41,12 +41,11 @@ import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.io.XBFileIO;
 
@@ -116,7 +115,18 @@ class MavenBuildSystem implements BuildSystem {
 		logger.log(project, "Triggering distribution build…");
 
 		mvn.execute(project, CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
-				SKIP_TESTS, profile("distribute"), Argument.of("-B")));
+				SKIP_TESTS, profile("distribute"), Argument.of("-B"),
+				arg("artifactory.server").withValue(properties.getServer().getUri()),
+				arg("distribution-repository").withValue(properties.getDistributionRepository()),
+				arg("artifactory.username").withValue(properties.getUsername()),
+				arg("artifactory.password").withValue(properties.getPassword())));
+
+		mvn.execute(project, CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
+				SKIP_TESTS, profile("distribute-schema"), Argument.of("-B"),
+				arg("artifactory.server").withValue(properties.getServer().getUri()),
+				arg("distribution-repository").withValue(properties.getDistributionRepository()),
+				arg("artifactory.username").withValue(properties.getUsername()),
+				arg("artifactory.password").withValue(properties.getPassword())));
 
 		logger.log(project, "Successfully finished distribution build!");
 
@@ -190,36 +200,6 @@ class MavenBuildSystem implements BuildSystem {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Triggers building the distribution artifacts for all Maven projects of the given {@link Train}.
-	 *
-	 * @param iteration
-	 * @throws Exception
-	 */
-	public void triggerDistributionBuild(TrainIteration iteration) throws Exception {
-
-		ExecutionUtils.run(iteration, module -> {
-
-			Project project = module.getProject();
-
-			if (BUILD.equals(project)) {
-				return;
-			}
-
-			if (!isMavenProject(project)) {
-				logger.log(project, "Skipping project as no pom.xml could be found in the working directory!");
-				return;
-			}
-
-			logger.log(project, "Triggering distribution build…");
-
-			mvn.execute(project,
-					CommandLine.of(Goal.CLEAN, Goal.DEPLOY, ReleaseVersion.of(module).getDistributionProfiles(), SKIP_TESTS));
-
-			logger.log(project, "Successfully finished distribution build!");
-		});
 	}
 
 	/*
@@ -386,44 +366,6 @@ class MavenBuildSystem implements BuildSystem {
 
 		} catch (Exception o_O) {
 			throw new RuntimeException(o_O);
-		}
-	}
-
-	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-	private static class ReleaseVersion {
-
-		private final ArtifactVersion version;
-
-		/**
-		 * Creates a new {@link ReleaseVersion} for the given {@link ModuleIteration}.
-		 *
-		 * @param module must not be {@literal null}.
-		 * @return
-		 */
-		public static ReleaseVersion of(ModuleIteration module) {
-
-			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
-
-			Assert.isTrue(artifactVersion.isMilestoneVersion() || artifactVersion.isReleaseVersion(),
-					String.format("Given module is not in a fixed version, detected %s!", artifactVersion));
-
-			return new ReleaseVersion(ArtifactVersion.of(module));
-		}
-
-		/**
-		 * Returns the Maven profiles to be used during the distribution build.
-		 *
-		 * @return
-		 */
-		public Argument getDistributionProfiles() {
-
-			if (version.isMilestoneVersion()) {
-				return profile("distribute", "milestone");
-			} else if (version.isReleaseVersion()) {
-				return profile("distribute", "release");
-			}
-
-			throw new IllegalStateException("Should not occur!");
 		}
 	}
 }
