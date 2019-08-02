@@ -20,6 +20,7 @@ import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.ProjectAware;
 import org.springframework.plugin.core.Plugin;
 
 /**
@@ -36,7 +37,7 @@ interface BuildSystem extends Plugin<Project> {
 	 * @param iteration must not be {@literal null}.
 	 * @param updateInformation must not be {@literal null}.
 	 */
-	ModuleIteration updateProjectDescriptors(ModuleIteration iteration, UpdateInformation updateInformation);
+	<M extends ProjectAware> M updateProjectDescriptors(M iteration, UpdateInformation updateInformation);
 
 	/**
 	 * Prepares the project descriptor of the {@link ModuleIteration} for the given release {@link Phase}.
@@ -61,9 +62,9 @@ interface BuildSystem extends Plugin<Project> {
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
-	Module triggerDistributionBuild(Module module);
+	<M extends ProjectAware> M triggerDistributionBuild(M module);
 
-	ModuleIteration triggerBuild(ModuleIteration module);
+	<M extends ProjectAware> M triggerBuild(M module);
 
 	/**
 	 * Triggers the pre-release checks for the given {@link ModuleIteration}.
@@ -71,5 +72,5 @@ interface BuildSystem extends Plugin<Project> {
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
-	ModuleIteration triggerPreReleaseCheck(ModuleIteration module);
+	<M extends ProjectAware> M triggerPreReleaseCheck(M module);
 }

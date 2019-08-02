@@ -37,10 +37,10 @@ import org.springframework.data.release.deployment.DeploymentProperties;
 import org.springframework.data.release.deployment.DeploymentProperties.Gpg;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.ProjectAware;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
@@ -72,7 +72,7 @@ class MavenBuildSystem implements BuildSystem {
 	 * @see org.springframework.data.release.build.BuildSystem#updateProjectDescriptors(org.springframework.data.release.model.ModuleIteration, org.springframework.data.release.model.TrainIteration, org.springframework.data.release.model.Phase)
 	 */
 	@Override
-	public ModuleIteration updateProjectDescriptors(ModuleIteration module, UpdateInformation information) {
+	public <M extends ProjectAware> M updateProjectDescriptors(M module, UpdateInformation information) {
 
 		PomUpdater updater = new PomUpdater(logger, information, module.getProject());
 
@@ -99,7 +99,7 @@ class MavenBuildSystem implements BuildSystem {
 	 * @see org.springframework.data.release.build.BuildSystem#triggerDistributionBuild(org.springframework.data.release.model.Module)
 	 */
 	@Override
-	public Module triggerDistributionBuild(Module module) {
+	public <M extends ProjectAware> M triggerDistributionBuild(M module) {
 
 		Project project = module.getProject();
 
@@ -252,7 +252,7 @@ class MavenBuildSystem implements BuildSystem {
 	 * @see org.springframework.data.release.build.BuildSystem#triggerBuild(org.springframework.data.release.model.ModuleIteration)
 	 */
 	@Override
-	public ModuleIteration triggerBuild(ModuleIteration module) {
+	public <M extends ProjectAware> M triggerBuild(M module) {
 
 		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.INSTALL)//
 				.conditionalAnd(SKIP_TESTS, () -> module.getProject().skipTests());
@@ -266,7 +266,7 @@ class MavenBuildSystem implements BuildSystem {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.build.BuildSystem#triggerPreReleaseCheck(org.springframework.data.release.model.ModuleIteration)
 	 */
-	public ModuleIteration triggerPreReleaseCheck(ModuleIteration module) {
+	public <M extends ProjectAware> M triggerPreReleaseCheck(M module) {
 
 		mvn.execute(module.getProject(), CommandLine.of(Goal.CLEAN, Goal.VALIDATE, profile("pre-release")));
 

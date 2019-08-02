@@ -16,6 +16,8 @@
 package org.springframework.data.release.model;
 
 /**
+ * An object that is aware of a {@link Project}. Typically implemented by {@link Module} or {@link ModuleIteration}.
+ *
  * @author Mark Paluch
  */
 public interface ProjectAware {
