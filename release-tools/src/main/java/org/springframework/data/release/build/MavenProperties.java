@@ -41,6 +41,7 @@ class MavenProperties {
 	private File localRepository;
 	private Map<String, String> plugins;
 	private boolean consoleLogger = true;
+	private boolean parllelize = false;
 
 	/**
 	 * Configures the local Maven repository location to use. In case the given folder does not already exists it's

@@ -117,14 +117,14 @@ class MavenBuildSystem implements BuildSystem {
 		mvn.execute(project, CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
 				SKIP_TESTS, profile("distribute"), Argument.of("-B"),
 				arg("artifactory.server").withValue(properties.getServer().getUri()),
-				arg("distribution-repository").withValue(properties.getDistributionRepository()),
+				arg("artifactory.distribution-repository").withValue(properties.getDistributionRepository()),
 				arg("artifactory.username").withValue(properties.getUsername()),
 				arg("artifactory.password").withValue(properties.getPassword())));
 
 		mvn.execute(project, CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
 				SKIP_TESTS, profile("distribute-schema"), Argument.of("-B"),
 				arg("artifactory.server").withValue(properties.getServer().getUri()),
-				arg("distribution-repository").withValue(properties.getDistributionRepository()),
+				arg("artifactory.distribution-repository").withValue(properties.getDistributionRepository()),
 				arg("artifactory.username").withValue(properties.getUsername()),
 				arg("artifactory.password").withValue(properties.getPassword())));
 

@@ -2,8 +2,6 @@
 
 ### Infrastructure requirements
 
-- Pivotal VPN account
-- User account (for SCP access) on `docs.af.pivotal.io`. Needs to be registered within local `settings.xml` for a server named `static-dot-s2`.
 - Credentials for `buildmaster` accounts on https://repo.spring.io.
 - Credentials for https://oss.sonatype.org (to deploy and promote GA and service releases, need deployment permissions for `org.springframework.data`) in `settings.xml` for server with id `sonatype`.
 

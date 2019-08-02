@@ -22,10 +22,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
-import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
@@ -34,6 +32,8 @@ import org.springframework.data.release.model.TrainIteration;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * @author Oliver Gierke
@@ -45,6 +45,7 @@ public class BuildOperations {
 
 	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
 	private final @NonNull MavenProperties properties;
+	private final @NonNull BuildExecutor executor;
 
 	/**
 	 * Updates all inter-project dependencies based on the given {@link TrainIteration} and release {@link Phase}.
@@ -60,7 +61,8 @@ public class BuildOperations {
 
 		UpdateInformation updateInformation = UpdateInformation.of(iteration, phase);
 
-		doWithBuildSystem(iteration, (system, it) -> system.updateProjectDescriptors(it, updateInformation));
+		executor.doWithBuildSystemOrdered(iteration,
+				(system, it) -> system.updateProjectDescriptors(it, updateInformation));
 	}
 
 	/**
@@ -84,7 +86,7 @@ public class BuildOperations {
 
 		Assert.notNull(train, "Train must not be null!");
 
-		doWithBuildSystem(train, BuildSystem::triggerDistributionBuild);
+		executor.doWithBuildSystemAnyOrder(train, BuildSystem::triggerDistributionBuild);
 	}
 
 	/**
@@ -94,7 +96,8 @@ public class BuildOperations {
 	 * @return
 	 */
 	public List<DeploymentInformation> performRelease(TrainIteration iteration) {
-		return iteration.stream().map(this::performRelease).collect(Collectors.toList());
+		return executor.doWithBuildSystemOrdered(iteration,
+				(buildSystem, moduleIteration) -> performRelease(moduleIteration));
 	}
 
 	/**
@@ -118,7 +121,7 @@ public class BuildOperations {
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.notNull(phase, "Phase must not be null!");
 
-		doWithBuildSystem(iteration, (system, module) -> system.prepareVersion(module, phase));
+		executor.doWithBuildSystemOrdered(iteration, (system, module) -> system.prepareVersion(module, phase));
 	}
 
 	/**
@@ -128,6 +131,7 @@ public class BuildOperations {
 	 * @param phase must not be {@literal null}.
 	 * @return
 	 */
+	@VisibleForTesting
 	public ModuleIteration prepareVersion(ModuleIteration iteration, Phase phase) {
 
 		Assert.notNull(iteration, "Module iteration must not be null!");
@@ -156,7 +160,7 @@ public class BuildOperations {
 	}
 
 	/**
-	 * Triggers a nomarl build for the given {@link ModuleIteration}.
+	 * Triggers a normal build for the given {@link ModuleIteration}.
 	 *
 	 * @param module must not be {@literal null}.
 	 * @return
@@ -174,38 +178,7 @@ public class BuildOperations {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		doWithBuildSystem(iteration, (system, module) -> system.triggerPreReleaseCheck(module));
-	}
-
-	/**
-	 * Selects the build system for each {@link ModuleIteration} contained in the given {@link TrainIteration} and
-	 * executes the given function for it.
-	 *
-	 * @param iteration must not be {@literal null}.
-	 * @param function must not be {@literal null}.
-	 * @return
-	 */
-	private <T> List<T> doWithBuildSystem(TrainIteration iteration,
-			BiFunction<BuildSystem, ModuleIteration, T> function) {
-
-		return iteration.stream()//
-				.map(module -> doWithBuildSystem(module, function))//
-				.collect(Collectors.toList());
-	}
-
-	/**
-	 * Selects the build system for each {@link Module} contained in the given {@link Train} and executes the given
-	 * function for it.
-	 *
-	 * @param train must not be {@literal null}.
-	 * @param function must not be {@literal null}.
-	 * @return
-	 */
-	private <T> List<T> doWithBuildSystem(Train train, BiFunction<BuildSystem, Module, T> function) {
-
-		return train.stream()//
-				.map(module -> doWithBuildSystem(module, function))//
-				.collect(Collectors.toList());
+		executor.doWithBuildSystemAnyOrder(iteration, BuildSystem::triggerPreReleaseCheck);
 	}
 
 	/**
@@ -217,24 +190,6 @@ public class BuildOperations {
 	 * @return
 	 */
 	private <T> T doWithBuildSystem(ModuleIteration module, BiFunction<BuildSystem, ModuleIteration, T> function) {
-
-		Assert.notNull(module, "ModuleIteration must not be null!");
-
-		Supplier<IllegalStateException> exception = () -> new IllegalStateException(
-				String.format("No build system plugin found for project %s!", module.getProject()));
-
-		return function.apply(buildSystems.getPluginFor(module.getProject(), exception), module);
-	}
-
-	/**
-	 * Selects the build system for the module contained in the given {@link Module} and executes the given function with
-	 * it.
-	 *
-	 * @param module must not be {@literal null}.
-	 * @param function must not be {@literal null}.
-	 * @return
-	 */
-	private <T> T doWithBuildSystem(Module module, BiFunction<BuildSystem, Module, T> function) {
 
 		Assert.notNull(module, "ModuleIteration must not be null!");
 

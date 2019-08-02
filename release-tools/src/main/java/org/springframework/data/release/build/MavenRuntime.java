@@ -94,9 +94,15 @@ class MavenRuntime {
 			InvocationResult result = invoker.execute(request);
 
 			if (result.getExitCode() != 0) {
-				throw new RuntimeException(result.getExecutionException());
+				logger.warn(project, "Failed execution mvn %s", arguments.toString());
+
+				throw new IllegalStateException("Failed execution mvn " + arguments.toString(), result.getExecutionException());
 			}
+			logger.log(project, "Successful execution mvn %s", arguments.toString());
 		} catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
 			throw new RuntimeException(e);
 		}
 	}
@@ -160,7 +166,7 @@ class MavenRuntime {
 
 			String goalNames = goals.stream().map(CommandLine.Goal::getGoal).collect(Collectors.joining("-"));
 
-			String filename = String.format("mvn-%s-%s.log", project.getName(), goalNames);
+			String filename = String.format("mvn-%s-%s.log", project.getName(), goalNames).replace(':', '.');
 
 			try {
 				File file = new File(logsDirectory, filename);
@@ -176,7 +182,6 @@ class MavenRuntime {
 		@Override
 		public void info(String message) {
 			printWriter.println(message);
-
 		}
 
 		@Override

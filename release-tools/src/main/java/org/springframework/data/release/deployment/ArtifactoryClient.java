@@ -31,8 +31,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A client to interact with Artifactory.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 class ArtifactoryClient {
@@ -43,7 +44,7 @@ class ArtifactoryClient {
 
 	/**
 	 * Triggers the promotion of the artifacts identified by the given {@link DeploymentInformation}.
-	 * 
+	 *
 	 * @param information must not be {@literal null}.
 	 */
 	public void promote(DeploymentInformation information) {
@@ -78,6 +79,7 @@ class ArtifactoryClient {
 
 		} catch (HttpClientErrorException o_O) {
 			handle("Authentication verification failed!", o_O);
+			throw new IllegalStateException("Authentication verification failed!");
 		}
 	}
 

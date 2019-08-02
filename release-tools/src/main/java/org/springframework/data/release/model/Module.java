@@ -21,9 +21,10 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value
-public class Module implements VersionAware, Comparable<Module> {
+public class Module implements VersionAware, ProjectAware, Comparable<Module> {
 
 	private final Project project;
 	private final Version version;
@@ -59,7 +60,7 @@ public class Module implements VersionAware, Comparable<Module> {
 
 	/**
 	 * Returns whether the current {@link Module} refers to the same project as the given one.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -67,7 +68,7 @@ public class Module implements VersionAware, Comparable<Module> {
 		return this.project.equals(module.project);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
  * Deployment functionality.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 @RequiredArgsConstructor
@@ -53,5 +54,23 @@ public class DeploymentOperations {
 		}
 
 		client.promote(information);
+	}
+
+	/**
+	 * Rolls back the given {@link DeploymentInformation}.
+	 *
+	 * @param information must not be {@literal null}.
+	 */
+	public void rollback(DeploymentInformation information) {
+
+		Assert.notNull(information, "DeploymentInformation must not be null!");
+
+		if (information.getModule().getIteration().isPublic()) {
+			logger.log(information.getModule(),
+					"Skipping build rollback as it's a public version and was deployed to Maven Central directly,");
+			return;
+		}
+
+		client.deleteArtifacts(information);
 	}
 }

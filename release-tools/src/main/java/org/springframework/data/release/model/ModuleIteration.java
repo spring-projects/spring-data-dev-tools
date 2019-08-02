@@ -22,10 +22,11 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @EqualsAndHashCode
-public class ModuleIteration implements IterationVersion {
+public class ModuleIteration implements IterationVersion, ProjectAware{
 
 	private final @Getter Module module;
 	private final @Getter TrainIteration trainIteration;
