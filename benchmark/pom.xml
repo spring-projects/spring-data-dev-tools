@@ -26,18 +26,16 @@
 	</modules>
 
 	<properties>
-		<releasetrain.version>Moore-BUILD-SNAPSHOT</releasetrain.version>
 		<jmh.version>1.19</jmh.version>
-		<spring-boot.version>2.2.0.BUILD-SNAPSHOT</spring-boot.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 
 			<dependency>
-				<groupId>org.springframework.data</groupId>
-				<artifactId>spring-data-releasetrain</artifactId>
-				<version>${releasetrain.version}</version>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>2.2.0.M5</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
