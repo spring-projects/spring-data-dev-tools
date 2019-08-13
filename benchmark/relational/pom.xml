@@ -13,6 +13,10 @@
 	<artifactId>spring-data-benchmark-relational</artifactId>
 
 	<name>Spring Data Benchmarks - Relational Microbenchmarks</name>
+	
+	<properties>
+		<spring-boot-data-r2dbc.version>0.1.0.BUILD-SNAPSHOT</spring-boot-data-r2dbc.version>
+	</properties>
 
 	<dependencies>
 
@@ -40,6 +44,28 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
+		
+		<!-- R2DBC -->
+		
+		<dependency>
+			<groupId>org.springframework.boot.experimental</groupId>
+			<artifactId>spring-boot-starter-data-r2dbc</artifactId>
+			<version>${spring-boot-data-r2dbc.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-h2</artifactId>
+			<version>0.8.0.M8</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-postgresql</artifactId>
+			<version>0.8.0.M8</version>
+		</dependency>
+		
+		<!-- Mocking -->
 		
 		<dependency>
 			<groupId>org.mockito</groupId>
