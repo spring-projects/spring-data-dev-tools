@@ -31,10 +31,10 @@ import org.openjdk.jmh.annotations.Warmup;
  * @author Mark Paluch
  * @see Microbenchmark
  */
-@Warmup(iterations = 5)
+@Warmup(iterations = 10)
 @Measurement(iterations = 10)
 @Fork(value = 1, jvmArgs = { "-server", "-XX:+HeapDumpOnOutOfMemoryError", "-Xms1024m", "-Xmx1024m",
-		"-XX:MaxDirectMemorySize=1024m" })
+		"-XX:MaxDirectMemorySize=1024m", "-noverify" })
 @State(Scope.Thread)
 @RunWith(Microbenchmark.class)
 public abstract class AbstractMicrobenchmark {

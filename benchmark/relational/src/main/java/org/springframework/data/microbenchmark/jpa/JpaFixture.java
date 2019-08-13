@@ -17,45 +17,40 @@ package org.springframework.data.microbenchmark.jpa;
 
 import lombok.Getter;
 
-import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import javax.persistence.EntityManager;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.data.microbenchmark.Constants;
+import org.springframework.data.microbenchmark.FixtureUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
+ * Test fixture for JPA and Spring Data JPA benchmarks.
+ * 
  * @author Oliver Drotbohm
  */
-public class JpaFixture {
+class JpaFixture {
 
 	private final @Getter ConfigurableApplicationContext context;
 
-	public JpaFixture() {
+	JpaFixture(String database) {
 
-		SpringApplication application = new SpringApplication();
-		application.addPrimarySources(Collections.singletonList(JpaApplication.class));
-		application.setAdditionalProfiles("jpa");
-		application.setLazyInitialization(true);
-
-		this.context = application.run();
-
+		this.context = FixtureUtils.createContext(JpaApplication.class, "jpa", database);
+		
 		withTransactionalEntityManager(em -> {
 
-			IntStream.range(0, Constants.NUMBER_OF_BOOKS) //
+			IntStream.range(0, FixtureUtils.NUMBER_OF_BOOKS) //
 					.mapToObj(it -> new Book(null, "title" + it, it)) //
 					.forEach(em::persist);
 		});
 	}
-
-	public void withTransactionalEntityManager(Consumer<EntityManager> consumer) {
+	
+	private void withTransactionalEntityManager(Consumer<EntityManager> consumer) {
 
 		PlatformTransactionManager manager = context.getBean(PlatformTransactionManager.class);
 		TransactionStatus status = manager.getTransaction(new DefaultTransactionDefinition());
@@ -66,15 +61,6 @@ public class JpaFixture {
 
 		em.flush();
 		manager.commit(status);
-		em.close();
-	}
-
-	public void withNonTransactionalEntityManager(Consumer<EntityManager> consumer) {
-
-		EntityManager em = context.getBean(EntityManager.class);
-
-		consumer.accept(em);
-
 		em.close();
 	}
 

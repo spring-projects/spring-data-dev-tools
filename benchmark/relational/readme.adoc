@@ -1,0 +1,35 @@
+= Benchmarks for relational data access with Spring Data
+
+This benchmark evaluates various options of relation data access in the Spring Data project family:
+
+- JDBC and Spring Data JDBC
+- JPA and Spring Data JPA
+
+The primary purpose of the benchmark is to help the team detect degradations in performance quickly or verify optimizations made in various areas of the libraries.
+It also helps justifying differences between numbers in rather clean room contexts (an embedded database) and scenarios that use a more realistic setup like a locally running database.
+That difference alone will help reasoning about the real-world impact of an optimization or degradation.
+
+== Benchmark model
+
+The benchmarks use a very simple model of a book with a title and pages attribute.
+We deliberately chose a simple model as the benchmarks are supposed to measure the overhead the Spring Data mapping and repository infrastructure adds on top of the raw JDBC and JPA alternatives.
+There are two major benchmark operations:
+
+1. Finding all books (8 items)
+2. Finding a single book by title.
+
+There are different flavors of those operations to measure the impact of different setups to execute them:
+
+- the effect of read-only transactions in the find all case
+- the difference between derived and declared queries in JPA   
+
+== Infrastructure
+
+The benchmarks are run against the following databases:
+
+- In-memory H2
+- A locally running H2 (port 9092, database name `benchmark`, user `sa`, empty password)
+- A locally running Postgres (port 5432, database name `benchmark`, no user, no password)
+
+The settings can be adapted by tweaking corresponding `application-$database.properties` file in `src/main/resources`.
+ 

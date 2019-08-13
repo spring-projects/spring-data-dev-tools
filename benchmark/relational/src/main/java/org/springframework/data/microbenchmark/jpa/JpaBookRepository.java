@@ -13,22 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.microbenchmark.jdbc.springdata;
+package org.springframework.data.microbenchmark.jpa;
 
 import java.util.Optional;
 
-import org.springframework.data.jdbc.repository.query.Query;
-import org.springframework.data.microbenchmark.jdbc.Book;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Oliver Drotbohm
  */
-public interface JdbcBookRepository extends CrudRepository<Book, Long> {
+interface JpaBookRepository extends CrudRepository<Book, Long> {
+	
+	static final String BY_TITLE_JPQL = "select b from Book b where b.title = :title";
 
-	@Query("SELECT id, title, pages FROM Book where title = :title")
-	Book findByTitle(String title);
+	@Query(BY_TITLE_JPQL)
+	Book findDeclaredByTitle(String title);
 
-	@Query("SELECT id, title, pages FROM Book where title = :title")
-	Optional<Book> findOptionalByTitle(String title);
+	@Transactional(readOnly = true)
+	@Query(BY_TITLE_JPQL)
+	Book findTransactionalDeclaredByTitle(String title);
+	
+	Book findDerivedByTitle(String title);
+
+	@Transactional(readOnly = true)
+	Book findTransactionalDerivedByTitle(String title);
+
+	Optional<Book> findOptionalDerivedByTitle(String title);
 }

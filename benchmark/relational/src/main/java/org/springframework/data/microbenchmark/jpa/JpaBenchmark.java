@@ -17,6 +17,7 @@ package org.springframework.data.microbenchmark.jpa;
 
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -25,69 +26,99 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.infra.Blackhole;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
 
 /**
+ * Benchmarks for JPA and Spring Data JPA.
+ * 
  * @author Oliver Drotbohm
  */
 public class JpaBenchmark extends AbstractMicrobenchmark {
 
-	private JpaFixture fixture;
+	@Param({ "postgres", "h2-in-memory", "h2" })
+	String profile;
+	
+	EntityManager em;
+	JpaBookRepository repository;
 
 	@Setup
 	public void setUp() {
-		this.fixture = new JpaFixture();
+
+		ConfigurableApplicationContext context = new JpaFixture(profile).getContext();
+
+		this.em = context.getBean(EntityManager.class);
+		this.repository = context.getBean(JpaBookRepository.class);
 	}
 
 	@Benchmark
 	public void findByTitle(Blackhole sink) {
 
-		fixture.withNonTransactionalEntityManager(em -> {
+		Query query = em.createQuery("select b from Book b where b.title = ?1");
+		query.setParameter(1, "title0");
 
-			Query query = em.createQuery("select b from Book b where b.title = ?1");
-			query.setParameter(1, "title0");
-
-			sink.consume(query.getSingleResult());
-		});
+		sink.consume(query.getSingleResult());
 	}
 
 	@Benchmark
 	public void findByTitleCriteria(Blackhole sink) {
 
-		fixture.withNonTransactionalEntityManager(em -> {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Book> q = cb.createQuery(Book.class);
+		Root<Book> c = q.from(Book.class);
 
-			CriteriaBuilder cb = em.getCriteriaBuilder();
-			CriteriaQuery<Book> q = cb.createQuery(Book.class);
-			Root<Book> c = q.from(Book.class);
+		ParameterExpression<String> parameter = cb.parameter(String.class);
 
-			ParameterExpression<String> parameter = cb.parameter(String.class);
+		TypedQuery<Book> query = em.createQuery(q.select(c).where(cb.equal(c.get("title"), parameter)));
+		query.setParameter(parameter, "title0");
 
-			TypedQuery<Book> query = em.createQuery(q.select(c).where(cb.equal(c.get("title"), parameter)));
-			query.setParameter(parameter, "title0");
-
-			sink.consume(query.getSingleResult());
-		});
+		sink.consume(query.getSingleResult());
 	}
 
 	@Benchmark
 	public void findByTitleOptional(Blackhole sink) {
 
-		fixture.withNonTransactionalEntityManager(em -> {
+		Query query = em.createQuery("select b from Book b where b.title = ?1");
+		query.setParameter(1, "title0");
 
-			Query query = em.createQuery("select b from Book b where b.title = ?1");
-			query.setParameter(1, "title0");
-
-			sink.consume(Optional.of(query.getSingleResult()));
-		});
+		sink.consume(Optional.of(query.getSingleResult()));
 	}
 
 	@Benchmark
 	public void findAll(Blackhole sink) {
+		sink.consume(em.createQuery("select b from Book b").getResultList());
+	}
 
-		fixture.withNonTransactionalEntityManager(em -> {
-			sink.consume(em.createQuery("select b from Book b").getResultList());
-		});
+	@Benchmark
+	public void repositoryFindByTitle(Blackhole sink) {
+		sink.consume(repository.findDerivedByTitle("title0"));
+	}
+	
+	@Benchmark
+	public void repositoryFindTransactionalByTitle(Blackhole sink) {
+		sink.consume(repository.findTransactionalDerivedByTitle("title0"));
+	}
+
+	@Benchmark
+	public void repositoryFindByTitleDeclared(Blackhole sink) {
+		sink.consume(repository.findDeclaredByTitle("title0"));
+	}
+	
+	@Benchmark
+	public void repositoryFindTransactionalByTitleDeclared(Blackhole sink) {
+		sink.consume(repository.findTransactionalDeclaredByTitle("title0"));
+	}
+
+	@Benchmark
+	public void repositoryFindByTitleOptional(Blackhole sink) {
+		sink.consume(repository.findOptionalDerivedByTitle("title0"));
+	}
+
+	@Benchmark
+	public void repositoryFindAll(Blackhole sink) {
+		sink.consume(repository.findAll());
 	}
 }
