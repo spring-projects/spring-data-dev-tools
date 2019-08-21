@@ -29,6 +29,7 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.infra.Blackhole;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
 
@@ -44,6 +45,13 @@ public class JpaBenchmark extends AbstractMicrobenchmark {
 	
 	EntityManager em;
 	JpaBookRepository repository;
+
+	public static void main(String[] args) {
+		JpaBenchmark bench = new JpaBenchmark();
+		bench.profile = "h2";
+		bench.setUp();
+		bench.findAll(new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous."));
+	}
 
 	@Setup
 	public void setUp() {
