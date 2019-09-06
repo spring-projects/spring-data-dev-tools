@@ -338,7 +338,7 @@ class MavenBuildSystem implements BuildSystem {
 				SKIP_TESTS, //
 				arg("gpg.executable").withValue(gpg.getExecutable()), //
 				arg("gpg.keyname").withValue(gpg.getKeyname()), //
-				arg("gpg.password").withValue(gpg.getPassword()));
+				arg("gpg.password").withValue(gpg.getPassword()), arg("skipStagingRepositoryClose").withValue("true"));
 
 		mvn.execute(module.getProject(), arguments);
 	}

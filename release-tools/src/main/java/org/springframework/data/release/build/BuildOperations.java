@@ -22,13 +22,16 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
+import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -44,6 +47,7 @@ import com.google.common.annotations.VisibleForTesting;
 public class BuildOperations {
 
 	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
+	private final @NonNull Logger logger;
 	private final @NonNull MavenProperties properties;
 	private final @NonNull BuildExecutor executor;
 
@@ -61,8 +65,10 @@ public class BuildOperations {
 
 		UpdateInformation updateInformation = UpdateInformation.of(iteration, phase);
 
-		executor.doWithBuildSystemOrdered(iteration,
+		BuildExecutor.Summary<ModuleIteration> summary = executor.doWithBuildSystemOrdered(iteration,
 				(system, it) -> system.updateProjectDescriptors(it, updateInformation));
+
+		logger.log(iteration, "Update Project Descriptors done: %s", summary);
 	}
 
 	/**
@@ -86,7 +92,10 @@ public class BuildOperations {
 
 		Assert.notNull(train, "Train must not be null!");
 
-		executor.doWithBuildSystemAnyOrder(train, BuildSystem::triggerDistributionBuild);
+		BuildExecutor.Summary<Module> summary = executor.doWithBuildSystemAnyOrder(train,
+				BuildSystem::triggerDistributionBuild);
+
+		logger.log(train, "Distribution build: %s", summary);
 	}
 
 	/**
@@ -96,8 +105,13 @@ public class BuildOperations {
 	 * @return
 	 */
 	public List<DeploymentInformation> performRelease(TrainIteration iteration) {
-		return executor.doWithBuildSystemOrdered(iteration,
+
+		BuildExecutor.Summary<DeploymentInformation> summary = executor.doWithBuildSystemOrdered(iteration,
 				(buildSystem, moduleIteration) -> performRelease(moduleIteration));
+
+		logger.log(iteration, "Release: %s", summary);
+
+		return summary.getExecutions().stream().map(BuildExecutor.ExecutionResult::getResult).collect(Collectors.toList());
 	}
 
 	/**
@@ -121,7 +135,10 @@ public class BuildOperations {
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.notNull(phase, "Phase must not be null!");
 
-		executor.doWithBuildSystemOrdered(iteration, (system, module) -> system.prepareVersion(module, phase));
+		BuildExecutor.Summary<ModuleIteration> summary = executor.doWithBuildSystemOrdered(iteration,
+				(system, module) -> system.prepareVersion(module, phase));
+
+		logger.log(iteration, "Prepare versions: %s", summary);
 	}
 
 	/**

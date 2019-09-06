@@ -55,7 +55,7 @@ public class ReleaseTrains {
 
 		LOVELACE = KAY.next("Lovelace", Transition.MINOR, new Module(JDBC, "1.0"), new Module(SOLR, "4.0"));
 
-		MOORE = LOVELACE.next("Moore", Transition.MINOR).withIterations(new Iterations(M1, M2, M3, M4, RC1, RC2, GA));
+		MOORE = LOVELACE.next("Moore", Transition.MINOR).withIterations(new Iterations(M1, M2, M3, M4, RC1, RC2, RC3, GA));
 
 		// Trains
 

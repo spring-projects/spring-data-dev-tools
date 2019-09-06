@@ -20,6 +20,7 @@ import lombok.Value;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.function.Consumer;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.utils.Logger;
@@ -61,7 +62,7 @@ class ArtifactoryClient {
 			template.postForEntity(uri,
 					new PromotionRequest(information.getTargetRepository(), properties.getStagingRepository()), String.class);
 		} catch (HttpClientErrorException o_O) {
-			handle("Promotion failed!", o_O, module);
+			handle(message -> logger.warn(information.getModule(), message), "Promotion failed!", o_O);
 		}
 	}
 
@@ -78,38 +79,24 @@ class ArtifactoryClient {
 			logger.log("Artifactory", "Authentication verified!");
 
 		} catch (HttpClientErrorException o_O) {
-			handle("Authentication verification failed!", o_O);
+			handle(message -> logger.log("Artifactory Client", message), "Authentication verification failed!", o_O);
 			throw new IllegalStateException("Authentication verification failed!");
 		}
 	}
 
-	void handle(String log, HttpClientErrorException o_O, ModuleIteration module) {
+	private void handle(Consumer<Object> logger, String message, HttpClientErrorException o_O) {
 
 		try {
 
-			logger.log(module, log);
+			logger.accept(message);
 
 			Errors errors = new ObjectMapper().readValue(o_O.getResponseBodyAsByteArray(), Errors.class);
-			errors.getErrors().forEach(error -> logger.log(module, error));
-			errors.getMessages().forEach(message -> logger.log(module, message));
+			errors.getErrors().forEach(logger);
+			errors.getMessages().forEach(logger);
 
 		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private void handle(String log, HttpClientErrorException o_O) {
-
-		try {
-
-			logger.log("Artifactory Client", log);
-
-			Errors errors = new ObjectMapper().readValue(o_O.getResponseBodyAsByteArray(), Errors.class);
-			errors.getErrors().forEach(error -> logger.log("Artifactory Client", error));
-			errors.getMessages().forEach(message -> logger.log("Artifactory Client", message));
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			o_O.addSuppressed(e);
+			throw new RuntimeException(o_O.getResponseBodyAsString(), o_O);
 		}
 	}
 

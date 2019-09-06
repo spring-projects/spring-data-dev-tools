@@ -25,21 +25,25 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.stream.Collector;
 
 import javax.annotation.PreDestroy;
 
 import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectAware;
+import org.springframework.data.release.utils.ListWrapperCollector;
+import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -52,17 +56,20 @@ import com.google.common.util.concurrent.MoreExecutors;
 class BuildExecutor {
 
 	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
+	private final Logger logger;
 	private final MavenProperties mavenProperties;
 	private final ExecutorService executor;
 
-	public BuildExecutor(PluginRegistry<BuildSystem, Project> buildSystems, MavenProperties mavenProperties) {
+	public BuildExecutor(PluginRegistry<BuildSystem, Project> buildSystems, Logger logger,
+			MavenProperties mavenProperties) {
 
 		this.buildSystems = buildSystems;
+		this.logger = logger;
 		this.mavenProperties = mavenProperties;
 
 		if (this.mavenProperties.isParllelize()) {
 			int processors = Runtime.getRuntime().availableProcessors();
-			int parallelity = Math.max(2, processors - 2);
+			int parallelity = Math.max(2, (processors / 2));
 			executor = new ThreadPoolExecutor(parallelity, parallelity, 10, TimeUnit.MINUTES, new ArrayBlockingQueue<>(256));
 		} else {
 			executor = MoreExecutors.newDirectExecutorService();
@@ -82,7 +89,7 @@ class BuildExecutor {
 	 * @param function must not be {@literal null}.
 	 * @return
 	 */
-	public <T, M extends ProjectAware> List<T> doWithBuildSystemOrdered(Streamable<M> iteration,
+	public <T, M extends ProjectAware> Summary<T> doWithBuildSystemOrdered(Streamable<M> iteration,
 			BiFunction<BuildSystem, M, T> function) {
 		return doWithBuildSystem(iteration, function, true);
 	}
@@ -95,12 +102,12 @@ class BuildExecutor {
 	 * @param function must not be {@literal null}.
 	 * @return
 	 */
-	public <T, M extends ProjectAware> List<T> doWithBuildSystemAnyOrder(Streamable<M> iteration,
+	public <T, M extends ProjectAware> Summary<T> doWithBuildSystemAnyOrder(Streamable<M> iteration,
 			BiFunction<BuildSystem, M, T> function) {
 		return doWithBuildSystem(iteration, function, false);
 	}
 
-	private <T, M extends ProjectAware> List<T> doWithBuildSystem(Streamable<M> iteration,
+	private <T, M extends ProjectAware> Summary<T> doWithBuildSystem(Streamable<M> iteration,
 			BiFunction<BuildSystem, M, T> function, boolean considerDependencyOrder) {
 
 		Map<Project, CompletableFuture<T>> results = new ConcurrentHashMap<>();
@@ -136,8 +143,20 @@ class BuildExecutor {
 		}
 
 		return iteration.stream()//
-				.map(module -> results.get(module.getProject()).join()) //
-				.collect(Collectors.toList());
+				.map(module -> {
+
+					CompletableFuture<T> future = results.get(module.getProject());
+
+					try {
+						return new ExecutionResult<T>(module.getProject(), future.get());
+					}
+
+				catch (InterruptedException | ExecutionException e) {
+						return new ExecutionResult<T>(module.getProject(), e.getCause());
+					}
+
+				}) //
+				.collect(toSummaryCollector());
 	}
 
 	private <T, M extends ProjectAware> CompletableFuture<T> run(M module, BiFunction<BuildSystem, M, T> function) {
@@ -163,6 +182,88 @@ class BuildExecutor {
 		executor.execute(runnable);
 
 		return result;
+	}
+
+	/**
+	 * Returns a new collector to toSummaryCollector {@link ExecutionResult} as {@link Summary} using the {@link Stream}
+	 * API.
+	 *
+	 * @return
+	 */
+	public static <T> Collector<ExecutionResult<T>, ?, Summary<T>> toSummaryCollector() {
+		return ListWrapperCollector.collectInto(Summary::new);
+	}
+
+	public static class ExecutionResult<T> {
+
+		private final Project project;
+		private final T result;
+		private final Throwable failure;
+
+		public ExecutionResult(Project project, Throwable failure) {
+			this.project = project;
+			this.result = null;
+			this.failure = failure;
+		}
+
+		public ExecutionResult(Project project, T result) {
+			this.project = project;
+			this.result = result;
+			this.failure = null;
+		}
+
+		public T getResult() {
+			return result;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%20s - %s", project.getName(),
+					isSuccessful() ? "Successful" : "Error: " + failure.getMessage());
+		}
+
+		public boolean isSuccessful() {
+			return this.failure == null;
+		}
+	}
+
+	public static class Summary<T> {
+
+		private final List<ExecutionResult<T>> executions;
+
+		public Summary(List<ExecutionResult<T>> executions) {
+			this.executions = executions;
+
+			if (!isSuccessful()) {
+				throw new BuildFailed(this);
+			}
+		}
+
+		public List<ExecutionResult<T>> getExecutions() {
+			return executions;
+		}
+
+		public boolean isSuccessful() {
+			return this.executions.stream().allMatch(ExecutionResult::isSuccessful);
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+
+			builder.append("Execution summary");
+			builder.append("\n");
+			builder.append(StringUtils.collectionToDelimitedString(executions, "\n"));
+
+			return builder.toString();
+		}
+	}
+
+	static class BuildFailed extends RuntimeException {
+
+		public BuildFailed(Summary<?> summary) {
+			super(summary.toString());
+		}
 	}
 
 }

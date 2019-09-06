@@ -10,6 +10,7 @@ maven.mavenHome=
 
 # Deployment
 deployment.repository-prefix=
+# Must be always the encrypted password taken from the Artifactory GUI/Profile view
 deployment.password=
 deployment.api-key=
 
