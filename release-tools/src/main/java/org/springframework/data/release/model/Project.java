@@ -20,7 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,11 +42,11 @@ public class Project implements Comparable<Project> {
 
 	private final @Getter ProjectKey key;
 	private final @Getter String name;
-	private final @Wither String fullName;
+	private final @With String fullName;
 	private final Collection<Project> dependencies;
 	private final @Getter Tracker tracker;
-	private final @Wither ArtifactCoordinates additionalArtifacts;
-	private final @Wither boolean skipTests;
+	private final @With ArtifactCoordinates additionalArtifacts;
+	private final @With boolean skipTests;
 
 	Project(String key, String name) {
 		this(key, name, null, Tracker.JIRA);

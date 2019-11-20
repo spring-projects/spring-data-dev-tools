@@ -21,7 +21,7 @@ See `application-local.template` for details.
 
 ### Build and execute the release shell
 
-Run `mvn package appassembler:assemble && sh target/appassembler/bin/spring-data-release-shell`
+Run `mvn package && java -jar target/spring-data-release-cli.jar`
 
 ## The release process
 

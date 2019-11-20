@@ -22,14 +22,14 @@ import org.springframework.util.StopWatch;
 
 /**
  * Base class for command implementations who want to get their execution time logged.
- * 
+ *
  * @author Oliver Gierke
  */
 public abstract class TimedCommand implements ExecutionProcessor, CommandMarker {
 
 	private StopWatch watch;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.ExecutionProcessor#beforeInvocation(org.springframework.shell.event.ParseResult)
 	 */
@@ -42,7 +42,7 @@ public abstract class TimedCommand implements ExecutionProcessor, CommandMarker 
 		return invocationContext;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.ExecutionProcessor#afterReturningInvocation(org.springframework.shell.event.ParseResult, java.lang.Object)
 	 */
@@ -51,7 +51,7 @@ public abstract class TimedCommand implements ExecutionProcessor, CommandMarker 
 		stopAndLog();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.ExecutionProcessor#afterThrowingInvocation(org.springframework.shell.event.ParseResult, java.lang.Throwable)
 	 */
@@ -63,6 +63,6 @@ public abstract class TimedCommand implements ExecutionProcessor, CommandMarker 
 	private void stopAndLog() {
 
 		watch.stop();
-		System.out.println(String.format("Took: %s sec.", watch.getTotalTimeSeconds()));
+		System.out.println(String.format("Took: %.2f sec.", watch.getTotalTimeSeconds()));
 	}
 }

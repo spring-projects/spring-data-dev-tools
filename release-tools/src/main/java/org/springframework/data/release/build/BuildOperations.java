@@ -24,6 +24,8 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.assertj.core.util.VisibleForTesting;
+
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
@@ -35,8 +37,6 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * @author Oliver Gierke

@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
@@ -52,6 +53,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriTemplate;
 
 /**
@@ -61,15 +63,14 @@ import org.springframework.web.util.UriTemplate;
 @Component
 class Jira implements JiraConnector {
 
-	private static final String BASE_URI = "{jiraBaseUrl}/rest/api/2";
-	private static final String CREATE_ISSUES_TEMPLATE = BASE_URI + "/issue";
-	private static final String ISSUE_TEMPLATE = BASE_URI + "/issue/{ticketId}";
-	private static final String TRANSITION_TEMPLATE = BASE_URI + "/issue/{ticketId}/transitions";
-	private static final String PROJECT_VERSIONS_TEMPLATE = BASE_URI + "/project/{project}/version?startAt={startAt}";
-	private static final String PROJECT_COMPONENTS_TEMPLATE = BASE_URI + "/project/{project}/components";
-	private static final String VERSIONS_TEMPLATE = BASE_URI + "/version";
-	private static final String VERSION_TEMPLATE = BASE_URI + "/version/{id}";
-	private static final String SEARCH_TEMPLATE = BASE_URI + "/search?jql={jql}&fields={fields}&startAt={startAt}";
+	private static final String CREATE_ISSUES_TEMPLATE = "/issue";
+	private static final String ISSUE_TEMPLATE = "/issue/{ticketId}";
+	private static final String TRANSITION_TEMPLATE = "/issue/{ticketId}/transitions";
+	private static final String PROJECT_VERSIONS_TEMPLATE = "/project/{project}/version?startAt={startAt}";
+	private static final String PROJECT_COMPONENTS_TEMPLATE = "/project/{project}/components";
+	private static final String VERSIONS_TEMPLATE = "/version";
+	private static final String VERSION_TEMPLATE = "/version/{id}";
+	private static final String SEARCH_TEMPLATE = "/search?jql={jql}&fields={fields}&startAt={startAt}";
 
 	private static final String INFRASTRUCTURE_COMPONENT_NAME = "Infrastructure";
 	private static final String IN_PROGRESS_STATUS_CATEGORY = "indeterminate";
@@ -87,13 +88,15 @@ class Jira implements JiraConnector {
 	private final JiraProperties jiraProperties;
 
 	/**
-	 * @param operations
+	 * @param templateBuilder
 	 * @param logger
 	 * @param jiraProperties
 	 */
-	public Jira(@Qualifier("tracker") RestOperations operations, Logger logger, JiraProperties jiraProperties) {
+	public Jira(@Qualifier("tracker") RestTemplateBuilder templateBuilder, Logger logger, JiraProperties jiraProperties) {
 
-		this.operations = operations;
+		String baseUri = String.format("%s/rest/api/2", jiraProperties.getApiUrl());
+
+		this.operations = templateBuilder.uriTemplateHandler(new DefaultUriBuilderFactory(baseUri)).build();
 		this.logger = logger;
 		this.jiraProperties = jiraProperties;
 	}
@@ -556,7 +559,6 @@ class Jira implements JiraConnector {
 		return project.uses(Tracker.JIRA);
 	}
 
-	@Cacheable("jira-components")
 	protected JiraComponents getJiraComponents(ProjectKey projectKey) {
 
 		HttpHeaders headers = new HttpHeaders();
@@ -706,7 +708,6 @@ class Jira implements JiraConnector {
 
 	private Map<String, Object> newUrlTemplateVariables() {
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("jiraBaseUrl", jiraProperties.getApiUrl());
 		return parameters;
 	}
 

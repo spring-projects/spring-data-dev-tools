@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.issues;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
@@ -26,11 +26,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.release.model.Project;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -70,19 +68,13 @@ class IssueTrackerConfiguration {
 
 	@Bean
 	@Qualifier("tracker")
-	RestTemplate restTemplate() {
+	RestTemplateBuilder restTemplate() {
 
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setObjectMapper(jacksonObjectMapper());
 
-		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(converter);
-
-		RestTemplate template = new RestTemplate();
-		template.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-		template.setMessageConverters(converters);
-
-		return template;
+		return new RestTemplateBuilder().messageConverters(converter)
+				.requestFactory(HttpComponentsClientHttpRequestFactory.class);
 	}
 
 	@Bean

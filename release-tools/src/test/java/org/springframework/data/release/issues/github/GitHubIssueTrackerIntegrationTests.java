@@ -148,7 +148,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 		github.createReleaseVersion(BUILD_HOPPER_RC1);
 
 		verify(postRequestedFor(urlPathMatching(MILESTONES_URI)).withRequestBody(
-				equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\",\"open\":false}")));
+				equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\"}")));
 	}
 
 	/**

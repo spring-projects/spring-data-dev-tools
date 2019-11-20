@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
@@ -53,6 +54,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriTemplate;
 
 /**
@@ -62,13 +64,13 @@ import org.springframework.web.util.UriTemplate;
 @Component
 class GitHub implements IssueTracker {
 
-	private static final String MILESTONE_URI = "{githubBaseUrl}/repos/spring-projects/{repoName}/milestones?state={state}";
-	private static final String ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues?milestone={id}&state=all&assignee={assignee}";
-	private static final String ISSUES_BY_MILESTONE_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues?milestone={id}&state=all";
-	private static final String MILESTONES_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/milestones";
-	private static final String MILESTONE_BY_ID_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/milestones/{id}";
-	private static final String ISSUE_BY_ID_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues/{id}";
-	private static final String ISSUES_URI_TEMPLATE = "{githubBaseUrl}/repos/spring-projects/{repoName}/issues";
+	private static final String MILESTONE_URI = "/repos/spring-projects/{repoName}/milestones?state={state}";
+	private static final String ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues?milestone={id}&state=all&assignee={assignee}";
+	private static final String ISSUES_BY_MILESTONE_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues?milestone={id}&state=all";
+	private static final String MILESTONES_URI_TEMPLATE = "/repos/spring-projects/{repoName}/milestones";
+	private static final String MILESTONE_BY_ID_URI_TEMPLATE = "/repos/spring-projects/{repoName}/milestones/{id}";
+	private static final String ISSUE_BY_ID_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues/{id}";
+	private static final String ISSUES_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues";
 
 	private static final ParameterizedTypeReference<List<Milestone>> MILESTONES_TYPE = new ParameterizedTypeReference<List<Milestone>>() {};
 	private static final ParameterizedTypeReference<List<GitHubIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubIssue>>() {};
@@ -79,13 +81,13 @@ class GitHub implements IssueTracker {
 	private final GitHubProperties properties;
 
 	/**
-	 * @param operations
+	 * @param templateBuilder
 	 * @param logger
 	 * @param properties
 	 */
-	public GitHub(@Qualifier("tracker") RestOperations operations, Logger logger, GitHubProperties properties) {
+	public GitHub(@Qualifier("tracker") RestTemplateBuilder templateBuilder, Logger logger, GitHubProperties properties) {
 
-		this.operations = operations;
+		this.operations = templateBuilder.uriTemplateHandler(new DefaultUriBuilderFactory(properties.getApiUrl())).build();
 		this.logger = logger;
 		this.properties = properties;
 	}
@@ -353,8 +355,6 @@ class GitHub implements IssueTracker {
 	private Map<String, Object> newUrlTemplateVariables() {
 
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("githubBaseUrl", properties.getApiUrl());
-
 		return parameters;
 	}
 

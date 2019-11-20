@@ -15,7 +15,6 @@
  */
 package org.springframework.data.release.deployment;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class DeploymentOperationsUnitTests {
 
 		operations.promote(information);
 
-		verify(logger).log(eq(module), any());
-		verifyZeroInteractions(client);
+		verify(logger).log(eq(module), anyString());
+		verifyNoInteractions(client);
 	}
 }

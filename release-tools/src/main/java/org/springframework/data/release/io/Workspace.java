@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Predicate;
@@ -192,10 +193,6 @@ public class Workspace {
 		}
 	}
 
-	public boolean processFiles(String pattern, Project project, LineCallback callback) {
-		return false;
-	}
-
 	public boolean processFile(String filename, Project project, LineCallback callback) {
 
 		File file = getFile(filename, project);
@@ -226,7 +223,7 @@ public class Workspace {
 	private void writeContentToFile(String name, Project project, String content) throws IOException {
 
 		File file = getFile(name, project);
-		com.google.common.io.Files.write(content, file, UTF_8);
+		Files.write(file.toPath(), Collections.singleton(content), UTF_8);
 	}
 
 	/**

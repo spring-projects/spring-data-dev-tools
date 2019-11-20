@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,8 +47,8 @@ public class Train implements Streamable<Module> {
 
 	private final String name;;
 	private final Modules modules;
-	private @Wither Iterations iterations;
-	private @Wither boolean alwaysUseBranch;
+	private @With Iterations iterations;
+	private @With boolean alwaysUseBranch;
 
 	public Train(String name, Module... modules) {
 		this(name, Arrays.asList(modules));

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.cli;
 
+import org.springframework.boot.SpringBootVersion;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.BannerProvider;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 class SpringDataReleaseCliBannerProvider implements BannerProvider {
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.plugin.NamedProvider#getProviderName()
 	 */
@@ -35,7 +36,7 @@ class SpringDataReleaseCliBannerProvider implements BannerProvider {
 		return "Spring Data Release Shell";
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.plugin.BannerProvider#getBanner()
 	 */
@@ -51,16 +52,16 @@ class SpringDataReleaseCliBannerProvider implements BannerProvider {
 		return builder.toString();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.plugin.BannerProvider#getVersion()
 	 */
 	@Override
 	public String getVersion() {
-		return "1.0";
+		return "1.0 on Spring Boot " + SpringBootVersion.getVersion();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.plugin.BannerProvider#getWelcomeMessage()
 	 */
