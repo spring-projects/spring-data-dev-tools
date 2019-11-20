@@ -21,8 +21,6 @@ import static org.springframework.data.release.model.Projects.*;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.data.release.model.Train.Iterations;
-
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -57,7 +55,8 @@ public class ReleaseTrains {
 
 		MOORE = LOVELACE.next("Moore", Transition.MINOR);
 
-		NEUMANN = MOORE.next("Neumann", Transition.MINOR, new Module(MONGO_DB, "3.0"), new Module(ELASTICSEARCH, "4.0"));
+		NEUMANN = MOORE.next("Neumann", Transition.MINOR, new Module(COUCHBASE, "4.0"), new Module(ELASTICSEARCH, "4.0"),
+				new Module(JDBC, "2.0")).withIterations(new Train.Iterations(M1, M2, RC1, GA));
 
 		// Trains
 
