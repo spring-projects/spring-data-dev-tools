@@ -174,7 +174,6 @@ public class GitOperations {
 	 * Checks out all projects of the given {@link TrainIteration}.
 	 *
 	 * @param iteration must not be {@literal null}.
-	 * @throws Exception
 	 */
 	public void checkout(TrainIteration iteration) {
 
@@ -275,7 +274,6 @@ public class GitOperations {
 	 * already available.
 	 *
 	 * @param project must not be {@literal null}.
-	 * @throws Exception
 	 */
 	public void update(Project project) {
 
@@ -325,7 +323,7 @@ public class GitOperations {
 		Assert.notNull(project, "Project must not be null!");
 
 		IssueTracker tracker = issueTracker.getRequiredPluginFor(project,
-				() -> String.format("No issue tracker found for project %!", project));
+				() -> String.format("No issue tracker found for project %s!", project));
 
 		return doWithGit(project, git -> {
 
@@ -761,7 +759,7 @@ public class GitOperations {
 		}
 	}
 
-	private void reset(Project project, Branch branch) throws Exception {
+	private void reset(Project project, Branch branch) {
 
 		logger.log(project, "git reset --hard origin/%s", branch);
 
@@ -797,11 +795,11 @@ public class GitOperations {
 		});
 	}
 
-	private static interface GitCallback<T> {
+	private interface GitCallback<T> {
 		T doWithGit(Git git) throws Exception;
 	}
 
-	private static interface VoidGitCallback {
+	private interface VoidGitCallback {
 		void doWithGit(Git git) throws Exception;
 	}
 
