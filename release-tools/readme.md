@@ -16,6 +16,10 @@ Add an `application-local.properties` to the project root and add the following 
 - `maven.mavenHome` - Pointing to the location of your Maven installation.
 - `deployment.api-key` - The API key to use for artifact promotion.
 - `deployment.password` - The password of the deployment user (buildmaster).
+- `gpg.keyname` - The GPG key name.
+- `gpg.password` - The password of your GPG key.
+- `gpg.executable` - Path to your GPG executable, typically `/usr/local/MacGPG2/bin/gpg2` or `/usr/local/bin/gpg`.
+
 
 See `application-local.template` for details.
 

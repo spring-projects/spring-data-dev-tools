@@ -21,8 +21,10 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,22 +34,31 @@ import java.util.stream.Stream;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CherryPickResult;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.CredentialItem.CharArrayType;
+import org.eclipse.jgit.transport.CredentialItem.InformationalMessage;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
+import org.eclipse.jgit.transport.URIish;
+
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Gpg;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
@@ -63,6 +74,7 @@ import org.springframework.util.Assert;
  * Component to execute Git related operations.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 @RequiredArgsConstructor
@@ -78,6 +90,7 @@ public class GitOperations {
 	Logger logger;
 	PluginRegistry<IssueTracker, Project> issueTracker;
 	GitProperties gitProperties;
+	Gpg gpg;
 
 	/**
 	 * Returns the {@link GitProject} for the given {@link Project}.
@@ -93,7 +106,6 @@ public class GitOperations {
 	 * Resets the repositories for all modules of the given {@link Train}.
 	 *
 	 * @param train must not be {@literal null}.
-	 * @throws Exception
 	 */
 	public void reset(TrainIteration train) {
 
@@ -437,16 +449,25 @@ public class GitOperations {
 		String author = gitProperties.getAuthor();
 		String email = gitProperties.getEmail();
 
-		logger.log(module, "git commit -m \"%s\" --author=\"%s <%s>\"", commit, author, email);
+		logger.log(module, "git commit -m \"%s\" %s --author=\"%s <%s>\"", commit,
+				gpg.isGpgAvailable() ? "-S" + gpg.getKeyname() : "", author, email);
 
 		doWithGit(project, git -> {
 
-			git.commit()//
+			CommitCommand commitCommand = git.commit()//
 					.setMessage(commit.toString())//
 					.setAuthor(author, email)//
 					.setCommitter(author, email)//
-					.setAll(true)//
-					.call();
+					.setAll(true);
+
+			if (gpg.isGpgAvailable()) {
+				commitCommand.setSign(true).setSigningKey(gpg.getKeyname())
+						.setCredentialsProvider(new GpgPassphraseProvider(gpg));
+			} else {
+				commitCommand.setSign(false);
+			}
+
+			commitCommand.call();
 		});
 	}
 
@@ -782,5 +803,55 @@ public class GitOperations {
 
 	private static interface VoidGitCallback {
 		void doWithGit(Git git) throws Exception;
+	}
+
+	/**
+	 * {@link CredentialsProvider} for GPG Keys used with JGit Commit Signing.
+	 */
+	private static class GpgPassphraseProvider extends CredentialsProvider {
+
+		private final Gpg gpg;
+
+		private GpgPassphraseProvider(Gpg gpg) {
+			this.gpg = gpg;
+		}
+
+		@Override
+		public boolean isInteractive() {
+			return false;
+		}
+
+		@Override
+		public boolean supports(CredentialItem... items) {
+
+			boolean matchesKey = matchesKey(items);
+			boolean hasSettableCharArray = Arrays.stream(items).anyMatch(CharArrayType.class::isInstance);
+
+			return matchesKey && hasSettableCharArray;
+		}
+
+		private boolean matchesKey(CredentialItem[] items) {
+			return Arrays.stream(items).filter(InformationalMessage.class::isInstance) //
+					.map(CredentialItem::getPromptText) //
+					.map(it -> it.toLowerCase(Locale.US)) //
+					.anyMatch(it -> it.contains(gpg.getKeyname().toLowerCase(Locale.US)));
+		}
+
+		@Override
+		public boolean get(URIish uri, CredentialItem... items) throws UnsupportedCredentialItem {
+
+			if (!matchesKey(items)) {
+				return false;
+			}
+
+			for (CredentialItem item : items) {
+				if (item instanceof CharArrayType) {
+					((CharArrayType) item).setValueNoCopy(gpg.getPassword().toString().toCharArray());
+
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }

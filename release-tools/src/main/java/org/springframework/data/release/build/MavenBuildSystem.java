@@ -34,9 +34,9 @@ import org.springframework.data.release.build.Pom.Artifact;
 import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
-import org.springframework.data.release.deployment.DeploymentProperties.Gpg;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.Gpg;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
@@ -66,6 +66,7 @@ class MavenBuildSystem implements BuildSystem {
 	Logger logger;
 	MavenRuntime mvn;
 	DeploymentProperties properties;
+	Gpg gpg;
 
 	/*
 	 * (non-Javadoc)
@@ -331,7 +332,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(module, "Deploying artifacts to Sonatype OSS Nexus…");
 
-		Gpg gpg = properties.getGpg();
+		Gpg gpg = this.gpg.isGpgAvailable() ? this.gpg : properties.getGpg();
 
 		CommandLine arguments = CommandLine.of(Goal.DEPLOY, //
 				profile("ci,release,central"), //
