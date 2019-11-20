@@ -92,7 +92,7 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>4.2.0.201601211800-r</version>
+			<version>5.5.1.201910021850-r</version>
 		</dependency>
 
 		<dependency>

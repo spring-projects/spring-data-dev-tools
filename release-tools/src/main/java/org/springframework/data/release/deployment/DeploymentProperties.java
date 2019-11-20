@@ -20,6 +20,8 @@ import lombok.Data;
 import java.net.URI;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
+import org.springframework.data.release.model.Gpg;
 import org.springframework.data.release.model.Password;
 import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
@@ -74,6 +76,11 @@ public class DeploymentProperties {
 		return repositoryPrefix.concat(distributionRepository);
 	}
 
+	@DeprecatedConfigurationProperty(reason = "Moved to gpg.", replacement = "gpg")
+	public Gpg getGpg() {
+		return gpg;
+	}
+
 	/**
 	 * Returns the URI of the staging repository.
 	 *
@@ -119,9 +126,4 @@ public class DeploymentProperties {
 		}
 	}
 
-	@Data
-	public static class Gpg {
-		private String keyname, executable;
-		private Password password;
-	}
 }
