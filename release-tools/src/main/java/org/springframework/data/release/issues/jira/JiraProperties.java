@@ -23,6 +23,8 @@ import lombok.Getter;
 import javax.annotation.PostConstruct;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.data.release.model.Password;
+import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -36,23 +38,23 @@ import org.springframework.util.Assert;
 @ConfigurationProperties(prefix = "jira")
 class JiraProperties {
 
-	private @Getter(AccessLevel.PRIVATE) String password;
+	private @Getter(AccessLevel.PRIVATE) Password password;
 	private String username, apiUrl;
 
 	@PostConstruct
 	public void init() {
 
 		Assert.hasText(username, "No Jira username (jira.username) configured!");
-		Assert.hasText(password, "No Jira password (jira.password) configured!");
+		Assert.notNull(password, "No Jira password (jira.password) configured!");
 		Assert.hasText(apiUrl, "No Jira url (jira.api-url) configured!");
 	}
 
 	/**
-	 * Returns the {@link Credentials} to be used.
+	 * Returns the {@link HttpBasicCredentials} to be used.
 	 *
 	 * @return
 	 */
-	public Credentials getCredentials() {
-		return new Credentials(username, password);
+	public HttpBasicCredentials getCredentials() {
+		return new HttpBasicCredentials(username, password);
 	}
 }

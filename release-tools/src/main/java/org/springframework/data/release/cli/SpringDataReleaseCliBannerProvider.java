@@ -15,12 +15,13 @@
  */
 package org.springframework.data.release.cli;
 
+import org.apache.commons.io.IOUtils;
+
 import org.springframework.boot.SpringBootVersion;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.BannerProvider;
 import org.springframework.shell.support.util.FileUtils;
-import org.springframework.shell.support.util.OsUtils;
 import org.springframework.stereotype.Component;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -46,8 +47,8 @@ class SpringDataReleaseCliBannerProvider implements BannerProvider {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(FileUtils.readBanner(SpringDataReleaseCliBannerProvider.class, "banner.txt"));
-		builder.append(getVersion()).append(OsUtils.LINE_SEPARATOR);
-		builder.append(OsUtils.LINE_SEPARATOR);
+		builder.append(getVersion()).append(IOUtils.LINE_SEPARATOR);
+		builder.append(IOUtils.LINE_SEPARATOR);
 
 		return builder.toString();
 	}

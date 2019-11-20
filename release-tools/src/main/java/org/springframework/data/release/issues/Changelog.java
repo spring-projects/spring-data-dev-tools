@@ -21,10 +21,11 @@ import lombok.RequiredArgsConstructor;
 import java.util.Date;
 import java.util.Locale;
 
+import org.apache.commons.io.IOUtils;
+
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.format.datetime.DateFormatter;
-import org.springframework.shell.support.util.OsUtils;
 
 /**
  * @author Oliver Gierke
@@ -36,7 +37,7 @@ public class Changelog {
 	private final ModuleIteration module;
 	private final Tickets tickets;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -48,13 +49,13 @@ public class Changelog {
 		String headline = String.format("Changes in version %s (%s)", version,
 				new DateFormatter("YYYY-MM-dd").print(new Date(), Locale.US));
 
-		StringBuilder builder = new StringBuilder(headline).append(OsUtils.LINE_SEPARATOR);
+		StringBuilder builder = new StringBuilder(headline).append(IOUtils.LINE_SEPARATOR);
 
 		for (int i = 0; i < headline.length(); i++) {
 			builder.append("-");
 		}
 
-		builder.append(OsUtils.LINE_SEPARATOR);
+		builder.append(IOUtils.LINE_SEPARATOR);
 
 		for (Ticket ticket : tickets) {
 
@@ -66,7 +67,7 @@ public class Changelog {
 				builder.append(".");
 			}
 
-			builder.append(OsUtils.LINE_SEPARATOR);
+			builder.append(IOUtils.LINE_SEPARATOR);
 		}
 
 		return builder.toString();

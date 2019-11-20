@@ -33,8 +33,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.IOUtils;
+
 import org.springframework.data.release.Streamable;
-import org.springframework.shell.support.util.OsUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -165,12 +166,12 @@ public class Train implements Streamable<Module> {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(name).//
-				append(OsUtils.LINE_SEPARATOR).//
-				append(OsUtils.LINE_SEPARATOR);
+				append(IOUtils.LINE_SEPARATOR).//
+				append(IOUtils.LINE_SEPARATOR);
 
 		builder.append(modules.stream().//
 				map(Module::toString).//
-				collect(Collectors.joining(OsUtils.LINE_SEPARATOR)));
+				collect(Collectors.joining(IOUtils.LINE_SEPARATOR)));
 
 		return builder.toString();
 	}

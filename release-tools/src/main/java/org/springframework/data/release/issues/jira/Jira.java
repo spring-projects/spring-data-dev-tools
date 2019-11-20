@@ -702,7 +702,7 @@ class Jira implements JiraConnector {
 	private HttpHeaders newUserScopedHttpHeaders() {
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", String.format("Basic %s", jiraProperties.getCredentials().asBase64()));
+		headers.set("Authorization", jiraProperties.getCredentials().toString());
 		return headers;
 	}
 
