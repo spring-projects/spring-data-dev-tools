@@ -228,7 +228,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 		github.assignReleaseTicketToMe(BUILD_HOPPER_RC1);
 
 		verify(patchRequestedFor(urlPathMatching(RELEASE_TICKET_URI))
-				.withRequestBody(equalToJson("{\"assignees\":[\"mp911de\"]}")));
+				.withRequestBody(equalToJson("{\"assignees\":[\"dummy\"]}")));
 	}
 
 	/**
@@ -249,7 +249,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 		github.closeIteration(BUILD_HOPPER_RC1);
 
 		verify(patchRequestedFor(urlPathMatching(RELEASE_TICKET_URI))
-				.withRequestBody(equalToJson("{\"state\":\"closed\",\"assignees\":[\"mp911de\"]}")));
+				.withRequestBody(equalToJson("{\"state\":\"closed\",\"assignees\":[\"dummy\"]}")));
 	}
 
 	private void mockGetIssueWith(String fromClassPath, int issueId) {
