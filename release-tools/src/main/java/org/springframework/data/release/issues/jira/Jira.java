@@ -54,7 +54,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriTemplate;
 
 /**
  * @author Oliver Gierke
@@ -539,11 +538,9 @@ class Jira implements JiraConnector {
 		parameters.put("fields", "summary,status,resolution,fixVersions");
 		parameters.put("startAt", 0);
 
-		URI searchUri = new UriTemplate(SEARCH_TEMPLATE).expand(parameters);
+		logger.log(moduleIteration, "Looking up JIRA issues…");
 
-		logger.log(moduleIteration, "Looking up JIRA issues from %s…", searchUri);
-
-		JiraIssues issues = operations.getForObject(searchUri, JiraIssues.class);
+		JiraIssues issues = operations.getForObject(SEARCH_TEMPLATE, JiraIssues.class, parameters);
 		Tickets tickets = issues.stream().map(this::toTicket).collect(Tickets.toTicketsCollector());
 		logger.log(moduleIteration, "Created changelog with %s entries.", tickets.getOverallTotal());
 

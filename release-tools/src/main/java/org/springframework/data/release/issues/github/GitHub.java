@@ -15,7 +15,6 @@
  */
 package org.springframework.data.release.issues.github;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +54,6 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriTemplate;
 
 /**
  * @author Oliver Gierke
@@ -368,9 +366,7 @@ class GitHub implements IssueTracker {
 			parameters.put("repoName", repositoryName);
 			parameters.put("state", state);
 
-			URI milestoneUri = new UriTemplate(MILESTONE_URI).expand(parameters);
-
-			logger.log(moduleIteration, "Looking up milestone from %s…", milestoneUri);
+			logger.log(moduleIteration, "Looking up milestone…");
 
 			doWithPaging(MILESTONE_URI, HttpMethod.GET, parameters, new HttpEntity<>(newUserScopedHttpHeaders()),
 					MILESTONES_TYPE, milestones -> {
