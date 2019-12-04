@@ -69,7 +69,7 @@ class BuildExecutor {
 		this.logger = logger;
 		this.mavenProperties = mavenProperties;
 
-		if (this.mavenProperties.isParllelize()) {
+		if (this.mavenProperties.isParallelize()) {
 			int processors = Runtime.getRuntime().availableProcessors();
 			int parallelity = Math.max(2, (processors / 2));
 			executor = new ThreadPoolExecutor(parallelity, parallelity, 10, TimeUnit.MINUTES, new ArrayBlockingQueue<>(256));
