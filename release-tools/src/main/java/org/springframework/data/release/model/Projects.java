@@ -38,7 +38,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 public class Projects {
 
 	public static final Project COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
-			ELASTICSEARCH, REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE, R2DBC;
+			ELASTICSEARCH, R2DBC, REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE;
 	public static final List<Project> PROJECTS;
 
 	static {
@@ -88,11 +88,12 @@ public class Projects {
 
 		GEODE = new Project("DATAGEODE", "Geode") //
 				.withDependencies(COMMONS) //
+				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-gemfire"))
 				.withFullName("Spring Data for Apache Geode") //
 				.withSkipTests(true);
 
 		REST = new Project("DATAREST", "REST") //
-				.withDependencies(JPA, MONGO_DB, NEO4J, GEMFIRE, SOLR, CASSANDRA, KEY_VALUE) //
+				.withDependencies(JPA, MONGO_DB, NEO4J, GEODE, SOLR, CASSANDRA, KEY_VALUE) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA //
 						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser",
 								"spring-data-rest-hal-explorer"));

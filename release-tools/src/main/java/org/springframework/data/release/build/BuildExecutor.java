@@ -132,6 +132,12 @@ class BuildExecutor {
 					CompletableFuture<T> futureResult = results.get(dependency);
 
 					if (futureResult == null) {
+
+						if (!iteration.stream().map(ProjectAware::getProject).anyMatch(project -> project.equals(dependency))) {
+							throw new IllegalStateException(moduleIteration.getProject().getName() + " requires "
+									+ dependency.getName() + " which is not part of the Iteration. Please fix Projects/Iterations setup");
+						}
+
 						throw new IllegalStateException("No future result for " + dependency.getName() + ", required by "
 								+ moduleIteration.getProject().getName());
 					}

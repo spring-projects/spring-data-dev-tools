@@ -55,8 +55,14 @@ public class ReleaseTrains {
 
 		MOORE = LOVELACE.next("Moore", Transition.MINOR);
 
-		NEUMANN = MOORE.next("Neumann", Transition.MINOR, new Module(COUCHBASE, "4.0"), new Module(ELASTICSEARCH, "4.0"),
-				new Module(JDBC, "2.0")).withIterations(new Train.Iterations(M1, M2, RC1, GA));
+		NEUMANN = MOORE.next("Neumann", Transition.MINOR, //
+				new Module(COUCHBASE, "4.0"), //
+				new Module(CASSANDRA, "3.0"), //
+				new Module(ELASTICSEARCH, "4.0"), //
+				new Module(MONGO_DB, "3.0"), //
+				new Module(JDBC, "2.0"), //
+				new Module(R2DBC, "1.1")) //
+				.filter(module -> !module.getProject().equals(GEMFIRE)).withIterations(new Train.Iterations(M1, M2, M3, RC1, GA));
 
 		// Trains
 

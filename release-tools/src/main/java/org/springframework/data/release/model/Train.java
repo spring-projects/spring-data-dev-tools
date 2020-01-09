@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,6 +113,10 @@ public class Train implements Streamable<Module> {
 				.collect(Collectors.toSet());
 
 		return new Train(name, collect);
+	}
+
+	public Train filter(Predicate<Module> filterPredicate) {
+		return new Train(name, getModules().stream().filter(filterPredicate).collect(Collectors.toList()));
 	}
 
 	/**
