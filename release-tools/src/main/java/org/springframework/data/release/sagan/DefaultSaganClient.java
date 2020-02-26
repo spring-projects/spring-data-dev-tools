@@ -33,8 +33,9 @@ import com.jayway.jsonpath.JsonPath;
 
 /**
  * Sagan client to interact with the Sagan instance defined through {@link SaganProperties}.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -44,7 +45,7 @@ class DefaultSaganClient implements SaganClient {
 	SaganProperties properties;
 	Logger logger;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.sagan.SaganClient#getProjectMetadata(org.springframework.data.release.sagan.MaintainedVersion)
 	 */
@@ -59,7 +60,7 @@ class DefaultSaganClient implements SaganClient {
 		return operations.getForObject(resource, String.class);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.sagan.SaganClient#getProjectMetadata(org.springframework.data.release.model.Project)
 	 */
@@ -73,7 +74,7 @@ class DefaultSaganClient implements SaganClient {
 		return operations.getForObject(resource, String.class);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.sagan.SaganClient#updateProjectMetadata(org.springframework.data.release.model.Project, java.util.List)
 	 */
@@ -93,7 +94,7 @@ class DefaultSaganClient implements SaganClient {
 		Arrays.stream(JsonPath.compile("$..version").<JSONArray> read(getProjectMetadata(project)).toArray())//
 				.map(version -> properties.getProjectMetadataResource(project, version.toString()))//
 				.peek(uri -> logger.log(project, "Deleting existing project metadata at %s…", uri)) //
-				.forEach(uri -> operations.delete(uri));
+				.forEach(operations::delete);
 
 		logger.log(project, "Writing project metadata for versions %s!", versionsString);
 

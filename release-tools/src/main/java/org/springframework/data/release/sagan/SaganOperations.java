@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +33,15 @@ import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.Version;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.ListWrapperCollector;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -66,7 +70,10 @@ class SaganOperations {
 
 		Assert.notNull(trains, "Trains must not be null!");
 
-		findVersions(trains).forEach(client::updateProjectMetadata);
+		Map<Project, MaintainedVersions> versions = findVersions(trains);
+
+		ExecutionUtils.run(Streamable.of(versions.entrySet()),
+				entry -> client.updateProjectMetadata(entry.getKey(), entry.getValue()));
 	}
 
 	/**
@@ -86,13 +93,13 @@ class SaganOperations {
 
 		Assert.notNull(trains, "Trains must not be null!");
 
-		return trains.stream() //
-				.flatMap(train -> train.stream()//
-						.filter(module -> !TO_FILTER.contains(module.getProject())) //
-						.map(module -> getLatestVersion(module, train)) //
-						.flatMap(MaintainedVersion::all)) //
-				.collect(
-						Collectors.groupingBy(it -> it.getProject(), ListWrapperCollector.collectInto(MaintainedVersions::of)));
+		return ExecutionUtils.runAndReturn(Streamable.of(trains), train -> {
+			return ExecutionUtils.runAndReturn(
+					Streamable.of(() -> train.stream().filter(module -> !TO_FILTER.contains(module.getProject()))), module -> {
+						return getLatestVersion(module, train);
+					});
+		}).stream().flatMap(Collection::stream).collect(
+				Collectors.groupingBy(MaintainedVersion::getProject, ListWrapperCollector.collectInto(MaintainedVersions::of)));
 	}
 
 	private MaintainedVersion getLatestVersion(Module module, Train train) {
@@ -100,10 +107,8 @@ class SaganOperations {
 		Project project = module.getProject();
 
 		MaintainedVersion version = git.getTags(project).stream()//
-				.filter(tag -> matches(tag, module.getVersion())) //
-				.sorted(Comparator.reverseOrder()) //
-				.findFirst() //
-				.flatMap(tag -> tag.toArtifactVersion()) //
+				.filter(tag -> matches(tag, module.getVersion())).max(Comparator.naturalOrder()) //
+				.flatMap(Tag::toArtifactVersion) //
 				.map(it -> MaintainedVersion.of(module.getProject(), it, train)) //
 				.orElseGet(() -> MaintainedVersion.snapshot(module, train));
 

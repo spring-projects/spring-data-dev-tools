@@ -31,8 +31,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Operations for Sagan interaction.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 @CliComponent
@@ -46,7 +47,7 @@ class SaganCommands extends TimedCommand {
 	public void updateProjectInformation(@CliOption(key = "", mandatory = true) String trains) {
 
 		sagan.updateProjectMetadata(Stream.of(trains.split(","))//
-				.map(train -> ReleaseTrains.getTrainByName(train)) //
+				.map(ReleaseTrains::getTrainByName) //
 				.collect(Collectors.toList()));
 	}
 }
