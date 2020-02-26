@@ -23,12 +23,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.util.Streamable;
 
 /**
  * Wrapper type for a {@link List} of {@link MaintainedVersion}.
- * 
+ *
  * @author Oliver Gierke
  */
 @ToString
@@ -40,7 +40,7 @@ class MaintainedVersions implements Streamable<MaintainedVersion> {
 	/**
 	 * Creates a new {@link MaintainedVersions} with the given {@link MaintainedVersion}s in descending order (more recent
 	 * versions first).
-	 * 
+	 *
 	 * @param versions must not be {@literal null}.
 	 * @return
 	 */
@@ -54,7 +54,7 @@ class MaintainedVersions implements Streamable<MaintainedVersion> {
 	/**
 	 * Creates a new {@link MaintainedVersions} with the given {@link MaintainedVersion}s in descending order (more recent
 	 * versions first).
-	 * 
+	 *
 	 * @param versions must not be {@literal null}.
 	 * @return
 	 */
@@ -64,7 +64,7 @@ class MaintainedVersions implements Streamable<MaintainedVersion> {
 
 	/**
 	 * Returns whether the given {@link MaintainedVersion} is the main version of the current set.
-	 * 
+	 *
 	 * @param version must not be {@literal null}.
 	 * @return
 	 */
@@ -82,7 +82,7 @@ class MaintainedVersions implements Streamable<MaintainedVersion> {
 				.orElse(false);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */

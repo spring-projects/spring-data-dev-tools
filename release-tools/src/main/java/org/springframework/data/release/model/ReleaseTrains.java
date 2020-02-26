@@ -62,7 +62,8 @@ public class ReleaseTrains {
 				new Module(MONGO_DB, "3.0"), //
 				new Module(JDBC, "2.0"), //
 				new Module(R2DBC, "1.1")) //
-				.filter(module -> !module.getProject().equals(GEMFIRE)).withIterations(new Train.Iterations(M1, M2, M3, RC1, GA));
+				.filterModules(module -> !module.getProject().equals(GEMFIRE))
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, GA));
 
 		// Trains
 

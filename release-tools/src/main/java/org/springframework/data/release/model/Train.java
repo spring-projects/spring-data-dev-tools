@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 
-import org.springframework.data.release.Streamable;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 
 /**
@@ -115,7 +115,7 @@ public class Train implements Streamable<Module> {
 		return new Train(name, collect);
 	}
 
-	public Train filter(Predicate<Module> filterPredicate) {
+	public Train filterModules(Predicate<Module> filterPredicate) {
 		return new Train(name, getModules().stream().filter(filterPredicate).collect(Collectors.toList()));
 	}
 

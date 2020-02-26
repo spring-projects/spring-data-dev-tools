@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.springframework.data.release.Streamable;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 
 /**
@@ -75,7 +75,7 @@ public class ExecutionUtils {
 			Collector<? super S, ?, R> collector) {
 
 		Assert.notNull(streamable, "Iterable must not be null!");
-		Assert.notNull(function, "Consumer must not be null!");
+		Assert.notNull(function, "Function must not be null!");
 
 		return streamable.stream().//
 				map(it -> CompletableFuture.supplyAsync(() -> function.apply(it))).//

@@ -21,14 +21,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 
 /**
  * Value object to represent a collection of {@link Tag}s.
- * 
+ *
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
@@ -38,7 +38,7 @@ public class VersionTags implements Streamable<Tag> {
 
 	/**
 	 * Creates a new {@link VersionTags} instance for the given {@link List} of {@link Tag}s.
-	 * 
+	 *
 	 * @param source must not be {@literal null}.
 	 */
 	VersionTags(List<Tag> source) {
@@ -52,7 +52,7 @@ public class VersionTags implements Streamable<Tag> {
 
 	/**
 	 * Returns the latest {@link Tag}.
-	 * 
+	 *
 	 * @return
 	 */
 	public Tag getLatest() {
@@ -65,14 +65,14 @@ public class VersionTags implements Streamable<Tag> {
 
 	/**
 	 * Returns all {@link Tag}s as {@link List}.
-	 * 
+	 *
 	 * @return
 	 */
 	public List<Tag> asList() {
 		return tags;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */

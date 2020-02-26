@@ -25,10 +25,10 @@ import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ListWrapperCollector;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.StringUtils;
 
 /**

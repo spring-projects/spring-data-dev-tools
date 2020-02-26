@@ -39,11 +39,11 @@ import java.util.stream.Collector;
 
 import javax.annotation.PreDestroy;
 
-import org.springframework.data.release.Streamable;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectAware;
 import org.springframework.data.release.utils.ListWrapperCollector;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.data.util.Streamable;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

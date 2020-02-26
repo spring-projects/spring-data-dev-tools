@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.data.release.Streamable;
+import org.springframework.data.util.Streamable;
 
 /**
  * @author Oliver Gierke
@@ -46,7 +46,7 @@ class JiraIssues implements Streamable<JiraIssue> {
 		return !issues.isEmpty();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */

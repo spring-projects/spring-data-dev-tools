@@ -21,7 +21,7 @@ import lombok.Value;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.data.release.Streamable;
+import org.springframework.data.util.Streamable;
 
 /**
  * @author Oliver Gierke

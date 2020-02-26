@@ -15,23 +15,23 @@
  */
 package org.springframework.data.release.git;
 
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.release.Streamable;
 import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
-
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Value object to represent a collection of {@link Branch}es with assigned tickets.
- * 
+ *
  * @author Mark Paluch
  * @author Oliver Gierke
  */
@@ -44,7 +44,7 @@ public class TicketBranches implements Streamable<Branch> {
 	/**
 	 * Returns whether there's a ticket available for the given {@link Branch}. If {@code requireResolved} is set to
 	 * {@literal true} the answer will only be true if the available ticket is marked resolved.
-	 * 
+	 *
 	 * @param branch must not be {@literal null}.
 	 * @param requireResolved whether the {@link Ticket} we look for is required to be resolved.
 	 * @return
@@ -60,7 +60,7 @@ public class TicketBranches implements Streamable<Branch> {
 
 	/**
 	 * Returns a {@link TicketBranches} containing only the branches for which resolved {@link Ticket}s are found.
-	 * 
+	 *
 	 * @return
 	 */
 	public TicketBranches getResolvedTickets() {
@@ -72,7 +72,7 @@ public class TicketBranches implements Streamable<Branch> {
 
 	/**
 	 * Returns the ticket for the given {@link Branch}.
-	 * 
+	 *
 	 * @param branch must not be {@literal null}.
 	 * @return
 	 */

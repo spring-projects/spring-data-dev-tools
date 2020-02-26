@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.data.release.Streamable;
+import org.springframework.data.util.Streamable;
 
 /**
  * Value object to bind REST responses to.
- * 
+ *
  * @author Mark Paluch
  */
 @Value

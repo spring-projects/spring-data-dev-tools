@@ -19,12 +19,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import org.springframework.data.release.Streamable;
+import org.springframework.data.util.Streamable;
 
 /**
  * A {@link Streamable} set of modules. Makes sure the stream order will match the natural dependency order of the given
  * {@link Module} instances.
- * 
+ *
  * @author Oliver Gierke
  */
 class Modules implements Streamable<Module> {
