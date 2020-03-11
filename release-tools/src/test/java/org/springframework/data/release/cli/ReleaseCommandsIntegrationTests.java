@@ -56,6 +56,6 @@ public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
 
 		git.update(ReleaseTrains.MOORE);
 
-		assertThat(releaseCommands.predictTrainAndIteration(), is("Moore"));
+		assertThat(releaseCommands.predictTrainAndIteration(), is("Neumann"));
 	}
 }
