@@ -20,24 +20,15 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.geo.Point;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.DbRefResolver;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -45,8 +36,8 @@ import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
 /**
  * @author Christoph Strobl
@@ -68,13 +59,13 @@ public class MappingMongoConverterBenchmark extends AbstractMicrobenchmark {
 	@Setup
 	public void setUp() throws Exception {
 
-		client = new MongoClient(new ServerAddress());
+		client = MongoClients.create();
 
 		this.mappingContext = new MongoMappingContext();
 		this.mappingContext.setInitialEntitySet(Collections.singleton(Customer.class));
 		this.mappingContext.afterPropertiesSet();
 
-		DbRefResolver dbRefResolver = new DefaultDbRefResolver(new SimpleMongoDbFactory(client, DB_NAME));
+		DbRefResolver dbRefResolver = new DefaultDbRefResolver(new SimpleMongoClientDatabaseFactory(client, DB_NAME));
 
 		this.converter = new MappingMongoConverter(dbRefResolver, mappingContext);
 		this.converter.setCustomConversions(new MongoCustomConversions(Collections.emptyList()));
@@ -120,7 +111,7 @@ public class MappingMongoConverterBenchmark extends AbstractMicrobenchmark {
 	@TearDown
 	public void tearDown() {
 
-		client.dropDatabase(DB_NAME);
+		client.getDatabase(DB_NAME).drop();
 		client.close();
 	}
 

@@ -28,8 +28,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 
 /**
@@ -57,7 +57,7 @@ public class ProjectionsBenchmark extends AbstractMicrobenchmark {
 	@Setup
 	public void setUp() {
 
-		client = new MongoClient(new ServerAddress());
+		client = MongoClients.create();
 		template = new MongoTemplate(client, DB_NAME);
 
 		source = new Person();
@@ -84,7 +84,7 @@ public class ProjectionsBenchmark extends AbstractMicrobenchmark {
 	@TearDown
 	public void tearDown() {
 
-		client.dropDatabase(DB_NAME);
+		client.getDatabase(DB_NAME).drop();
 		client.close();
 	}
 

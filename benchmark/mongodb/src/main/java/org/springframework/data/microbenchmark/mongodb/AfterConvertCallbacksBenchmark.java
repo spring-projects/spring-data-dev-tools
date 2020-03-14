@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,16 +28,16 @@ import org.springframework.data.microbenchmark.mongodb.ProjectionsBenchmark.Pers
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
-import org.springframework.data.mongodb.core.mapping.event.BeforeConvertCallback;
+import org.springframework.data.mongodb.core.mapping.event.AfterConvertCallback;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 /**
- * @author Christoph Strobl
+ * @author Roman Puchkovskiy
  */
-public class CallbacksBenchmark extends AbstractMicrobenchmark {
+public class AfterConvertCallbacksBenchmark extends AbstractMicrobenchmark {
 
 	private MongoTemplate templateWithoutContext;
 	private MongoTemplate templateWithEmptyContext;
@@ -99,8 +99,8 @@ public class CallbacksBenchmark extends AbstractMicrobenchmark {
 	static class EntityCallbackConfig {
 
 		@Bean
-		BeforeConvertCallback<Person> convertCallback() {
-			return (it, document) -> {
+		AfterConvertCallback<Person> afterConvertCallback() {
+			return (it, document, collection) -> {
 
 				Person target = new Person();
 				target.id = it.id;

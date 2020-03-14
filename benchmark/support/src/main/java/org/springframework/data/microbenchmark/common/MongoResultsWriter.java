@@ -17,10 +17,14 @@ package org.springframework.data.microbenchmark.common;
 
 import jmh.mbr.core.ResultsWriter;
 import lombok.RequiredArgsConstructor;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.openjdk.jmh.results.RunResult;
@@ -30,17 +34,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.mongodb.ConnectionString;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
 
 /**
- * MongoDB specific {@link ResultsWriterOld} implementation.
+ * MongoDB specific {@link ResultsWriter} implementation.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Roman Puchkovskiy
  */
 @RequiredArgsConstructor
 class MongoResultsWriter implements ResultsWriter {
@@ -56,12 +60,12 @@ class MongoResultsWriter implements ResultsWriter {
 
 		try {
 			doWrite(results);
-		} catch (RuntimeException e) {
+		} catch (ParseException | RuntimeException e) {
 			output.println("Failed to write results: " + e.toString());
 		}
 	}
 
-	private void doWrite(Collection<RunResult> results) {
+	private void doWrite(Collection<RunResult> results) throws ParseException {
 
 		Date now = new Date();
 		StandardEnvironment env = new StandardEnvironment();
@@ -71,13 +75,16 @@ class MongoResultsWriter implements ResultsWriter {
 		String gitDirty = env.getProperty("git.dirty", "no");
 		String gitCommitId = env.getProperty("git.commit.id", "unknown");
 
-		MongoClientURI uri = new MongoClientURI(this.uri);
-		MongoClient client = new MongoClient(uri);
+		ConnectionString uri = new ConnectionString(this.uri);
+		MongoClient client = MongoClients.create();
 
 		String dbName = StringUtils.hasText(uri.getDatabase()) ? uri.getDatabase() : "spring-data-mongodb-benchmarks";
 		MongoDatabase db = client.getDatabase(dbName);
 
-		for (BasicDBObject dbo : (List<BasicDBObject>) JSON.parse(ResultsWriter.jsonifyResults(results))) {
+		String resultsJson = ResultsWriter.jsonifyResults(results).trim();
+		JSONArray array = (JSONArray) new JSONParser(JSONParser.MODE_PERMISSIVE).parse(resultsJson);
+		for (Object object : array) {
+			JSONObject dbo = (JSONObject) object;
 
 			String collectionName = extractClass(dbo.get("benchmark").toString());
 
@@ -113,8 +120,8 @@ class MongoResultsWriter implements ResultsWriter {
 			Object value = doc.get(key);
 			if (value instanceof Document) {
 				value = fixDocumentKeys((Document) value);
-			} else if (value instanceof BasicDBObject) {
-				value = fixDocumentKeys(new Document((BasicDBObject) value));
+			} else if (value instanceof Map) {
+				value = fixDocumentKeys(new Document((Map<String, Object>) value));
 			}
 
 			if (key instanceof String) {

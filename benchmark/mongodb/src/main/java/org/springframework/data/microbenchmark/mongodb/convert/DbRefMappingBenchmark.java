@@ -15,8 +15,8 @@
  */
 package org.springframework.data.microbenchmark.mongodb.convert;
 
-import static org.springframework.data.mongodb.core.query.Criteria.*;
-import static org.springframework.data.mongodb.core.query.Query.*;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 import lombok.Data;
 
@@ -24,19 +24,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.types.ObjectId;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.query.Query;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
 /**
  * @author Christoph Strobl
@@ -55,7 +51,7 @@ public class DbRefMappingBenchmark extends AbstractMicrobenchmark {
 	@Setup
 	public void setUp() throws Exception {
 
-		client = new MongoClient(new ServerAddress());
+		client = MongoClients.create();
 		template = new MongoTemplate(client, DB_NAME);
 
 		List<RefObject> refObjects = new ArrayList<>();
@@ -80,7 +76,7 @@ public class DbRefMappingBenchmark extends AbstractMicrobenchmark {
 	@TearDown
 	public void tearDown() {
 
-		client.dropDatabase(DB_NAME);
+		client.getDatabase(DB_NAME).drop();
 		client.close();
 	}
 
