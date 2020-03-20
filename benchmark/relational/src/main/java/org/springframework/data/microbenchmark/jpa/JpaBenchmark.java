@@ -26,8 +26,10 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
@@ -39,7 +41,7 @@ import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
  */
 public class JpaBenchmark extends AbstractMicrobenchmark {
 
-	@Param({ "postgres", "h2-in-memory", "h2" })
+	@Param({  "postgres", "mysql", "h2-in-memory" })
 	String profile;
 	
 	EntityManager em;
@@ -55,70 +57,31 @@ public class JpaBenchmark extends AbstractMicrobenchmark {
 	}
 
 	@Benchmark
-	public void findByTitle(Blackhole sink) {
+	public void entityManagerfindById(Blackhole sink) {
 
-		Query query = em.createQuery("select b from Book b where b.title = ?1");
-		query.setParameter(1, "title0");
-
-		sink.consume(query.getSingleResult());
-	}
-
-	@Benchmark
-	public void findByTitleCriteria(Blackhole sink) {
-
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<Book> q = cb.createQuery(Book.class);
-		Root<Book> c = q.from(Book.class);
-
-		ParameterExpression<String> parameter = cb.parameter(String.class);
-
-		TypedQuery<Book> query = em.createQuery(q.select(c).where(cb.equal(c.get("title"), parameter)));
-		query.setParameter(parameter, "title0");
+		Query query = em.createQuery("select b from Book b where b.id = ?1");
+		query.setParameter(1, 1L);
 
 		sink.consume(query.getSingleResult());
 	}
 
 	@Benchmark
-	public void findByTitleOptional(Blackhole sink) {
-
-		Query query = em.createQuery("select b from Book b where b.title = ?1");
-		query.setParameter(1, "title0");
-
-		sink.consume(Optional.of(query.getSingleResult()));
+	public void repositoryFindById(Blackhole sink) {
+		sink.consume(repository.findById(1L));
 	}
 
 	@Benchmark
-	public void findAll(Blackhole sink) {
-		sink.consume(em.createQuery("select b from Book b").getResultList());
+	public void derivedFindByIdWithoutTransaction(Blackhole sink) {
+		sink.consume(repository.findByIdIs(1L));
 	}
 
 	@Benchmark
-	public void repositoryFindByTitle(Blackhole sink) {
-		sink.consume(repository.findDerivedByTitle("title0"));
-	}
-	
-	@Benchmark
-	public void repositoryFindTransactionalByTitle(Blackhole sink) {
-		sink.consume(repository.findTransactionalDerivedByTitle("title0"));
+	public void derivedFindByIdWithTransaction(Blackhole sink) {
+		sink.consume(repository.findReadWriteTransactionBookByIdIs(1L));
 	}
 
 	@Benchmark
-	public void repositoryFindByTitleDeclared(Blackhole sink) {
-		sink.consume(repository.findDeclaredByTitle("title0"));
-	}
-	
-	@Benchmark
-	public void repositoryFindTransactionalByTitleDeclared(Blackhole sink) {
-		sink.consume(repository.findTransactionalDeclaredByTitle("title0"));
-	}
-
-	@Benchmark
-	public void repositoryFindByTitleOptional(Blackhole sink) {
-		sink.consume(repository.findOptionalDerivedByTitle("title0"));
-	}
-
-	@Benchmark
-	public void repositoryFindAll(Blackhole sink) {
-		sink.consume(repository.findAll());
+	public void derivedFindByIdWithReadonlyTransaction(Blackhole sink) {
+		sink.consume(repository.findReadonlyTransactionByIdIs(1L));
 	}
 }

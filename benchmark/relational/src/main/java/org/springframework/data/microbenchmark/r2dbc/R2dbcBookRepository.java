@@ -16,7 +16,7 @@
 package org.springframework.data.microbenchmark.r2dbc;
 
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
-import org.springframework.data.r2dbc.repository.query.Query;
+//import org.springframework.data.r2dbc.repository.query.Query;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +35,10 @@ interface R2dbcBookRepository extends R2dbcRepository<Book, Long> {
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	Flux<Book> findAll();
 	
-	@Query(BY_TITLE)
+//	@Query(BY_TITLE)
 	Mono<Book> findByTitle(String title);
 	
 	@Transactional(readOnly = true)
-	@Query(BY_TITLE)
+//	@Query(BY_TITLE)
 	Mono<Book> findTransactionalByTitle(String title);
 }

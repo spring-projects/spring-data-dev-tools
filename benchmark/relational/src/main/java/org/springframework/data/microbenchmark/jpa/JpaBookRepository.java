@@ -41,4 +41,13 @@ interface JpaBookRepository extends CrudRepository<Book, Long> {
 	Book findTransactionalDerivedByTitle(String title);
 
 	Optional<Book> findOptionalDerivedByTitle(String title);
+
+	Book findByIdIs(Long id);
+
+	@Transactional
+	Book findReadWriteTransactionBookByIdIs(Long id);
+
+	@Transactional(readOnly = true)
+	Book findReadonlyTransactionByIdIs(Long id);
+
 }
