@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %5p %40.40c:%4L - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <file>mysql-jdbc.log</file>
+        <append>true</append>
+        <immediateFlush>false</immediateFlush>
+
+        <encoder>
+            <pattern>%d %5p %40.40c:%4L - %m%n</pattern>
+        </encoder>
+    </appender>
+
+<!--    <logger name="MySQL" level="trace">-->
+<!--		<appender-ref ref="file"/>-->
+<!--	</logger>-->
+
+
+    <root level="error">
+        <appender-ref ref="console"/>
+    </root>
+
+</configuration>

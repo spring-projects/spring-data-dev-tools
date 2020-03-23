@@ -15,35 +15,29 @@
  */
 package org.springframework.data.microbenchmark.jpa;
 
-import java.util.Optional;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
 
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
 
 /**
  * Benchmarks for JPA and Spring Data JPA.
- * 
+ *
  * @author Oliver Drotbohm
  */
 public class JpaBenchmark extends AbstractMicrobenchmark {
 
-	@Param({  "postgres", "mysql", "h2-in-memory" })
-	String profile;
-	
+	//	@Param({  "postgres", "mysql", "h2-in-memory" })
+	@Param({  "postgres" })
+//	@Param({"mysql"})
+//	@Param({  "h2-in-memory" })
+			String profile;
+
 	EntityManager em;
 	JpaBookRepository repository;
 

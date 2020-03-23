@@ -15,23 +15,26 @@
  */
 package org.springframework.data.microbenchmark.jpa;
 
-import lombok.Getter;
-
+import javax.persistence.EntityManager;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-import javax.persistence.EntityManager;
-
+import lombok.Getter;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.microbenchmark.FixtureUtils;
+import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * Test fixture for JPA and Spring Data JPA benchmarks.
- * 
+ *
  * @author Oliver Drotbohm
  */
 class JpaFixture {
@@ -41,7 +44,7 @@ class JpaFixture {
 	JpaFixture(String database) {
 
 		this.context = FixtureUtils.createContext(JpaApplication.class, "jpa", database);
-		
+
 		withTransactionalEntityManager(em -> {
 
 			IntStream.range(0, FixtureUtils.NUMBER_OF_BOOKS) //
@@ -49,7 +52,7 @@ class JpaFixture {
 					.forEach(em::persist);
 		});
 	}
-	
+
 	private void withTransactionalEntityManager(Consumer<EntityManager> consumer) {
 
 		PlatformTransactionManager manager = context.getBean(PlatformTransactionManager.class);
@@ -65,5 +68,27 @@ class JpaFixture {
 	}
 
 	@SpringBootApplication
-	static class JpaApplication {}
+	static class JpaApplication {
+
+		@Bean
+		public JpaVendorAdapterPostProcessor oo() {
+			return new JpaVendorAdapterPostProcessor();
+		}
+
+		static class JpaVendorAdapterPostProcessor implements BeanPostProcessor {
+
+			@Override
+			public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+
+				if (bean instanceof HibernateJpaVendorAdapter) {
+
+					HibernateJpaVendorAdapter adapter = (HibernateJpaVendorAdapter) bean;
+					HibernateJpaDialect dialect = adapter.getJpaDialect();
+					dialect.setPrepareConnection(false);
+				}
+
+				return bean;
+			}
+		}
+	}
 }
