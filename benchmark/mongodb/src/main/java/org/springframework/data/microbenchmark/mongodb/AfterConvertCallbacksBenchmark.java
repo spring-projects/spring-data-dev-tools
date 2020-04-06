@@ -15,16 +15,18 @@
  */
 package org.springframework.data.microbenchmark.mongodb;
 
+import static org.mockito.Mockito.*;
+
 import org.bson.Document;
-import org.mockito.Mockito;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Setup;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
-import org.springframework.data.microbenchmark.mongodb.ProjectionsBenchmark.Address;
-import org.springframework.data.microbenchmark.mongodb.ProjectionsBenchmark.Person;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
@@ -48,19 +50,21 @@ public class AfterConvertCallbacksBenchmark extends AbstractMicrobenchmark {
 	@Setup
 	public void setUp() {
 
-		MongoClient client = Mockito.mock(MongoClient.class);
-		MongoDatabase db = Mockito.mock(MongoDatabase.class);
-		MongoCollection<Document> collection = Mockito.mock(MongoCollection.class);
+		MongoClient client = mock(MongoClient.class);
+		MongoDatabase db = mock(MongoDatabase.class);
+		MongoCollection<Document> collection = mock(MongoCollection.class);
 
-		Mockito.when(client.getDatabase(Mockito.anyString())).thenReturn(db);
-		Mockito.when(db.getCollection(Mockito.anyString(), Mockito.eq(Document.class))).thenReturn(collection);
+		when(client.getDatabase(anyString())).thenReturn(db);
+		when(db.getCollection(anyString(), eq(Document.class))).thenReturn(collection);
 
 		MongoDatabaseFactory factory = new SimpleMongoClientDatabaseFactory(client, "mock-database");
 
 		templateWithoutContext = new MongoTemplate(factory);
 
 		templateWithEmptyContext = new MongoTemplate(factory);
-		templateWithEmptyContext.setApplicationContext(new AnnotationConfigApplicationContext(EmptyConfig.class));
+		StaticApplicationContext empty = new StaticApplicationContext();
+		empty.refresh();
+		templateWithEmptyContext.setApplicationContext(empty);
 
 		templateWithContext = new MongoTemplate(factory);
 		templateWithContext.setApplicationContext(new AnnotationConfigApplicationContext(EntityCallbackConfig.class));
@@ -91,11 +95,6 @@ public class AfterConvertCallbacksBenchmark extends AbstractMicrobenchmark {
 	}
 
 	@Configuration
-	static class EmptyConfig {
-
-	}
-
-	@Configuration
 	static class EntityCallbackConfig {
 
 		@Bean
@@ -112,4 +111,19 @@ public class AfterConvertCallbacksBenchmark extends AbstractMicrobenchmark {
 			};
 		}
 	}
+
+	static class Person {
+
+		@Id String id;
+		String firstname;
+		String lastname;
+		Address address;
+	}
+
+	static class Address {
+
+		String city;
+		String street;
+	}
+
 }
