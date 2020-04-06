@@ -63,7 +63,7 @@ public class ReleaseTrains {
 				new Module(JDBC, "2.0"), //
 				new Module(R2DBC, "1.1")) //
 				.filterModules(module -> !module.getProject().equals(GEMFIRE))
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, GA));
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA));
 
 		// Trains
 
