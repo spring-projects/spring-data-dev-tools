@@ -15,29 +15,29 @@
  */
 package org.springframework.data.microbenchmark.r2dbc;
 
-import org.springframework.data.r2dbc.repository.R2dbcRepository;
-import org.springframework.data.r2dbc.repository.query.Query;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * A repository for {@link Book} instances.
- * 
+ *
  * @author Oliver Drotbohm
  */
 interface R2dbcBookRepository extends R2dbcRepository<Book, Long> {
-	
+
 	static final String BY_TITLE = "SELECT id, title, pages FROM Book where title = :title";
-	
+
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	Flux<Book> findAll();
-	
+
 	@Query(BY_TITLE)
 	Mono<Book> findByTitle(String title);
-	
+
 	@Transactional(readOnly = true)
 	@Query(BY_TITLE)
 	Mono<Book> findTransactionalByTitle(String title);
