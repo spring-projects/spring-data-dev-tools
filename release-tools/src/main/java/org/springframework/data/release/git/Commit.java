@@ -42,11 +42,16 @@ public class Commit {
 
 		StringBuilder builder = new StringBuilder();
 
-		builder.append(ticket.getId()).append(" - ").append(summary).append("\n");
+		builder.append(ticket.getId()).append(" - ").append(summary);
+
+		if (!summary.endsWith(".")) {
+			builder.append(".");
+		}
 
 		details.ifPresent(it -> {
 			builder.append("\n");
-			builder.append(it).append("\n");
+			builder.append("\n");
+			builder.append(it);
 		});
 
 		return builder.toString();
