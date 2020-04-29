@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.git.GitOperations;
@@ -51,6 +52,7 @@ class SaganOperations {
 			Projects.KEY_VALUE);
 
 	GitOperations git;
+	Executor executor;
 	SaganClient client;
 	Logger logger;
 
@@ -72,7 +74,7 @@ class SaganOperations {
 
 		Map<Project, MaintainedVersions> versions = findVersions(trains);
 
-		ExecutionUtils.run(Streamable.of(versions.entrySet()),
+		ExecutionUtils.run(executor, Streamable.of(versions.entrySet()),
 				entry -> client.updateProjectMetadata(entry.getKey(), entry.getValue()));
 	}
 
@@ -93,8 +95,8 @@ class SaganOperations {
 
 		Assert.notNull(trains, "Trains must not be null!");
 
-		return ExecutionUtils.runAndReturn(Streamable.of(trains), train -> {
-			return ExecutionUtils.runAndReturn(
+		return ExecutionUtils.runAndReturn(executor, Streamable.of(trains), train -> {
+			return ExecutionUtils.runAndReturn(executor,
 					Streamable.of(() -> train.stream().filter(module -> !TO_FILTER.contains(module.getProject()))), module -> {
 						return getLatestVersion(module, train);
 					});

@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
  * Utility method to easily execute functionality in parallel.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Slf4j
 public class ExecutionUtils {
@@ -40,11 +42,13 @@ public class ExecutionUtils {
 	 * all executions to complete before returning. Exceptions being thrown in the {@link ConsumerWithException} will be
 	 * converted into {@link RuntimeException}s.
 	 *
+	 * @param executor must not be {@literal null}.
 	 * @param streamable must not be {@literal null}.
 	 * @param consumer must not be {@literal null}.
 	 */
-	public static <T> void run(Streamable<T> streamable, ConsumerWithException<T> consumer) {
+	public static <T> void run(Executor executor, Streamable<T> streamable, ConsumerWithException<T> consumer) {
 
+		Assert.notNull(executor, "Executor must not be null!");
 		Assert.notNull(streamable, "Streamable must not be null!");
 		Assert.notNull(consumer, "Consumer must not be null!");
 
@@ -56,29 +60,31 @@ public class ExecutionUtils {
 						log.error(o_O.getMessage(), o_O);
 						throw new RuntimeException(o_O);
 					}
-				})).collect(Collectors.toList()).forEach(CompletableFuture::join);
+				}, executor)).collect(Collectors.toList()).forEach(CompletableFuture::join);
 	}
 
 	/**
 	 * Runs the given {@link Function} for each element in the given {@link Streamable} in parallel waiting for all
 	 * executions to complete before returning the results.
 	 *
+	 * @param executor must not be {@literal null}.
 	 * @param streamable must not be {@literal null}.
 	 * @param function must not be {@literal null}.
 	 * @return
 	 */
-	public static <T, S> Collection<S> runAndReturn(Streamable<T> streamable, Function<T, S> function) {
-		return runAndReturn(streamable, function, Collectors.toList());
+	public static <T, S> Collection<S> runAndReturn(Executor executor, Streamable<T> streamable,
+			Function<T, S> function) {
+		return runAndReturn(executor, streamable, function, Collectors.toList());
 	}
 
-	public static <T, S, R> R runAndReturn(Streamable<T> streamable, Function<T, S> function,
+	public static <T, S, R> R runAndReturn(Executor executor, Streamable<T> streamable, Function<T, S> function,
 			Collector<? super S, ?, R> collector) {
 
 		Assert.notNull(streamable, "Iterable must not be null!");
 		Assert.notNull(function, "Function must not be null!");
 
 		return streamable.stream().//
-				map(it -> CompletableFuture.supplyAsync(() -> function.apply(it))).//
+				map(it -> CompletableFuture.supplyAsync(() -> function.apply(it), executor)).//
 				filter(Objects::nonNull).//
 				collect(Collectors.toList()).//
 				stream().//

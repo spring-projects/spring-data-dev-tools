@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.sagan;
 
+import java.util.concurrent.Executor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -35,8 +37,8 @@ class SaganConfiguration {
 	@Autowired Logger logger;
 
 	@Bean
-	public SaganOperations saganOperations(GitOperations operations) {
-		return new SaganOperations(operations, saganClient(), logger);
+	public SaganOperations saganOperations(GitOperations operations, Executor executor) {
+		return new SaganOperations(operations, executor, saganClient(), logger);
 	}
 
 	@Bean

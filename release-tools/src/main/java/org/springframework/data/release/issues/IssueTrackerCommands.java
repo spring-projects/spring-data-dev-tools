@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -47,6 +48,7 @@ import org.springframework.util.StringUtils;
 class IssueTrackerCommands extends TimedCommand {
 
 	@NonNull PluginRegistry<IssueTracker, Project> tracker;
+	@NonNull Executor executor;
 
 	@CliCommand("tracker evict")
 	public void evict() {
@@ -65,7 +67,7 @@ class IssueTrackerCommands extends TimedCommand {
 
 	@CliCommand(value = "tracker releasetickets")
 	public String releaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		return runAndReturn(iteration, module -> getTrackerFor(module).getReleaseTicketFor(module),
+		return runAndReturn(executor, iteration, module -> getTrackerFor(module).getReleaseTicketFor(module),
 				Tickets.toTicketsCollector()).toString();
 	}
 
@@ -100,25 +102,25 @@ class IssueTrackerCommands extends TimedCommand {
 	@CliCommand(value = "tracker self-assign releasetickets")
 	public String jiraSelfAssignReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
-		return runAndReturn(iteration, module -> getTrackerFor(module).assignReleaseTicketToMe(module),
+		return runAndReturn(executor, iteration, module -> getTrackerFor(module).assignReleaseTicketToMe(module),
 				Tickets.toTicketsCollector()).toString();
 	}
 
 	public String jiraStartProgress(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
-		return runAndReturn(iteration, module -> getTrackerFor(module).startReleaseTicketProgress(module),
+		return runAndReturn(executor, iteration, module -> getTrackerFor(module).startReleaseTicketProgress(module),
 				Tickets.toTicketsCollector()).toString();
 	}
 
 	@CliCommand(value = "tracker create releaseversions")
 	public void jiraCreateReleaseVersions(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		run(iteration, module -> getTrackerFor(module).createReleaseVersion(module));
+		run(executor, iteration, module -> getTrackerFor(module).createReleaseVersion(module));
 	}
 
 	@CliCommand(value = "tracker create releasetickets")
 	public String createReleaseTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
-		run(iteration, module -> getTrackerFor(module).createReleaseTicket(module));
+		run(executor, iteration, module -> getTrackerFor(module).createReleaseTicket(module));
 		evict();
 
 		return releaseTickets(iteration);
@@ -136,18 +138,18 @@ class IssueTrackerCommands extends TimedCommand {
 			return getTrackerFor(module).getChangelogFor(module).toString();
 		}
 
-		return ExecutionUtils.runAndReturn(iteration, this::getChangelog).//
+		return ExecutionUtils.runAndReturn(executor, iteration, this::getChangelog).//
 				stream().map(it -> it.toString()).collect(Collectors.joining("\n"));
 	}
 
 	@CliCommand("tracker close")
 	public void closeIteration(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		run(iteration, module -> getTrackerFor(module).closeIteration(module));
+		run(executor, iteration, module -> getTrackerFor(module).closeIteration(module));
 	}
 
 	@CliCommand("tracker archive")
 	public void archiveIteration(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
-		run(iteration, module -> getTrackerFor(module).archiveReleaseVersion(module));
+		run(executor, iteration, module -> getTrackerFor(module).archiveReleaseVersion(module));
 	}
 
 	private Changelog getChangelog(ModuleIteration module) {

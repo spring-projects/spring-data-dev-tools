@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -86,6 +87,7 @@ public class GitOperations {
 	}
 
 	GitServer server = new GitServer();
+	Executor executor;
 	Workspace workspace;
 	Logger logger;
 	PluginRegistry<IssueTracker, Project> issueTracker;
@@ -111,7 +113,7 @@ public class GitOperations {
 
 		Assert.notNull(train, "Train must not be null!");
 
-		ExecutionUtils.run(train, module -> {
+		ExecutionUtils.run(executor, train, module -> {
 			reset(module.getProject(), Branch.from(module));
 		});
 	}
@@ -128,7 +130,7 @@ public class GitOperations {
 		update(train);
 
 		AtomicBoolean masterSwitch = new AtomicBoolean();
-		ExecutionUtils.run(train, module -> {
+		ExecutionUtils.run(executor, train, module -> {
 
 			Project project = module.getProject();
 
@@ -179,7 +181,7 @@ public class GitOperations {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			Project project = module.getProject();
 			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
@@ -198,7 +200,7 @@ public class GitOperations {
 
 	public void prepare(TrainIteration iteration) {
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			Project project = module.getProject();
 			Branch branch = Branch.from(module);
@@ -223,12 +225,12 @@ public class GitOperations {
 	}
 
 	public void update(Train train) {
-		ExecutionUtils.run(train, module -> update(module.getProject()));
+		ExecutionUtils.run(executor, train, module -> update(module.getProject()));
 	}
 
 	public void push(TrainIteration iteration) {
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			Branch branch = Branch.from(module);
 			logger.log(module, "git push origin %s", branch);
@@ -254,7 +256,7 @@ public class GitOperations {
 
 	public void pushTags(Train train) {
 
-		ExecutionUtils.run(train.getModules(), module -> {
+		ExecutionUtils.run(executor, train.getModules(), module -> {
 
 			logger.log(module.getProject(), "git push --tags origin");
 
@@ -364,7 +366,7 @@ public class GitOperations {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			Project project = module.getProject();
 			ObjectId hash = getReleaseHash(module);
@@ -408,7 +410,8 @@ public class GitOperations {
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
 
-		ExecutionUtils.run(iteration, module -> commit(module, expandSummary(summary, module, iteration), details));
+		ExecutionUtils.run(executor, iteration,
+				module -> commit(module, expandSummary(summary, module, iteration), details));
 	}
 
 	/**
@@ -550,7 +553,7 @@ public class GitOperations {
 
 		checkout(iteration);
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			Branch branch = createMaintenanceBranch(module);
 			checkout(module.getProject(), branch, BranchCheckoutMode.CREATE_ONLY);
@@ -559,7 +562,7 @@ public class GitOperations {
 
 	public void removeTags(TrainIteration iteration) {
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			Project project = module.getProject();
 			ArtifactVersion artifactVersion = ArtifactVersion.of(module);
@@ -591,7 +594,7 @@ public class GitOperations {
 		Assert.notNull(iteration, "Train iteration must not be null!");
 		Assert.notNull(targets, "Target trains must not be null!");
 
-		ExecutionUtils.run(iteration, module -> {
+		ExecutionUtils.run(executor, iteration, module -> {
 
 			BackportTargets backportTargets = new BackportTargets(module, targets);
 			Project project = module.getProject();
