@@ -37,11 +37,13 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
  */
 public class Projects {
 
-	public static final Project COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
+	public static final Project BOM, COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
 			ELASTICSEARCH, R2DBC, REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE;
 	public static final List<Project> PROJECTS;
 
 	static {
+
+		BOM = new Project("DATABOM", "BOM", Tracker.GITHUB);
 
 		BUILD = new Project("DATABUILD", "Build", Tracker.GITHUB) //
 				.withAdditionalArtifacts(ArtifactCoordinates.forGroupId("org.springframework.data.build")

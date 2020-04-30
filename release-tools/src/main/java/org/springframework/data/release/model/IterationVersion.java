@@ -19,10 +19,13 @@ package org.springframework.data.release.model;
  * A {@link Version} tied to an {@link Iteration}.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 public interface IterationVersion extends VersionAware {
 
 	Iteration getIteration();
 
 	boolean isBranchVersion();
+
+	boolean usesModifierVersionFormat();
 }

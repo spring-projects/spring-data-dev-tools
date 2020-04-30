@@ -66,6 +66,29 @@ class TicketsUnitTests {
 	}
 
 	@Test
+	void getReleaseTicketReturnsCalverReleaseTicket() {
+
+		Tickets tickets = new Tickets(
+				Collections.singletonList(new Ticket("1234", "Release 2.4 GA (2020.0.0)", JiraTicketStatus.of(false, "", ""))));
+
+		Ticket releaseTicket = tickets
+				.getReleaseTicket(ReleaseTrains.OCKHAM.getModuleIteration(Projects.JPA, Iteration.GA));
+		assertThat(releaseTicket).isNotNull();
+
+		tickets = new Tickets(
+				Collections.singletonList(new Ticket("1234", "Release 2.4 M1 (2020.0.0)", JiraTicketStatus.of(false, "", ""))));
+
+		releaseTicket = tickets.getReleaseTicket(ReleaseTrains.OCKHAM.getModuleIteration(Projects.JPA, Iteration.M1));
+		assertThat(releaseTicket).isNotNull();
+
+		tickets = new Tickets(
+				Collections.singletonList(new Ticket("1234", "Release 2.4.1 (2020.0.1)", JiraTicketStatus.of(false, "", ""))));
+
+		releaseTicket = tickets.getReleaseTicket(ReleaseTrains.OCKHAM.getModuleIteration(Projects.JPA, Iteration.SR1));
+		assertThat(releaseTicket).isNotNull();
+	}
+
+	@Test
 	void getReleaseTicketThrowsExceptionWithoutAReleaseTicket() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));

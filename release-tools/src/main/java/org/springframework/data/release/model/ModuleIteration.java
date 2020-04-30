@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @EqualsAndHashCode
-public class ModuleIteration implements IterationVersion, ProjectAware{
+public class ModuleIteration implements IterationVersion, ProjectAware {
 
 	private final @Getter Module module;
 	private final @Getter TrainIteration trainIteration;
@@ -75,6 +75,15 @@ public class ModuleIteration implements IterationVersion, ProjectAware{
 		return getIteration().isServiceIteration() || trainIteration.getTrain().isAlwaysUseBranch();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.model.IterationVersion#usesModifierVersionFormat()
+	 */
+	@Override
+	public boolean usesModifierVersionFormat() {
+		return trainIteration.getTrain().usesCalver();
+	}
+
 	/**
 	 * Returns the {@link String} representation of the logical version of the {@link ModuleIteration}. This will
 	 * abbreviate trailing zeros and not include the release train name.
@@ -103,13 +112,32 @@ public class ModuleIteration implements IterationVersion, ProjectAware{
 		Iteration iteration = trainIteration.getIteration();
 
 		if (iteration.isServiceIteration()) {
-			builder.append(" (").append(trainIteration.toString());
+			builder.append(" (");
+			if (getTrain().usesCalver()) {
+				builder.append(trainIteration.getName());
+			} else {
+				builder.append(trainIteration.toString());
+			}
 		} else {
 			builder.append(" ").append(iteration.getName()).append(" (");
-			builder.append(trainIteration.getTrain().getName());
+			builder.append(trainIteration.getName());
 		}
 
 		return builder.append(")").toString();
+	}
+
+	public String getReleaseVersionString() {
+
+		if (getTrain().usesCalver()) {
+
+			if (getIteration().isServiceIteration() || getIteration().isGAIteration()) {
+				return getTrainIteration().getCalver().toMajorMinorBugfix();
+			}
+
+			return getTrainIteration().getCalver().toMajorMinorBugfix() + "-" + getIteration().getName();
+		}
+
+		return getTrain().getName() + " " + getIteration().getName();
 	}
 
 	/**

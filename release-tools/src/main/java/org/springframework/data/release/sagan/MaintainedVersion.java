@@ -51,7 +51,8 @@ class MaintainedVersion implements Comparable<MaintainedVersion> {
 		Assert.notNull(module, "Module must not be null!");
 		Assert.notNull(train, "Train must not be null!");
 
-		ArtifactVersion snapshotVersion = ArtifactVersion.of(module.getVersion()).getSnapshotVersion();
+		ArtifactVersion snapshotVersion = ArtifactVersion.of(module.getVersion()).withModifierFormat(train.usesCalver())
+				.getSnapshotVersion();
 
 		return MaintainedVersion.of(module.getProject(), snapshotVersion, train);
 	}

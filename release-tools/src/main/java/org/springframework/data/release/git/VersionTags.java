@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 
@@ -60,7 +61,19 @@ public class VersionTags implements Streamable<Tag> {
 	}
 
 	public Tag createTag(ModuleIteration iteration) {
-		return getLatest().createNew(ArtifactVersion.of(iteration));
+
+		if (iteration.getProject().equals(Projects.BOM)) {
+			return Tag.of(iteration.getTrainIteration().getReleaseTrainNameAndVersion());
+		}
+
+		Tag latest = getLatest();
+		ArtifactVersion version = ArtifactVersion.of(iteration);
+
+		if (latest != null) {
+			return latest.createNew(version);
+		}
+
+		return Tag.of(version.toString());
 	}
 
 	/**

@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 
 import org.springframework.data.util.Streamable;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -49,6 +50,7 @@ public class Train implements Streamable<Module> {
 
 	private final String name;;
 	private final Modules modules;
+	private @Nullable Version calver;
 	private @With Iterations iterations;
 	private @With boolean alwaysUseBranch;
 
@@ -57,7 +59,7 @@ public class Train implements Streamable<Module> {
 	}
 
 	public Train(String name, Collection<Module> modules) {
-		this(name, Modules.of(modules), Iterations.DEFAULT, false);
+		this(name, Modules.of(modules), null, Iterations.DEFAULT, false);
 	}
 
 	/*
@@ -106,17 +108,18 @@ public class Train implements Streamable<Module> {
 
 	public Train next(String name, Transition transition, Module... additionalModules) {
 
-		Set<Module> collect = Stream.concat(modules.stream(), Stream.of(additionalModules)).//
+		Set<Module> modules = Stream.concat(this.modules.stream(), Stream.of(additionalModules)).//
 				map(module -> Arrays.stream(additionalModules).//
 						reduce(module.next(transition),
 								(it, additionalModule) -> it.hasSameProjectAs(additionalModule) ? additionalModule : it))
 				.collect(Collectors.toSet());
 
-		return new Train(name, collect);
+		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch);
 	}
 
 	public Train filterModules(Predicate<Module> filterPredicate) {
-		return new Train(name, getModules().stream().filter(filterPredicate).collect(Collectors.toList()));
+		return new Train(name, Modules.of(getModules().stream().filter(filterPredicate).collect(Collectors.toList())),
+				calver, iterations, alwaysUseBranch);
 	}
 
 	/**
@@ -159,6 +162,14 @@ public class Train implements Streamable<Module> {
 		Module module = getModule(project);
 
 		return ArtifactVersion.of(new ModuleIteration(module, new TrainIteration(this, iteration)));
+	}
+
+	public boolean usesCalver() {
+		return calver != null;
+	}
+
+	public Train withCalver(String calverVersion) {
+		return new Train(name, modules, Version.parse(calverVersion), iterations, alwaysUseBranch);
 	}
 
 	/*

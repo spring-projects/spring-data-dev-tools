@@ -40,6 +40,10 @@ class PomUpdater {
 		return BUILD.equals(project);
 	}
 
+	public boolean isBomProject() {
+		return BOM.equals(project);
+	}
+
 	public void updateArtifactVersion(Pom pom) {
 
 		ArtifactVersion version = information.getProjectVersionToSet(project);

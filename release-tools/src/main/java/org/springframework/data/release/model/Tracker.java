@@ -32,7 +32,7 @@ public enum Tracker {
 
 	private final String ticketPattern;
 
-	public static final String releaseTicketSummary(ModuleIteration moduleIteration) {
+	public static String releaseTicketSummary(ModuleIteration moduleIteration) {
 		return "Release " + moduleIteration.getMediumVersionString();
 	}
 }

@@ -64,12 +64,61 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 		return train.getModuleIteration(module.getProject(), previousIteration);
 	}
 
+	public String getName() {
+
+		if (getTrain().usesCalver()) {
+			return getCalver().toMajorMinorBugfix();
+		}
+
+		return getTrain().getName();
+	}
+
+	public String getReleaseTrainNameAndVersion() {
+
+		if (getTrain().usesCalver()) {
+
+			if (getIteration().isMilestone() || getIteration().isReleaseCandidate()) {
+				return String.format("%s-%s", getCalver(), iteration);
+			}
+
+			return getCalver().toString();
+		}
+
+		if (iteration.isGAIteration()) {
+			return String.format("%s-RELEASE", getTrain().getName());
+		}
+
+		return String.format("%s-%s", getTrain().getName(), iteration);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s %s", train.getName(), iteration.getName());
+		return String.format("%s %s", getName(), iteration.getName());
+	}
+
+	public Version getCalver() {
+
+		Version version = getTrain().getCalver();
+
+		if (getIteration().isServiceIteration()) {
+			return version.withBugfix(getIteration().getBugfixValue());
+		}
+
+		return version;
+	}
+
+	public String getNextBugfixName() {
+
+		Version version = getTrain().getCalver();
+		int currentBugfixLevel = 0;
+		if (getIteration().isServiceIteration()) {
+			currentBugfixLevel = getIteration().getBugfixValue();
+		}
+
+		return version.withBugfix(currentBugfixLevel + 1).toString();
 	}
 }

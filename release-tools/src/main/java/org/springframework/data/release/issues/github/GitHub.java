@@ -532,7 +532,7 @@ class GitHub implements IssueTracker {
 		return milestone
 				.orElseThrow(() -> new IllegalArgumentException(String.format("No milestone for %s found containing %s!", //
 						moduleIteration.getProject().getFullName(), //
-						moduleIteration.getShortVersionString())));
+						new GithubMilestone(moduleIteration))));
 	}
 
 	private static Ticket toTicket(GitHubIssue issue) {

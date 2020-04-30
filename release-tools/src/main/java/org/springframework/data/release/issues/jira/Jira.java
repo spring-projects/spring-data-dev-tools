@@ -120,11 +120,7 @@ class Jira implements JiraConnector {
 
 		JiraIssues issues = getJiraIssues(query, new HttpHeaders(), 0);
 
-		if (!issues.hasIssues()) {
-			throw new IllegalArgumentException(String.format("Did not find a release ticket for %s!", moduleIteration));
-		}
-
-		return toTicket(issues.stream().findFirst().get());
+		return issues.stream().map(this::toTicket).collect(Tickets.toTicketsCollector()).getReleaseTicket(moduleIteration);
 	}
 
 	/*
@@ -278,9 +274,9 @@ class Jira implements JiraConnector {
 	}
 
 	/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.release.jira.JiraConnector#findJiraReleaseVersion(org.springframework.data.release.model.ModuleIteration)
-		 */
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.jira.JiraConnector#findJiraReleaseVersion(org.springframework.data.release.model.ModuleIteration)
+	 */
 	@Cacheable("release-version")
 	public Optional<JiraReleaseVersion> findJiraReleaseVersion(ModuleIteration moduleIteration) {
 
@@ -318,7 +314,8 @@ class Jira implements JiraConnector {
 		}
 
 		findJiraReleaseVersion(moduleIteration).orElseThrow(
-				() -> new IllegalStateException(String.format("Did not find a release version for %s", moduleIteration)));
+				() -> new IllegalStateException(String.format("No release version for %s found containing %s!",
+						moduleIteration.getProject().getFullName(), new JiraVersion(moduleIteration))));
 
 		JiraComponents jiraComponents = getJiraComponents(moduleIteration.getProjectKey());
 

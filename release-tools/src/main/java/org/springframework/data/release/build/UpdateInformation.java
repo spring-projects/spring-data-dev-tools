@@ -22,7 +22,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.TrainIteration;
@@ -98,17 +97,46 @@ public class UpdateInformation {
 	 * 
 	 * @return will never be {@literal null}.
 	 */
-	public String getReleaseTrainVersion() {
+	public String getReleaseTrainNameVersion() {
 
-		String version = train.getTrain().getName();
+		boolean usesCalver = train.getTrain().usesCalver();
 
 		switch (phase) {
 			case PREPARE:
-				Iteration iteration = train.getIteration();
-				return String.format("%s-%s", version, iteration.isGAIteration() ? "RELEASE" : iteration.getName());
+				return train.getReleaseTrainNameAndVersion();
 			case CLEANUP:
 			case MAINTENANCE:
-				return version.concat("-BUILD-SNAPSHOT");
+
+				if (usesCalver) {
+					return String.format("%s-SNAPSHOT", train.getNextBugfixName());
+				}
+
+				return String.format("%s-BUILD-SNAPSHOT", train.getName());
+		}
+
+		throw new IllegalStateException("Unexpected phase detected " + phase + " detected!");
+	}
+
+	/**
+	 * Returns the version {@link String} to be used to describe the release train.
+	 * 
+	 * @return will never be {@literal null}.
+	 */
+	public String getReleaseTrainVersion() {
+
+		boolean usesCalver = train.getTrain().usesCalver();
+
+		switch (phase) {
+			case PREPARE:
+				return train.getReleaseTrainNameAndVersion();
+			case CLEANUP:
+			case MAINTENANCE:
+
+				if (usesCalver) {
+					return String.format("%s-SNAPSHOT", train.getNextBugfixName());
+				}
+
+				return String.format("%s-BUILD-SNAPSHOT", train.getName());
 		}
 
 		throw new IllegalStateException("Unexpected phase detected " + phase + " detected!");

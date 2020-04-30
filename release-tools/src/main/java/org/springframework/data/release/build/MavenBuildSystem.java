@@ -79,8 +79,12 @@ class MavenBuildSystem implements BuildSystem {
 
 		if (updater.isBuildProject()) {
 
-			updateBom(information);
+			updateBom(information, "bom/pom.xml", BUILD);
 			updateParentPom(information);
+
+		} else if (updater.isBomProject()) {
+
+			updateBom(information, "pom.xml", BOM);
 
 		} else {
 
@@ -134,23 +138,23 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
-	private void updateBom(UpdateInformation updateInformation) {
+	private void updateBom(UpdateInformation updateInformation, String file, Project project) {
 
 		TrainIteration iteration = updateInformation.getTrain();
 
 		logger.log(BUILD, "Updating BOM pom.xml…");
 
-		execute(workspace.getFile("bom/pom.xml", BUILD), pom -> {
+		execute(workspace.getFile(file, project), pom -> {
 
-			for (ModuleIteration module : iteration.getModulesExcept(BUILD)) {
+			for (ModuleIteration module : iteration.getModulesExcept(BUILD, BOM)) {
 
 				ArtifactVersion version = updateInformation.getProjectVersionToSet(module.getProject());
 
-				logger.log(BUILD, "%s", module);
+				logger.log(project, "%s", module);
 
 				String moduleArtifactId = new MavenArtifact(module).getArtifactId();
 				pom.setDependencyManagementVersion(moduleArtifactId, version);
-				logger.log(BUILD, "Updated managed dependency version for %s to %s!", moduleArtifactId, version);
+				logger.log(project, "Updated managed dependency version for %s to %s!", moduleArtifactId, version);
 
 				module.getProject().doWithAdditionalArtifacts(additionalArtifact -> {
 
@@ -159,9 +163,9 @@ class MavenBuildSystem implements BuildSystem {
 
 					if (artifact != null) {
 						pom.setDependencyManagementVersion(artifactId, version);
-						logger.log(BUILD, "Updated managed dependency version for %s to %s!", artifactId, version);
+						logger.log(project, "Updated managed dependency version for %s to %s!", artifactId, version);
 					} else {
-						logger.log(BUILD, "Artifact %s not found, skipping update!", artifactId);
+						logger.log(project, "Artifact %s not found, skipping update!", artifactId);
 					}
 				});
 			}
@@ -220,10 +224,20 @@ class MavenBuildSystem implements BuildSystem {
 
 		if (BUILD.equals(project)) {
 
-			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainNameVersion())) //
 					.and(arg("generateBackupPoms").withValue("false")) //
 					.and(arg("groupId").withValue("org.springframework.data")) //
 					.and(arg("artifactId").withValue("spring-data-releasetrain")));
+
+			mvn.execute(project, CommandLine.of(Goal.INSTALL));
+		}
+
+		if (BOM.equals(project)) {
+
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
+					.and(arg("generateBackupPoms").withValue("false")) //
+					.and(arg("groupId").withValue("org.springframework.data")) //
+					.and(arg("artifactId").withValue("spring-data-bom")));
 
 			mvn.execute(project, CommandLine.of(Goal.INSTALL));
 		}

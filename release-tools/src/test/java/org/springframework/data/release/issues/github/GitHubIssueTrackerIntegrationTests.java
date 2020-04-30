@@ -84,14 +84,14 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 	void ignoresUnknownTicketsByTicketId() {
 
 		Collection<Ticket> tickets = github.findTickets(Projects.BUILD, Collections.singletonList("123"));
-		assertThat(tickets).hasSize(0);
+		assertThat(tickets).isEmpty();
 	}
 
 	@Test // #5
 	void emptyResultWithEmptyTicketIds() {
 
 		Collection<Ticket> tickets = github.findTickets(Projects.COMMONS, Collections.emptyList());
-		assertThat(tickets).hasSize(0);
+		assertThat(tickets).isEmpty();
 	}
 
 	@Test // #5
@@ -110,7 +110,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		mockGetMilestonesWith("emptyMilestones.json");
 
 		assertThatIllegalArgumentException().isThrownBy(() -> github.getReleaseTicketFor(BUILD_HOPPER_RC1))
-				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1!");
+				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1 (Hopper)!");
 	}
 
 	@Test // #5
@@ -157,7 +157,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		mockGetMilestonesWith("emptyMilestones.json");
 
 		assertThatIllegalArgumentException().isThrownBy(() -> github.createReleaseTicket(moduleIteration))
-				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1!");
+				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1 (Hopper)!");
 	}
 
 	@Test // #5

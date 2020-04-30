@@ -37,7 +37,7 @@ class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	void detectVersionsToUpdate() {
 
-		sagan.findVersions(ReleaseTrains.LOVELACE, ReleaseTrains.KAY, ReleaseTrains.INGALLS, ReleaseTrains.HOPPER)
+		sagan.findVersions(ReleaseTrains.OCKHAM, ReleaseTrains.NEUMANN, ReleaseTrains.MOORE, ReleaseTrains.LOVELACE)
 				.forEach((project, versions) -> {
 
 					System.out.println(project.getName());

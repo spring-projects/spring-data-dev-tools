@@ -627,6 +627,12 @@ public class GitOperations {
 			}
 
 			logger.log(project, "git cp %s", id.getName());
+
+			// Required as the CherryPick command has no setter for a CredentialsProvide *sigh*
+			if (gpg.isGpgAvailable()) {
+				CredentialsProvider.setDefault(new GpgPassphraseProvider(gpg));
+			}
+
 			CherryPickResult result = git.cherryPick().include(id).call();
 
 			if (result.getStatus().equals(CherryPickStatus.OK)) {

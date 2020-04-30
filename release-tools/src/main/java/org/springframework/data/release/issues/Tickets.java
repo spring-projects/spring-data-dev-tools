@@ -26,6 +26,7 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.springframework.data.release.model.ModuleIteration;
+import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ListWrapperCollector;
 import org.springframework.data.util.Streamable;
@@ -64,7 +65,8 @@ public class Tickets implements Streamable<Ticket> {
 	public Ticket getReleaseTicket(ModuleIteration moduleIteration) {
 
 		return findReleaseTicket(moduleIteration).orElseThrow(
-				() -> new IllegalArgumentException(String.format("Did not find a release ticket for %s!", moduleIteration)));
+				() -> new IllegalArgumentException(String.format("Did not find a release ticket for %s containing %s!",
+						moduleIteration, Tracker.releaseTicketSummary(moduleIteration))));
 	}
 
 	public Tickets getIssueTickets(ModuleIteration moduleIteration) {

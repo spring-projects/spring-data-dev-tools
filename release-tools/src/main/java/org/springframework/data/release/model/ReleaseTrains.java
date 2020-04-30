@@ -28,7 +28,8 @@ import java.util.List;
 public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
-	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN;
+	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN,
+			OCKHAM;
 
 	static {
 
@@ -63,11 +64,15 @@ public class ReleaseTrains {
 				new Module(JDBC, "2.0"), //
 				new Module(R2DBC, "1.1")) //
 				.filterModules(module -> !module.getProject().equals(GEMFIRE))
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA));
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+
+		OCKHAM = NEUMANN.next("Ockham", Transition.MINOR).withCalver("2020.0.0")
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
 		// Trains
 
-		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN);
+		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN,
+				OCKHAM);
 	}
 
 	private static Train codd() {

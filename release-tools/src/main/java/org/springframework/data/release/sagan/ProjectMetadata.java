@@ -20,6 +20,7 @@ import java.util.Locale;
 import org.springframework.data.release.build.MavenArtifact;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.Train;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -143,18 +144,33 @@ class ProjectMetadata {
 	}
 
 	/**
-	 * Return the version to use. For the build project thats the release train name, for everything else the artifact
+	 * Return the version to use. For the build project that's the release train name, for everything else the artifact
 	 * version.
 	 * 
 	 * @return
 	 */
 	public String getVersion() {
 
-		if (Projects.BUILD.equals(version.getProject())) {
-			return String.format("%s-%s", version.getTrain().getName(), version.getVersion().getReleaseTrainSuffix());
+		ArtifactVersion version = this.version.getVersion();
+
+		if (Projects.BUILD.equals(this.version.getProject())) {
+
+			Train train = this.version.getTrain();
+
+			if (train.usesCalver()) {
+
+				if (version.isBugFixVersion() || version.isReleaseVersion()) {
+					return train.getCalver().toMajorMinorBugfix();
+				}
+
+				return String.format("%s-%s", train.getName(), version.getReleaseTrainSuffix());
+			}
+
+			return String.format("%s-%s", train.getName(),
+					version.isReleaseVersion() && !version.isBugFixVersion() ? "RELEASE" : version.getReleaseTrainSuffix());
 		}
 
-		return version.getVersion().toString();
+		return version.toString();
 	}
 
 	public class Repository {

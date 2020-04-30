@@ -18,7 +18,6 @@ package org.springframework.data.release.issues.jira;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Projects;
@@ -28,6 +27,7 @@ import org.springframework.data.release.model.ReleaseTrains;
  * Unit tests for {@link JiraVersion}.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 class JiraVersionUnitTests {
 
@@ -45,12 +45,24 @@ class JiraVersionUnitTests {
 	}
 
 	@Test
+	void rendersGithubCalverCorrectly() {
+
+		ModuleIteration m1 = ReleaseTrains.OCKHAM.getModuleIteration(Projects.COMMONS, Iteration.M1);
+		ModuleIteration rc1 = ReleaseTrains.OCKHAM.getModuleIteration(Projects.COMMONS, Iteration.RC1);
+		ModuleIteration ga = ReleaseTrains.OCKHAM.getModuleIteration(Projects.COMMONS, Iteration.GA);
+
+		assertThat(new JiraVersion(m1).getDescription()).isEqualTo("2020.0.0-M1");
+		assertThat(new JiraVersion(rc1).getDescription()).isEqualTo("2020.0.0-RC1");
+		assertThat(new JiraVersion(ga).getDescription()).isEqualTo("2020.0.0");
+	}
+
+	@Test
 	void usesCustomModuleIterationStartVersion() {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.M1);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString()).isEqualTo("1.0 M1 (Dijkstra)");
+		assertThat(version).hasToString("1.0 M1 (Dijkstra)");
 	}
 
 	@Test
@@ -59,7 +71,7 @@ class JiraVersionUnitTests {
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.RC1);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString()).isEqualTo("1.0 RC1 (Dijkstra)");
+		assertThat(version).hasToString("1.0 RC1 (Dijkstra)");
 	}
 
 	@Test
@@ -76,6 +88,6 @@ class JiraVersionUnitTests {
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.COMMONS, iteration);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString()).isEqualTo(expected);
+		assertThat(version).hasToString(expected);
 	}
 }

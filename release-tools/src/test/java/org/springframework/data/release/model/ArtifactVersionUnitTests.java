@@ -21,6 +21,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Unit tests for {@link ArtifactVersion}.
+ * 
  * @author Oliver Gierke
  */
 class ArtifactVersionUnitTests {
@@ -33,19 +35,21 @@ class ArtifactVersionUnitTests {
 	@Test
 	void parsesReleaseVersionCorrectly() {
 
-		ArtifactVersion version = ArtifactVersion.of("1.4.5.RELEASE");
+		assertThat(ArtifactVersion.of("1.4.5.RELEASE").isReleaseVersion()).isTrue();
+		assertThat(ArtifactVersion.of("1.4.5.RELEASE").getNextDevelopmentVersion()).isEqualTo(ArtifactVersion.of("1.4.6.BUILD-SNAPSHOT"));
 
-		assertThat(version.isReleaseVersion()).isTrue();
-		assertThat(version.getNextDevelopmentVersion()).isEqualTo(ArtifactVersion.of("1.4.6.BUILD-SNAPSHOT"));
+		assertThat(ArtifactVersion.of("1.4.5").isReleaseVersion()).isTrue();
+		assertThat(ArtifactVersion.of("1.4.5").getNextDevelopmentVersion()).isEqualTo(ArtifactVersion.of("1.4.6-SNAPSHOT"));
 	}
 
 	@Test
 	void createsMilestoneVersionCorrectly() {
 
-		ArtifactVersion version = ArtifactVersion.of("1.4.5.M1");
+		assertThat(ArtifactVersion.of("1.4.5.M1").isReleaseVersion()).isFalse();
+		assertThat(ArtifactVersion.of("1.4.5.M1").isMilestoneVersion()).isTrue();
 
-		assertThat(version.isReleaseVersion()).isFalse();
-		assertThat(version.isMilestoneVersion()).isTrue();
+		assertThat(ArtifactVersion.of("1.4.5-M1").isReleaseVersion()).isFalse();
+		assertThat(ArtifactVersion.of("1.4.5-M1").isMilestoneVersion()).isTrue();
 	}
 
 	@Test
@@ -54,7 +58,7 @@ class ArtifactVersionUnitTests {
 		ArtifactVersion version = ArtifactVersion.of(Version.of(1, 4, 5));
 
 		assertThat(version.isReleaseVersion()).isTrue();
-		assertThat(version.toString()).isEqualTo("1.4.5.RELEASE");
+		assertThat(version).hasToString("1.4.5.RELEASE");
 	}
 
 	@Test
@@ -64,7 +68,7 @@ class ArtifactVersionUnitTests {
 		ArtifactVersion version = ArtifactVersion.of(oneFourMilestoneOne);
 
 		assertThat(version.isMilestoneVersion()).isTrue();
-		assertThat(version.toString()).isEqualTo("1.4.0.M1");
+		assertThat(version).hasToString("1.4.0.M1");
 	}
 
 	@Test
@@ -74,7 +78,7 @@ class ArtifactVersionUnitTests {
 		ArtifactVersion version = ArtifactVersion.of(oneFourGA);
 
 		assertThat(version.isReleaseVersion()).isTrue();
-		assertThat(version.toString()).isEqualTo("1.4.0.RELEASE");
+		assertThat(version).hasToString("1.4.0.RELEASE");
 	}
 
 	@Test
@@ -84,7 +88,7 @@ class ArtifactVersionUnitTests {
 		ArtifactVersion version = ArtifactVersion.of(oneFourServiceReleaseTwo);
 
 		assertThat(version.isReleaseVersion()).isTrue();
-		assertThat(version.toString()).isEqualTo("1.4.2.RELEASE");
+		assertThat(version).hasToString("1.4.2.RELEASE");
 	}
 
 	@Test

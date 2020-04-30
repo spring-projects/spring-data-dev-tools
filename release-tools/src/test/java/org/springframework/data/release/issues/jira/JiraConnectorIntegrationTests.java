@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assumptions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -91,14 +92,15 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockSearchWith("emptyTickets.json");
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList("XYZ-1", "UNKOWN-1"));
-		assertThat(tickets).hasSize(0);
+		assertThat(tickets).isEmpty();
 	}
 
 	@Test // #5
 	void emptyResultWithEmptyTicketIds() {
 
-		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList());
-		assertThat(tickets).hasSize(0);
+		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Collections
+				.emptyList());
+		assertThat(tickets).isEmpty();
 	}
 
 	@Test // #5
@@ -126,7 +128,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 
 		Optional<JiraReleaseVersion> optional = jira.findJiraReleaseVersion(REST_HOPPER_RC1);
 
-		assertThat(optional.isPresent()).isTrue();
+		assertThat(optional).isPresent();
 		assertThat(optional.get().getName()).isEqualTo("2.5 RC1 (Hopper)");
 	}
 
@@ -216,7 +218,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", moduleIteration.getProjectKey());
 
 		assertThatIllegalStateException().isThrownBy(() -> jira.createReleaseTicket(moduleIteration))
-				.withMessageContaining("Did not find a release version for Spring Data REST 2.5 RC1");
+				.withMessageContaining("No release version for Spring Data REST found containing 2.5 RC1 (Hopper)!");
 	}
 
 	@Test // #5

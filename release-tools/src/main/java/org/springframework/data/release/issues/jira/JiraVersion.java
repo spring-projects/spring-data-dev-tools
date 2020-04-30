@@ -38,7 +38,7 @@ class JiraVersion {
 	}
 
 	public String getDescription() {
-		return module.getTrain().getName() + " " + module.getIteration().getName();
+		return module.getReleaseVersionString();
 	}
 
 	public FixVersion toFixVersion() {

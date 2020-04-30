@@ -75,7 +75,6 @@ class MavenIntegrationTests extends AbstractIntegrationTests {
 				"/project/profiles/profile[id=\"distribute\"]/dependencies/dependency[artifactId=\"spring-data-build-resources\"]/version");
 
 		assertThat(xPathEvaluator.asString()).isEqualToIgnoringCase("1.2.0.RELEASE");
-
 	}
 
 	@Test
@@ -87,15 +86,11 @@ class MavenIntegrationTests extends AbstractIntegrationTests {
 
 		pom.setRepositoryId("spring-libs-snapshot", "spring-libs-release");
 		pom.setRepositoryUrl("spring-libs-release", "https://repo.spring.io/libs-release");
-
-		// System.out.println(projection.asString(pom));
 	}
 
 	@Test
 	void findsSnapshotDependencies() throws Exception {
 
 		Pom pom = projection.io().file(workspace.getFile("bom/pom.xml", Projects.BUILD)).read(Pom.class);
-
-		System.out.println(pom.getSnapshotDependencies());
 	}
 }

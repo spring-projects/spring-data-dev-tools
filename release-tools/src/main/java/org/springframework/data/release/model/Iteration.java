@@ -15,6 +15,7 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -30,6 +31,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Paluch
  */
 @Value
+@EqualsAndHashCode(of = "name")
 public class Iteration implements Comparable<Iteration> {
 
 	public static final Iteration SR24 = new Iteration("SR23", null);

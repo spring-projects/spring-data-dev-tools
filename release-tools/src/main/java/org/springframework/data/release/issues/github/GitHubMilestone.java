@@ -29,7 +29,7 @@ class GithubMilestone {
 	ModuleIteration module;
 
 	public String getDescription() {
-		return module.getTrain().getName() + " " + module.getIteration().getName();
+		return module.getReleaseVersionString();
 	}
 
 	public Milestone toMilestone() {

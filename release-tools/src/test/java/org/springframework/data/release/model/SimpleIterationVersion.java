@@ -31,4 +31,13 @@ public class SimpleIterationVersion implements IterationVersion {
 	public boolean isBranchVersion() {
 		return iteration.isServiceIteration();
 	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.model.IterationVersion#usesModifierVersionFormat()
+	 */
+	@Override
+	public boolean usesModifierVersionFormat() {
+		return false;
+	}
 }
