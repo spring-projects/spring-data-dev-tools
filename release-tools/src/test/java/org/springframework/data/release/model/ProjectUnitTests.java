@@ -40,10 +40,7 @@ class ProjectUnitTests {
 		assertThat(projects.get(1)).isEqualTo(Projects.COMMONS);
 	}
 
-	/**
-	 * @see #28
-	 */
-	@Test
+	@Test // #28
 	void findsProjectByKey() {
 		assertThat(Projects.requiredByName("DATACMNS")).isEqualTo(Projects.COMMONS);
 	}

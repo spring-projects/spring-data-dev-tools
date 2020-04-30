@@ -71,10 +71,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		github.reset();
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void findTicketsByTicketIds() {
 
 		mockGetIssueWith("issue.json", 233);
@@ -83,30 +80,21 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		assertThat(tickets).hasSize(1);
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void ignoresUnknownTicketsByTicketId() {
 
 		Collection<Ticket> tickets = github.findTickets(Projects.BUILD, Collections.singletonList("123"));
 		assertThat(tickets).hasSize(0);
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void emptyResultWithEmptyTicketIds() {
 
 		Collection<Ticket> tickets = github.findTickets(Projects.COMMONS, Collections.emptyList());
 		assertThat(tickets).hasSize(0);
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void getReleaseTicketForReturnsTheReleaseTicket() {
 
 		mockGetMilestonesWith("milestones.json");
@@ -116,10 +104,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		assertThat(releaseTicket.getId()).isEqualTo("#233");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void noReleaseTicketFound() {
 
 		mockGetMilestonesWith("emptyMilestones.json");
@@ -128,10 +113,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1!");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseVersionShouldCreateAVersion() {
 
 		mockGetMilestonesWith("emptyMilestones.json");
@@ -143,10 +125,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 				.withRequestBody(equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\"}")));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseVersionShouldFindExistingReleaseVersion() {
 
 		mockGetMilestonesWith("milestones.json");
@@ -156,10 +135,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		verify(0, postRequestedFor(urlPathMatching(MILESTONES_URI)));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldCreateReleaseTicket() {
 
 		mockGetMilestonesWith("milestones.json");
@@ -172,10 +148,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 				.withRequestBody(equalToJson("{\"title\":\"Release 1.8 RC1 (Hopper)\",\"milestone\":45}")));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldFailWithNoReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.BUILD, Iteration.RC1);
@@ -187,10 +160,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1!");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldFindExistingTicket() {
 
 		mockGetMilestonesWith("milestones.json");
@@ -201,10 +171,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		verify(0, postRequestedFor(urlPathMatching(MILESTONES_URI)));
 	}
 
-	/**
-	 * @see #55
-	 */
-	@Test
+	@Test // #55
 	void assignTicketToMe() {
 
 		mockGetMilestonesWith("milestones.json");
@@ -219,10 +186,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 				.withRequestBody(equalToJson("{\"assignees\":[\"dummy\"]}")));
 	}
 
-	/**
-	 * @see #94
-	 */
-	@Test
+	@Test // #94
 	void closeIterationShouldResolveReleaseTicket() {
 
 		mockGetMilestonesWith("milestones.json");

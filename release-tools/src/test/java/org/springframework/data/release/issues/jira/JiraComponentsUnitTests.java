@@ -28,10 +28,7 @@ import org.junit.jupiter.api.Test;
  */
 class JiraComponentsUnitTests {
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void returnsComponentByName() {
 
 		JiraComponent fooComponent = new JiraComponent("123", "foo");
@@ -40,10 +37,7 @@ class JiraComponentsUnitTests {
 		assertThat(jiraComponents.findComponent("foo").isPresent()).isTrue();
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void returnsEmptyIfComponentMissing() {
 
 		JiraComponent fooComponent = new JiraComponent("123", "foo");
@@ -52,10 +46,7 @@ class JiraComponentsUnitTests {
 		assertThat(jiraComponents.findComponent("baz").isPresent()).isFalse();
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void failsOnNullArgumentConstruction() {
 		assertThatIllegalArgumentException().isThrownBy(() -> JiraComponents.of(null));
 	}

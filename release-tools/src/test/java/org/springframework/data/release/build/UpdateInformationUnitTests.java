@@ -74,10 +74,7 @@ class UpdateInformationUnitTests {
 		assertThat(updateInformation.getProjectVersionToSet(Projects.JPA).toString()).isEqualTo("1.10.0.BUILD-SNAPSHOT");
 	}
 
-	/**
-	 * @see #22
-	 */
-	@Test
+	@Test // #22
 	void returnsCorrectReleaseTrainVersions() {
 
 		TrainIteration hopperGa = new TrainIteration(ReleaseTrains.HOPPER, Iteration.GA);

@@ -38,28 +38,19 @@ class MavenPropertiesUnitTests {
 		this.properties.setPlugins(Collections.singletonMap("versions", "org.codehaus.mojo:versions-maven-plugin:2.2"));
 	}
 
-	/**
-	 * @see #8
-	 */
-	@Test
+	@Test // #8
 	void expandsGoalsCorrectly() {
 
 		assertThat(properties.getFullyQualifiedPlugin("versions:set"))
 				.isEqualTo("org.codehaus.mojo:versions-maven-plugin:2.2:set");
 	}
 
-	/**
-	 * @see #8
-	 */
-	@Test
+	@Test // #8
 	void doesNotExpandGoalStartingWithDash() {
 		assertThat(properties.getFullyQualifiedPlugin("-versions:set")).isEqualTo("-versions:set");
 	}
 
-	/**
-	 * @see #8
-	 */
-	@Test
+	@Test // #8
 	void doesNotExpandGoalWithoutColon() {
 		assertThat(properties.getFullyQualifiedPlugin("versions-set")).isEqualTo("versions-set");
 	}

@@ -76,10 +76,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		jira.reset();
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void findResolvedTicketsByTicketIds() {
 
 		mockSearchWith("DATAREDIS-1andDATAJPA-1.json");
@@ -88,10 +85,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		assertThat(tickets).hasSize(2);
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void ignoresUnknownTicketsByTicketId() {
 
 		mockSearchWith("emptyTickets.json");
@@ -100,20 +94,14 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		assertThat(tickets).hasSize(0);
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void emptyResultWithEmptyTicketIds() {
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList());
 		assertThat(tickets).hasSize(0);
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void getReleaseTicketForReturnsTheReleaseTicket() {
 
 		mockSearchWith("releaseTickets.json");
@@ -122,10 +110,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		assertThat(releaseTicket.getId()).isEqualTo("DATAREST-782");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void noReleaseTicketFound() {
 
 		mockSearchWith("emptyTickets.json");
@@ -134,10 +119,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 				.withMessageContaining("Did not find a release ticket for Spring Data REST 2.5 RC1");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void getReleaseVersion() {
 
 		mockGetProjectVersionsWith("releaseVersions.json", REST_HOPPER_RC1.getProjectKey());
@@ -148,10 +130,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		assertThat(optional.get().getName()).isEqualTo("2.5 RC1 (Hopper)");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseVersionShouldCreateAVersion() {
 
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", REST_HOPPER_RC1.getProjectKey());
@@ -163,10 +142,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 				"{\"name\":\"2.5 RC1 (Hopper)\",\"project\":\"DATAREST\",\"description\":\"Hopper RC1\", \"released\":false, \"archived\":false}")));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseVersionShouldFindExistingReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
@@ -178,10 +154,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		verify(0, postRequestedFor(urlPathMatching(CREATE_VERSION_URI)));
 	}
 
-	/**
-	 * @see #56
-	 */
-	@Test
+	@Test // #56
 	void archiveReleaseVersionShouldArchiveReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
@@ -197,10 +170,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 						+ "\"description\":\"Hopper RC1\", \"released\":true,\"archived\":true}")));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldCreateReleaseTicket() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
@@ -219,10 +189,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 						+ "\"components\":[{\"name\":\"Infrastructure\"}]}}")));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldCreateReleaseTicketWithoutComponent() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
@@ -240,10 +207,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 						+ "\"fixVersions\":[{\"name\":\"2.5 RC1 (Hopper)\"}]}}")));
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldFailWithNoReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
@@ -255,10 +219,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 				.withMessageContaining("Did not find a release version for Spring Data REST 2.5 RC1");
 	}
 
-	/**
-	 * @see #5
-	 */
-	@Test
+	@Test // #5
 	void createReleaseTicketShouldFindExistingTicket() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
@@ -309,10 +270,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/issue/DATACASS-302")));
 	}
 
-	/**
-	 * @see #94
-	 */
-	@Test
+	@Test // #94
 	void closeIterationShouldResolveReleaseTicket() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);

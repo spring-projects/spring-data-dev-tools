@@ -38,10 +38,7 @@ class BackportTargetsUnitTests {
 	Branch goslingBranch = getBranch(ReleaseTrains.GOSLING);
 	Branch fowlerBranch = getBranch(ReleaseTrains.FOWLER);
 
-	/**
-	 * @see #11
-	 */
-	@Test
+	@Test // #11
 	void returnsModuleBranchesForTrains() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
@@ -53,10 +50,7 @@ class BackportTargetsUnitTests {
 		assertThat(targets).contains(goslingBranch, fowlerBranch);
 	}
 
-	/**
-	 * @see #11
-	 */
-	@Test
+	@Test // #11
 	void includesMasterBranchForServiceReleaseSource() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.GOSLING, Iteration.SR2);

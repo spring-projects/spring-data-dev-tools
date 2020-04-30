@@ -44,10 +44,7 @@ class BranchUnitTests {
 		assertThat(Branch.from(iterationVersion).toString()).isEqualTo("1.4.x");
 	}
 
-	/**
-	 * @see #2
-	 */
-	@Test
+	@Test // #2
 	void detectsIssueBranches() {
 
 		Branch branch = Branch.from("issue/DATACMNS-4711");
