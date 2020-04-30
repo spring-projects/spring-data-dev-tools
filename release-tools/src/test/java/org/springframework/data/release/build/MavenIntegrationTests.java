@@ -23,8 +23,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.release.AbstractIntegrationTests;
@@ -32,6 +33,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Projects;
+
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.evaluation.XPathEvaluator;
 import org.xmlbeam.io.XBFileIO;
@@ -40,15 +42,15 @@ import org.xmlbeam.io.XBFileIO;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-public class MavenIntegrationTests extends AbstractIntegrationTests {
+class MavenIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired Workspace workspace;
 	@Autowired ProjectionFactory projection;
 	@Autowired MavenBuildSystem maven;
 	@Autowired GitOperations git;
 
-	@BeforeClass
-	public static void beforeClass() {
+	@BeforeAll
+	static void beforeClass() {
 
 		try {
 			URL url = new URL("https://github.com");
@@ -61,7 +63,7 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void modifiesParentPomCorrectly() throws IOException {
+	void modifiesParentPomCorrectly() throws IOException {
 
 		XBFileIO io = projection.io().file(new ClassPathResource("parent-pom.xml").getFile());
 
@@ -77,7 +79,7 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void updatesRepositoriesCorrectly() throws Exception {
+	void updatesRepositoriesCorrectly() throws Exception {
 
 		XBFileIO io = projection.io().file(new ClassPathResource("sample-pom.xml").getFile());
 
@@ -90,7 +92,7 @@ public class MavenIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void findsSnapshotDependencies() throws Exception {
+	void findsSnapshotDependencies() throws Exception {
 
 		Pom pom = projection.io().file(workspace.getFile("bom/pom.xml", Projects.BUILD)).read(Pom.class);
 

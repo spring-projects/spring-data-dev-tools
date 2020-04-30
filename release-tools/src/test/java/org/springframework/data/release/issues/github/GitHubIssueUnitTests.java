@@ -19,27 +19,28 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.data.release.issues.github.GitHubIssue.Milestone;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Unit tests for {@link GitHubIssue}.
  *
  * @author Mark Paluch
  */
-@RunWith(SpringRunner.class)
 @JsonTest
-public class GitHubIssueUnitTests {
+@ExtendWith(SpringExtension.class)
+class GitHubIssueUnitTests {
 
 	@Autowired private JacksonTester<Milestone> json;
 
 	@Test
-	public void shouldNotRenderOpenProperty() throws IOException {
+	void shouldNotRenderOpenProperty() throws IOException {
 
 		Milestone milestone = Milestone.of("my-title", "my-description");
 

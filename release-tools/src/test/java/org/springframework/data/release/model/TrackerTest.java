@@ -16,47 +16,45 @@
 
 package org.springframework.data.release.model;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Mark Paluch
  */
-public class TrackerTest {
+class TrackerTest {
 
 	@Test
-	public void testMatchesTicketNumber() throws Exception {
+	void testMatchesTicketNumber() throws Exception {
 
 		Pattern pattern = Pattern.compile(Tracker.JIRA.getTicketPattern());
 		Matcher matcher = pattern.matcher("DATAREDIS-1");
 		matcher.find();
 
-		assertThat(matcher.group(1), is(equalTo("DATAREDIS-1")));
+		assertThat(matcher.group(1)).isEqualTo("DATAREDIS-1");
 	}
 
 	@Test
-	public void testMatchesBranchNamedLikeTicket() throws Exception {
+	void testMatchesBranchNamedLikeTicket() throws Exception {
 
 		Pattern pattern = Pattern.compile(Tracker.JIRA.getTicketPattern());
 		Matcher matcher = pattern.matcher("issues/DATAREDIS-1-dummy");
 		matcher.find();
 
-		assertThat(matcher.group(1), is(equalTo("DATAREDIS-1")));
+		assertThat(matcher.group(1)).isEqualTo("DATAREDIS-1");
 	}
 
 	@Test
-	public void testVersionBranch() throws Exception {
+	void testVersionBranch() throws Exception {
 
 		Pattern pattern = Pattern.compile(Tracker.GITHUB.getTicketPattern());
 		Matcher matcher = pattern.matcher("1.2.x");
 		matcher.find();
 
-		assertThat(matcher.group(1), is(equalTo("1")));
+		assertThat(matcher.group(1)).isEqualTo("1");
 	}
 }

@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.build.MavenArtifact;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
@@ -28,15 +28,15 @@ import org.springframework.data.release.model.ReleaseTrains;
 /**
  * @author Oliver Gierke
  */
-public class ArtifactUnitTests {
+class ArtifactUnitTests {
 
 	@Test
-	public void testname() {
+	void testname() {
 
 		MavenArtifact artifact = new MavenArtifact(ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.JPA, Iteration.M1));
 
-		assertThat(artifact.getArtifactId(), is("spring-data-jpa"));
-		assertThat(artifact.getVersion(), is(ArtifactVersion.of("1.6.0.M1")));
-		assertThat(artifact.getNextDevelopmentVersion(), is(ArtifactVersion.of("1.6.0.BUILD-SNAPSHOT")));
+		assertThat(artifact.getArtifactId()).isEqualTo("spring-data-jpa");
+		assertThat(artifact.getVersion()).isEqualTo(ArtifactVersion.of("1.6.0.M1"));
+		assertThat(artifact.getNextDevelopmentVersion()).isEqualTo(ArtifactVersion.of("1.6.0.BUILD-SNAPSHOT"));
 	}
 }

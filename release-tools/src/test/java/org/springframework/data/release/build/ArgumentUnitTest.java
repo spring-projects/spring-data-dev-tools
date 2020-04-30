@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.build;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.build.CommandLine.Argument;
 import org.springframework.data.release.model.Password;
 
@@ -26,34 +26,35 @@ import org.springframework.data.release.model.Password;
  * Unit tests for {@link Argument}.
  * 
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
-public class ArgumentUnitTest {
+class ArgumentUnitTest {
 
 	@Test
-	public void masksMaskedForToString() {
+	void masksMaskedForToString() {
 
 		Argument argument = Argument.of("password").withValue(Password.of("password"));
 
-		assertThat(argument.toCommandLineArgument(), is("password=password"));
-		assertThat(argument.toString(), startsWith("password=********"));
+		assertThat(argument.toCommandLineArgument()).isEqualTo("password=password");
+		assertThat(argument.toString()).startsWith("password=********");
 	}
 
 	@Test
-	public void quotesValue() {
+	void quotesValue() {
 
 		Argument argument = Argument.of("quoted").withQuotedValue("value");
 
-		assertThat(argument.toCommandLineArgument(), is("quoted=\"value\""));
+		assertThat(argument.toCommandLineArgument()).isEqualTo("quoted=\"value\"");
 	}
 
 	@Test
-	public void argCreatesJvmArgument() {
-		assertThat(Argument.arg("foo").toCommandLineArgument(), is("-Dfoo"));
+	void argCreatesJvmArgument() {
+		assertThat(Argument.arg("foo").toCommandLineArgument()).isEqualTo("-Dfoo");
 	}
 
 	@Test
-	public void profileCreatesMavenProfile() {
-		assertThat(Argument.profile("foo").toCommandLineArgument(), is("-Pfoo"));
-		assertThat(Argument.profile("foo", "bar").toCommandLineArgument(), is("-Pfoo,bar"));
+	void profileCreatesMavenProfile() {
+		assertThat(Argument.profile("foo").toCommandLineArgument()).isEqualTo("-Pfoo");
+		assertThat(Argument.profile("foo", "bar").toCommandLineArgument()).isEqualTo("-Pfoo,bar");
 	}
 }

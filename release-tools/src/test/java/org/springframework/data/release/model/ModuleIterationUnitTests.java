@@ -15,35 +15,34 @@
  */
 package org.springframework.data.release.model;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Oliver Gierke
  */
-public class ModuleIterationUnitTests {
+class ModuleIterationUnitTests {
 
 	@Test
-	public void abbreviatesTrailingZerosForNonServiceReleases() {
+	void abbreviatesTrailingZerosForNonServiceReleases() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.M1);
 		ModuleIteration module = iteration.getModule(Projects.JPA);
 
-		assertThat(module.getShortVersionString(), is("1.6 M1"));
-		assertThat(module.getMediumVersionString(), is("1.6 M1 (Dijkstra)"));
-		assertThat(module.getFullVersionString(), is("1.6.0.M1 (Dijkstra M1)"));
+		assertThat(module.getShortVersionString()).isEqualTo("1.6 M1");
+		assertThat(module.getMediumVersionString()).isEqualTo("1.6 M1 (Dijkstra)");
+		assertThat(module.getFullVersionString()).isEqualTo("1.6.0.M1 (Dijkstra M1)");
 	}
 
 	@Test
-	public void doesNotListIterationSuffixForServiceReleases() {
+	void doesNotListIterationSuffixForServiceReleases() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.DIJKSTRA, Iteration.SR1);
 		ModuleIteration module = iteration.getModule(Projects.JPA);
 
-		assertThat(module.getShortVersionString(), is("1.6.1"));
-		assertThat(module.getMediumVersionString(), is("1.6.1 (Dijkstra SR1)"));
-		assertThat(module.getFullVersionString(), is("1.6.1.RELEASE (Dijkstra SR1)"));
+		assertThat(module.getShortVersionString()).isEqualTo("1.6.1");
+		assertThat(module.getMediumVersionString()).isEqualTo("1.6.1 (Dijkstra SR1)");
+		assertThat(module.getFullVersionString()).isEqualTo("1.6.1.RELEASE (Dijkstra SR1)");
 	}
 }

@@ -17,21 +17,20 @@ package org.springframework.data.release.issues.jira;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
-import org.hamcrest.Matchers;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
+import org.springframework.data.release.WireMockExtension;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
@@ -45,14 +44,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
- * Integration Tests for {@link Jira} using a local {@link WireMockRule} server.
+ * Integration Tests for {@link Jira} using a local {@link WireMockExtension} server.
  *
  * @author Mark Paluch
  */
-public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
+class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 
 	static final String CREATE_ISSUE_URI = "/rest/api/2/issue";
 	static final String CREATE_VERSION_URI = "/rest/api/2/version";
@@ -62,19 +60,17 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	static final String PROJECT_COMPONENTS_URI = "/rest/api/2/project/%s/components";
 	static final ModuleIteration REST_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
-	@Rule public WireMockRule mockService = new WireMockRule(
+	@RegisterExtension WireMockExtension mockService = new WireMockExtension(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/jira")));
-
-	@Rule public ExpectedException expectedException = ExpectedException.none();
 
 	@Autowired JiraConnector jira;
 	@Autowired JiraProperties properties;
 
-	@Before
-	public void before() throws Exception {
+	@BeforeEach
+	void before() {
 
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(properties.getApiUrl()).build();
-		Assume.assumeThat(uriComponents.getHost(), is("localhost"));
+		assumeThat(uriComponents.getHost()).isEqualTo("localhost");
 
 		properties.setUsername("dummy");
 		jira.reset();
@@ -84,83 +80,79 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5
 	 */
 	@Test
-	public void findResolvedTicketsByTicketIds() throws Exception {
+	void findResolvedTicketsByTicketIds() {
 
 		mockSearchWith("DATAREDIS-1andDATAJPA-1.json");
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList("DATAREDIS-1", "DATAJPA-1"));
-		assertThat(tickets, hasSize(2));
+		assertThat(tickets).hasSize(2);
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void ignoresUnknownTicketsByTicketId() throws Exception {
+	void ignoresUnknownTicketsByTicketId() {
 
 		mockSearchWith("emptyTickets.json");
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList("XYZ-1", "UNKOWN-1"));
-		assertThat(tickets, hasSize(0));
+		assertThat(tickets).hasSize(0);
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void emptyResultWithEmptyTicketIds() throws Exception {
+	void emptyResultWithEmptyTicketIds() {
 
 		Collection<Ticket> tickets = jira.findTickets(Projects.COMMONS, Arrays.asList());
-		assertThat(tickets, hasSize(0));
+		assertThat(tickets).hasSize(0);
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void getReleaseTicketForReturnsTheReleaseTicket() throws Exception {
+	void getReleaseTicketForReturnsTheReleaseTicket() {
 
 		mockSearchWith("releaseTickets.json");
 
 		Ticket releaseTicket = jira.getReleaseTicketFor(REST_HOPPER_RC1);
-		assertThat(releaseTicket.getId(), is(Matchers.equalTo("DATAREST-782")));
+		assertThat(releaseTicket.getId()).isEqualTo("DATAREST-782");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void noReleaseTicketFound() throws Exception {
-
-		expectedException.expect(IllegalArgumentException.class);
-		expectedException.expectMessage("Did not find a release ticket for Spring Data REST 2.5 RC1");
+	void noReleaseTicketFound() {
 
 		mockSearchWith("emptyTickets.json");
 
-		jira.getReleaseTicketFor(REST_HOPPER_RC1);
-
-		fail("Missing IllegalStateException");
+		assertThatIllegalArgumentException().isThrownBy(() -> jira.getReleaseTicketFor(REST_HOPPER_RC1))
+				.withMessageContaining("Did not find a release ticket for Spring Data REST 2.5 RC1");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void getReleaseVersion() throws Exception {
+	void getReleaseVersion() {
 
 		mockGetProjectVersionsWith("releaseVersions.json", REST_HOPPER_RC1.getProjectKey());
 
 		Optional<JiraReleaseVersion> optional = jira.findJiraReleaseVersion(REST_HOPPER_RC1);
 
-		assertThat(optional.isPresent(), is(true));
-		assertThat(optional.get().getName(), is(Matchers.equalTo("2.5 RC1 (Hopper)")));
+		assertThat(optional.isPresent()).isTrue();
+		assertThat(optional.get().getName()).isEqualTo("2.5 RC1 (Hopper)");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseVersionShouldCreateAVersion() throws Exception {
+	void createReleaseVersionShouldCreateAVersion() {
 
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", REST_HOPPER_RC1.getProjectKey());
 		mockCreateVersionWith("versionCreated.json");
@@ -175,7 +167,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseVersionShouldFindExistingReleaseVersion() throws Exception {
+	void createReleaseVersionShouldFindExistingReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
@@ -190,7 +182,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #56
 	 */
 	@Test
-	public void archiveReleaseVersionShouldArchiveReleaseVersion() throws Exception {
+	void archiveReleaseVersionShouldArchiveReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
@@ -209,7 +201,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldCreateReleaseTicket() throws Exception {
+	void createReleaseTicketShouldCreateReleaseTicket() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
@@ -231,7 +223,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldCreateReleaseTicketWithoutComponent() throws Exception {
+	void createReleaseTicketShouldCreateReleaseTicketWithoutComponent() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
@@ -252,26 +244,22 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldFailWithNoReleaseVersion() throws Exception {
-
-		expectedException.expect(IllegalStateException.class);
-		expectedException.expectMessage("Did not find a release version for Spring Data REST 2.5 RC1");
+	void createReleaseTicketShouldFailWithNoReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
 		mockSearchWith("emptyTickets.json");
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", moduleIteration.getProjectKey());
 
-		jira.createReleaseTicket(moduleIteration);
-
-		fail("Missing IllegalStateException");
+		assertThatIllegalStateException().isThrownBy(() -> jira.createReleaseTicket(moduleIteration))
+				.withMessageContaining("Did not find a release version for Spring Data REST 2.5 RC1");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldFindExistingTicket() throws Exception {
+	void createReleaseTicketShouldFindExistingTicket() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
@@ -288,7 +276,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5, #54
 	 */
 	@Test
-	public void assignTicketToMe() {
+	void assignTicketToMe() {
 
 		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
 				willReturn(json("existingTicket.json")));
@@ -306,7 +294,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #5, #53
 	 */
 	@Test
-	public void skipTicketAssignmentIfAssigned() {
+	void skipTicketAssignmentIfAssigned() {
 
 		properties.setUsername("mp911de");
 
@@ -325,7 +313,7 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 	 * @see #94
 	 */
 	@Test
-	public void closeIterationShouldResolveReleaseTicket() {
+	void closeIterationShouldResolveReleaseTicket() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.REST, Iteration.RC1);
 
@@ -337,9 +325,12 @@ public class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREST-782")).//
 				willReturn(json("releaseTicket.json")));
 
+		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATAREST-782/transitions")) //
+				.willReturn(ResponseDefinitionBuilder.responseDefinition().withStatus(200)));
+
 		jira.closeIteration(moduleIteration);
 
-		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREST-782")).withRequestBody(
+		verify(postRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREST-782/transitions")).withRequestBody(
 				equalToJson("{\"update\":{},\"transition\":{\"id\":5},\"fields\":{\"resolution\":{\"name\":\"Complete\"}}}")));
 	}
 

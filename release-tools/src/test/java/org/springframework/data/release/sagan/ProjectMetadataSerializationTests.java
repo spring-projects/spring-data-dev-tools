@@ -15,7 +15,7 @@
  */
 package org.springframework.data.release.sagan;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
@@ -28,10 +28,10 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  * 
  * @author Oliver Gierke
  */
-public class ProjectMetadataSerializationTests {
+class ProjectMetadataSerializationTests {
 
 	@Test
-	public void serializesMaintainedVersionsIntoProjectMetadata() throws Exception {
+	void serializesMaintainedVersionsIntoProjectMetadata() throws Exception {
 
 		ObjectWriter mapper = new ObjectMapper().writerWithDefaultPrettyPrinter();
 

@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.git;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
@@ -30,10 +30,10 @@ import org.springframework.data.release.model.Train;
  *
  * @author Oliver Gierke
  */
-public class GitProjectUnitTests {
+class GitProjectUnitTests {
 
 	@Test
-	public void buildsGitHubRepositoryUriCorrectly() {
+	void buildsGitHubRepositoryUriCorrectly() {
 
 		Train codd = ReleaseTrains.CODD;
 		GitServer server = new GitServer();
@@ -44,7 +44,7 @@ public class GitProjectUnitTests {
 
 		String projectUri = gitProject.getProjectUri();
 
-		assertThat(projectUri, startsWith(server.getUri()));
-		assertThat(projectUri, endsWith("spring-data-commons"));
+		assertThat(projectUri).startsWith(server.getUri());
+		assertThat(projectUri).endsWith("spring-data-commons");
 	}
 }

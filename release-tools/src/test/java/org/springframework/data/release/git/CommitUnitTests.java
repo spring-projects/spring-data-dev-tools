@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Optional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.data.release.issues.Ticket;
@@ -28,17 +28,17 @@ import org.springframework.data.release.issues.TicketStatus;
 /**
  * @author Mark Paluch
  */
-public class CommitUnitTests {
+class CommitUnitTests {
 
 	@Test
-	public void shouldRenderCommitMessage() {
+	void shouldRenderCommitMessage() {
 
 		assertThat(new Commit(new Ticket("1234", "Hello", Mockito.mock(TicketStatus.class)), "Summary", Optional.empty()))
 				.hasToString("1234 - Summary.");
 	}
 
 	@Test
-	public void shouldRenderCommitMessageWithDetail() {
+	void shouldRenderCommitMessageWithDetail() {
 
 		assertThat(
 				new Commit(new Ticket("1234", "Hello", Mockito.mock(TicketStatus.class)), "Summary", Optional.of("detail")))

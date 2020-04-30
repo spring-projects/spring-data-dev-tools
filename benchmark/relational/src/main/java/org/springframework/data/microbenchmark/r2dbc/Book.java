@@ -18,7 +18,7 @@ package org.springframework.data.microbenchmark.r2dbc;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceConstructor;
@@ -30,12 +30,12 @@ import org.springframework.data.annotation.PersistenceConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE, onConstructor = @__(@PersistenceConstructor))
 class Book {
 
-	@Wither(AccessLevel.PACKAGE) @Id Long id;
+	@With(AccessLevel.PACKAGE) @Id Long id;
 	String title;
 	int pages;
-	
+
 	public Book(String title, int pages) {
-		
+
 		this.id = null;
 		this.title = title;
 		this.pages = pages;

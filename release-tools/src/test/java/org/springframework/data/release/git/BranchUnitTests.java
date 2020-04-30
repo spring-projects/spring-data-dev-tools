@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.git;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.IterationVersion;
 import org.springframework.data.release.model.SimpleIterationVersion;
@@ -28,31 +28,31 @@ import org.springframework.data.release.model.Version;
 /**
  * @author Oliver Gierke
  */
-public class BranchUnitTests {
+class BranchUnitTests {
 
 	@Test
-	public void testname() {
+	void testname() {
 
 		IterationVersion iterationVersion = new SimpleIterationVersion(Version.of(1, 4), Iteration.RC1);
-		assertThat(Branch.from(iterationVersion).toString(), is("master"));
+		assertThat(Branch.from(iterationVersion).toString()).isEqualTo("master");
 	}
 
 	@Test
-	public void createsBugfixBranchForServiceRelease() {
+	void createsBugfixBranchForServiceRelease() {
 
 		IterationVersion iterationVersion = new SimpleIterationVersion(Version.of(1, 4), Iteration.SR1);
-		assertThat(Branch.from(iterationVersion).toString(), is("1.4.x"));
+		assertThat(Branch.from(iterationVersion).toString()).isEqualTo("1.4.x");
 	}
 
 	/**
 	 * @see #2
 	 */
 	@Test
-	public void detectsIssueBranches() {
+	void detectsIssueBranches() {
 
 		Branch branch = Branch.from("issue/DATACMNS-4711");
 
-		assertThat(branch.isIssueBranch(Tracker.JIRA), is(true));
-		assertThat(branch.isIssueBranch(Tracker.GITHUB), is(false));
+		assertThat(branch.isIssueBranch(Tracker.JIRA)).isTrue();
+		assertThat(branch.isIssueBranch(Tracker.GITHUB)).isFalse();
 	}
 }

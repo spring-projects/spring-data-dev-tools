@@ -17,17 +17,17 @@ package org.springframework.data.release.model;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link Calver}.
  * 
  * @author Mark Paluch
  */
-public class CalverVersionUnitTests {
+class CalverVersionUnitTests {
 
 	@Test
-	public void shouldParseRelease() {
+	void shouldParseRelease() {
 
 		Calver version = Calver.parse("2020.0.1");
 
@@ -37,7 +37,7 @@ public class CalverVersionUnitTests {
 	}
 
 	@Test
-	public void shouldParseM1Release() {
+	void shouldParseM1Release() {
 
 		Calver version = Calver.parse("2020.0.1-M1");
 
@@ -48,7 +48,7 @@ public class CalverVersionUnitTests {
 	}
 
 	@Test
-	public void shouldCompareReleasesCorrectly() {
+	void shouldCompareReleasesCorrectly() {
 
 		Calver version = Calver.parse("2020.0.1-RC2");
 
@@ -66,7 +66,7 @@ public class CalverVersionUnitTests {
 	}
 
 	@Test
-	public void shouldParseSnapshot() {
+	void shouldParseSnapshot() {
 
 		Calver version = Calver.parse("2020.0.1-SNAPSHOT");
 

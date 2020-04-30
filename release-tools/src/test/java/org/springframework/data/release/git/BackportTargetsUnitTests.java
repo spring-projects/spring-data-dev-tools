@@ -15,12 +15,12 @@
  */
 package org.springframework.data.release.git;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Projects;
@@ -33,7 +33,7 @@ import org.springframework.data.release.model.TrainIteration;
  * 
  * @author Oliver Gierke
  */
-public class BackportTargetsUnitTests {
+class BackportTargetsUnitTests {
 
 	Branch goslingBranch = getBranch(ReleaseTrains.GOSLING);
 	Branch fowlerBranch = getBranch(ReleaseTrains.FOWLER);
@@ -42,30 +42,30 @@ public class BackportTargetsUnitTests {
 	 * @see #11
 	 */
 	@Test
-	public void returnsModuleBranchesForTrains() {
+	void returnsModuleBranchesForTrains() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
 		ModuleIteration module = iteration.getModule(Projects.COMMONS);
 
 		BackportTargets targets = new BackportTargets(module, Arrays.asList(ReleaseTrains.GOSLING, ReleaseTrains.FOWLER));
 
-		assertThat(targets, is(iterableWithSize(2)));
-		assertThat(targets, hasItems(goslingBranch, fowlerBranch));
+		assertThat(targets).hasSize(2);
+		assertThat(targets).contains(goslingBranch, fowlerBranch);
 	}
 
 	/**
 	 * @see #11
 	 */
 	@Test
-	public void includesMasterBranchForServiceReleaseSource() {
+	void includesMasterBranchForServiceReleaseSource() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.GOSLING, Iteration.SR2);
 		ModuleIteration module = iteration.getModule(Projects.COMMONS);
 
 		BackportTargets targets = new BackportTargets(module, Arrays.asList(ReleaseTrains.FOWLER));
 
-		assertThat(targets, is(iterableWithSize(2)));
-		assertThat(targets, hasItems(Branch.MASTER, fowlerBranch));
+		assertThat(targets).hasSize(2);
+		assertThat(targets).contains(Branch.MASTER, fowlerBranch);
 	}
 
 	private static Branch getBranch(Train train) {

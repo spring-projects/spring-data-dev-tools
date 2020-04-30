@@ -17,7 +17,7 @@ package org.springframework.data.release.deployment;
 
 import static org.mockito.Mockito.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Projects;
@@ -29,10 +29,10 @@ import org.springframework.data.release.utils.Logger;
  *
  * @author Oliver Drotbohm
  */
-public class DeploymentOperationsUnitTests {
+class DeploymentOperationsUnitTests {
 
 	@Test // #113
-	public void skipsPromotionForPublicArtifacts() {
+	void skipsPromotionForPublicArtifacts() {
 
 		Logger logger = mock(Logger.class);
 		ArtifactoryClient client = mock(ArtifactoryClient.class);

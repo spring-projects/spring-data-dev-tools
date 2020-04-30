@@ -17,17 +17,17 @@ package org.springframework.data.release.model;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link Iteration}.
  * 
  * @author Mark Paluch
  */
-public class IterationUnitTests {
+class IterationUnitTests {
 
 	@Test
-	public void shouldCompareMilestoneIterationsCorrectly() {
+	void shouldCompareMilestoneIterationsCorrectly() {
 
 		assertThat(Iteration.M1).isEqualByComparingTo(Iteration.M1);
 		assertThat(Iteration.M1).isLessThan(Iteration.RC1);
@@ -39,7 +39,7 @@ public class IterationUnitTests {
 	}
 
 	@Test
-	public void shouldCompareReleaseCandidateIterationsCorrectly() {
+	void shouldCompareReleaseCandidateIterationsCorrectly() {
 
 		assertThat(Iteration.RC1).isGreaterThan(Iteration.M1);
 		assertThat(Iteration.RC1).isEqualByComparingTo(Iteration.RC1);
@@ -51,7 +51,7 @@ public class IterationUnitTests {
 	}
 
 	@Test
-	public void shouldCompareGAIterationsCorrectly() {
+	void shouldCompareGAIterationsCorrectly() {
 
 		assertThat(Iteration.GA).isGreaterThan(Iteration.M1);
 		assertThat(Iteration.GA).isGreaterThan(Iteration.RC1);
@@ -60,7 +60,7 @@ public class IterationUnitTests {
 	}
 
 	@Test
-	public void shouldCompareServiceReleaseIterationsCorrectly() {
+	void shouldCompareServiceReleaseIterationsCorrectly() {
 
 		assertThat(Iteration.SR1).isGreaterThan(Iteration.M1);
 		assertThat(Iteration.SR1).isGreaterThan(Iteration.RC1);

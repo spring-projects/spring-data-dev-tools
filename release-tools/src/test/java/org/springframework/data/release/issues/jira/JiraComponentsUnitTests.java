@@ -13,55 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.release.issues.jira;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link JiraComponents}.
  *
  * @author Mark Paluch
  */
-public class JiraComponentsUnitTests {
+class JiraComponentsUnitTests {
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void returnsComponentByName() throws Exception {
+	void returnsComponentByName() {
 
 		JiraComponent fooComponent = new JiraComponent("123", "foo");
 		JiraComponents jiraComponents = JiraComponents.of(Collections.singleton(fooComponent));
 
-		assertThat(jiraComponents.findComponent("foo").isPresent(), is(true));
+		assertThat(jiraComponents.findComponent("foo").isPresent()).isTrue();
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void returnsEmptyIfComponentMissing() throws Exception {
+	void returnsEmptyIfComponentMissing() {
 
 		JiraComponent fooComponent = new JiraComponent("123", "foo");
 		JiraComponents jiraComponents = JiraComponents.of(Collections.singleton(fooComponent));
 
-		assertThat(jiraComponents.findComponent("baz").isPresent(), is(false));
+		assertThat(jiraComponents.findComponent("baz").isPresent()).isFalse();
 	}
 
 	/**
 	 * @see #5
 	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void failsOnNullArgumentConstruction() throws Exception {
-
-		JiraComponents.of(null);
-
-		fail("Missing IllegalArgumentException");
+	@Test
+	void failsOnNullArgumentConstruction() {
+		assertThatIllegalArgumentException().isThrownBy(() -> JiraComponents.of(null));
 	}
 }

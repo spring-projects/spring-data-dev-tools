@@ -119,10 +119,9 @@ class GitCommands extends TimedCommand {
 	public void backportChangelogs(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "target") String trains) {
 
-		List<Train> targets = trains == null ? Collections.emptyList()
-				: Stream.of(trains.split(",")).//
-						map(it -> ReleaseTrains.getTrainByName(it)).//
-						collect(Collectors.toList());
+		List<Train> targets = trains == null ? Collections.emptyList() : Stream.of(trains.split(",")).//
+				map(it -> ReleaseTrains.getTrainByName(it)).//
+				collect(Collectors.toList());
 
 		git.backportChangelogs(iteration, targets);
 	}

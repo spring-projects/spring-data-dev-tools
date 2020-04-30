@@ -64,7 +64,7 @@ public class Tickets implements Streamable<Ticket> {
 	public Ticket getReleaseTicket(ModuleIteration moduleIteration) {
 
 		return findReleaseTicket(moduleIteration).orElseThrow(
-				() -> new IllegalStateException(String.format("Did not find a release ticket for %s!", moduleIteration)));
+				() -> new IllegalArgumentException(String.format("Did not find a release ticket for %s!", moduleIteration)));
 	}
 
 	public Tickets getIssueTickets(ModuleIteration moduleIteration) {

@@ -15,28 +15,27 @@
  */
 package org.springframework.data.release.model;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for release {@link Train}s.
  * 
  * @author Oliver Gierke
  */
-public class TrainsUnitTest {
+class TrainsUnitTest {
 
 	@Test
-	public void prefersNewVersionOfAdditionalModule() {
+	void prefersNewVersionOfAdditionalModule() {
 
 		Module module = ReleaseTrains.HOPPER.getModule(Projects.NEO4J);
 
-		assertThat(module.getVersion(), is(Version.parse("4.1")));
+		assertThat(module.getVersion()).isEqualTo(Version.parse("4.1"));
 	}
 
 	@Test
-	public void addsNewlyAddedModule() {
-		assertThat(ReleaseTrains.HOPPER.getModule(Projects.ENVERS), is(notNullValue()));
+	void addsNewlyAddedModule() {
+		assertThat(ReleaseTrains.HOPPER.getModule(Projects.ENVERS)).isNotNull();
 	}
 }

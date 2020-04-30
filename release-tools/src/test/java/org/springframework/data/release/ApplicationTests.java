@@ -15,13 +15,13 @@
  */
 package org.springframework.data.release;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Oliver Gierke
  */
-public class ApplicationTests extends AbstractIntegrationTests {
+class ApplicationTests extends AbstractIntegrationTests {
 
 	@Test
-	public void bootstrapsApplication() {}
+	void bootstrapsApplication() {}
 }

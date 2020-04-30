@@ -15,16 +15,17 @@
  */
 package org.springframework.data.release.cli;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.git.GitOperations;
@@ -33,13 +34,14 @@ import org.springframework.data.release.model.ReleaseTrains;
 /**
  * @author Oliver Gierke
  */
-public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
+@Disabled("Skip GitHub interaction")
+class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired ReleaseCommands releaseCommands;
 	@Autowired GitOperations git;
 
-	@BeforeClass
-	public static void beforeClass() {
+	@BeforeAll
+	static void beforeClass() {
 
 		try {
 			URL url = new URL("https://github.com");
@@ -52,10 +54,10 @@ public class ReleaseCommandsIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void predictsReleaseTrainCorrectly() throws Exception {
+	void predictsReleaseTrainCorrectly() throws Exception {
 
 		git.update(ReleaseTrains.MOORE);
 
-		assertThat(releaseCommands.predictTrainAndIteration(), is("Neumann"));
+		assertThat(releaseCommands.predictTrainAndIteration()).isEqualTo("Neumann");
 	}
 }

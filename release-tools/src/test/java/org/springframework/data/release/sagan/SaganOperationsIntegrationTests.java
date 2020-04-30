@@ -15,8 +15,9 @@
  */
 package org.springframework.data.release.sagan;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.model.Projects;
@@ -27,14 +28,14 @@ import org.springframework.data.release.model.ReleaseTrains;
  *
  * @author Oliver Gierke
  */
-@Ignore("I will write to production systems")
-public class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
+@Disabled("I will write to production systems")
+class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired SaganOperations sagan;
 	@Autowired SaganClient client;
 
 	@Test
-	public void detectVersionsToUpdate() {
+	void detectVersionsToUpdate() {
 
 		sagan.findVersions(ReleaseTrains.LOVELACE, ReleaseTrains.KAY, ReleaseTrains.INGALLS, ReleaseTrains.HOPPER)
 				.forEach((project, versions) -> {
@@ -53,12 +54,12 @@ public class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void updateVersions() {
+	void updateVersions() {
 		sagan.updateProjectMetadata(ReleaseTrains.KAY, ReleaseTrains.INGALLS, ReleaseTrains.HOPPER);
 	}
 
 	@Test
-	public void updateJpa() {
+	void updateJpa() {
 
 		MaintainedVersions versions = sagan.findVersions(ReleaseTrains.KAY, ReleaseTrains.INGALLS, ReleaseTrains.HOPPER)
 				.get(Projects.JPA);
@@ -69,12 +70,12 @@ public class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void getJpa() {
+	void getJpa() {
 		System.out.println(client.getProjectMetadata(Projects.JPA));
 	}
 
 	@Test
-	public void updateBuild() {
+	void updateBuild() {
 
 		MaintainedVersions versions = sagan.findVersions(ReleaseTrains.KAY, ReleaseTrains.INGALLS, ReleaseTrains.HOPPER)
 				.get(Projects.BUILD);

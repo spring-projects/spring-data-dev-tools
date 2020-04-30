@@ -15,23 +15,23 @@
  */
 package org.springframework.data.release.git;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 
 /**
  * @author Oliver Gierke
  */
-public class GitPropertiesIntegrationTests extends AbstractIntegrationTests {
+class GitPropertiesIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired GitProperties gitProperties;
 
 	@Test
-	public void hasBasicPropertiesConfigured() {
-		assertThat(gitProperties.getAuthor(), is(notNullValue()));
-		assertThat(gitProperties.getEmail(), is(notNullValue()));
+	void hasBasicPropertiesConfigured() {
+		assertThat(gitProperties.getAuthor()).isNotNull();
+		assertThat(gitProperties.getEmail()).isNotNull();
 	}
 }

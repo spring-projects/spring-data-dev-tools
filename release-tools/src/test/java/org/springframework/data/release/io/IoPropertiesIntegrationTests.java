@@ -15,22 +15,22 @@
  */
 package org.springframework.data.release.io;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 
 /**
  * @author Oliver Gierke
  */
-public class IoPropertiesIntegrationTests extends AbstractIntegrationTests {
+class IoPropertiesIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired IoProperties ioProperties;
 
 	@Test
-	public void configuresWorkingDirectoryFromApplicationProperties() {
-		assertThat(ioProperties.getWorkDir(), is(notNullValue()));
+	void configuresWorkingDirectoryFromApplicationProperties() {
+		assertThat(ioProperties.getWorkDir()).isNotNull();
 	}
 }

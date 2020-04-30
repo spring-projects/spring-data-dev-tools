@@ -17,20 +17,19 @@ package org.springframework.data.release.issues.github;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
-import org.hamcrest.Matchers;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
+import org.springframework.data.release.WireMockExtension;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
@@ -43,34 +42,31 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
- * Integration Tests for {@link GitHub} using a local {@link WireMockRule} server.
+ * Integration Tests for {@link GitHub} using a local {@link WireMockExtension} server.
  *
  * @author Mark Paluch
  */
-public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
+class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 
-	public static final String ISSUES_URI = "/repos/spring-projects/spring-data-build/issues";
-	public static final String RELEASE_TICKET_URI = "/repos/spring-projects/spring-data-build/issues/233";
-	public static final String MILESTONES_URI = "/repos/spring-projects/spring-data-build/milestones";
-	public static final ModuleIteration BUILD_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Projects.BUILD,
+	static final String ISSUES_URI = "/repos/spring-projects/spring-data-build/issues";
+	static final String RELEASE_TICKET_URI = "/repos/spring-projects/spring-data-build/issues/233";
+	static final String MILESTONES_URI = "/repos/spring-projects/spring-data-build/milestones";
+	static final ModuleIteration BUILD_HOPPER_RC1 = ReleaseTrains.HOPPER.getModuleIteration(Projects.BUILD,
 			Iteration.RC1);
 
-	@Rule public WireMockRule mockService = new WireMockRule(
+	@RegisterExtension WireMockExtension mockService = new WireMockExtension(
 			wireMockConfig().port(8888).fileSource(new ClasspathFileSource("integration/github")));
-
-	@Rule public ExpectedException expectedException = ExpectedException.none();
 
 	@Autowired GitHub github;
 	@Autowired GitHubProperties properties;
 
-	@Before
-	public void before() throws Exception {
+	@BeforeEach
+	void before() {
 
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(properties.getApiUrl()).build();
-		Assume.assumeThat(uriComponents.getHost(), is("localhost"));
+		assumeThat(uriComponents.getHost()).isEqualTo("localhost");
 
 		github.reset();
 	}
@@ -79,83 +75,79 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 	 * @see #5
 	 */
 	@Test
-	public void findTicketsByTicketIds() throws Exception {
+	void findTicketsByTicketIds() {
 
 		mockGetIssueWith("issue.json", 233);
 
-		Collection<Ticket> tickets = github.findTickets(Projects.BUILD, Arrays.asList("233"));
-		assertThat(tickets, hasSize(1));
+		Collection<Ticket> tickets = github.findTickets(Projects.BUILD, Collections.singletonList("233"));
+		assertThat(tickets).hasSize(1);
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void ignoresUnknownTicketsByTicketId() throws Exception {
+	void ignoresUnknownTicketsByTicketId() {
 
-		Collection<Ticket> tickets = github.findTickets(Projects.BUILD, Arrays.asList("123"));
-		assertThat(tickets, hasSize(0));
+		Collection<Ticket> tickets = github.findTickets(Projects.BUILD, Collections.singletonList("123"));
+		assertThat(tickets).hasSize(0);
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void emptyResultWithEmptyTicketIds() throws Exception {
+	void emptyResultWithEmptyTicketIds() {
 
-		Collection<Ticket> tickets = github.findTickets(Projects.COMMONS, Arrays.asList());
-		assertThat(tickets, hasSize(0));
+		Collection<Ticket> tickets = github.findTickets(Projects.COMMONS, Collections.emptyList());
+		assertThat(tickets).hasSize(0);
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void getReleaseTicketForReturnsTheReleaseTicket() throws Exception {
+	void getReleaseTicketForReturnsTheReleaseTicket() {
 
 		mockGetMilestonesWith("milestones.json");
 		mockGetIssuesWith("issues.json");
 
 		Ticket releaseTicket = github.getReleaseTicketFor(BUILD_HOPPER_RC1);
-		assertThat(releaseTicket.getId(), is(Matchers.equalTo("#233")));
+		assertThat(releaseTicket.getId()).isEqualTo("#233");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void noReleaseTicketFound() throws Exception {
-
-		expectedException.expect(IllegalStateException.class);
-		expectedException.expectMessage("No milestone for Spring Data Build found containing 1.8 RC1!");
+	void noReleaseTicketFound() {
 
 		mockGetMilestonesWith("emptyMilestones.json");
 
-		github.getReleaseTicketFor(BUILD_HOPPER_RC1);
-
-		fail("Missing IllegalStateException");
+		assertThatIllegalArgumentException().isThrownBy(() -> github.getReleaseTicketFor(BUILD_HOPPER_RC1))
+				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1!");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseVersionShouldCreateAVersion() throws Exception {
+	void createReleaseVersionShouldCreateAVersion() {
 
 		mockGetMilestonesWith("emptyMilestones.json");
 		mockCreateMilestoneWith("milestone.json");
 
 		github.createReleaseVersion(BUILD_HOPPER_RC1);
 
-		verify(postRequestedFor(urlPathMatching(MILESTONES_URI)).withRequestBody(
-				equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\"}")));
+		verify(postRequestedFor(urlPathMatching(MILESTONES_URI))
+				.withRequestBody(equalToJson("{\"title\":\"1.8 RC1 (Hopper)\", \"description\":\"Hopper RC1\"}")));
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseVersionShouldFindExistingReleaseVersion() throws Exception {
+	void createReleaseVersionShouldFindExistingReleaseVersion() {
 
 		mockGetMilestonesWith("milestones.json");
 
@@ -168,7 +160,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldCreateReleaseTicket() throws Exception {
+	void createReleaseTicketShouldCreateReleaseTicket() {
 
 		mockGetMilestonesWith("milestones.json");
 		mockGetIssuesWith("emptyIssues.json");
@@ -184,26 +176,22 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldFailWithNoReleaseVersion() throws Exception {
-
-		expectedException.expect(IllegalStateException.class);
-		expectedException.expectMessage("No milestone for Spring Data Build found containing 1.8 RC1!");
+	void createReleaseTicketShouldFailWithNoReleaseVersion() {
 
 		ModuleIteration moduleIteration = ReleaseTrains.HOPPER.getModuleIteration(Projects.BUILD, Iteration.RC1);
 
 		mockGetIssuesWith("emptyIssues.json");
 		mockGetMilestonesWith("emptyMilestones.json");
 
-		github.createReleaseTicket(moduleIteration);
-
-		fail("Missing IllegalStateException");
+		assertThatIllegalArgumentException().isThrownBy(() -> github.createReleaseTicket(moduleIteration))
+				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1!");
 	}
 
 	/**
 	 * @see #5
 	 */
 	@Test
-	public void createReleaseTicketShouldFindExistingTicket() throws Exception {
+	void createReleaseTicketShouldFindExistingTicket() {
 
 		mockGetMilestonesWith("milestones.json");
 		mockGetIssuesWith("issues.json");
@@ -217,7 +205,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 	 * @see #55
 	 */
 	@Test
-	public void assignTicketToMe() {
+	void assignTicketToMe() {
 
 		mockGetMilestonesWith("milestones.json");
 		mockGetIssuesWith("issues.json");
@@ -235,7 +223,7 @@ public class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests
 	 * @see #94
 	 */
 	@Test
-	public void closeIterationShouldResolveReleaseTicket() {
+	void closeIterationShouldResolveReleaseTicket() {
 
 		mockGetMilestonesWith("milestones.json");
 		mockGetIssuesWith("issues.json");

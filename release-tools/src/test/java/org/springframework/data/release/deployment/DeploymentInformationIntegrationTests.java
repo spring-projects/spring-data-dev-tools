@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.deployment;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.model.Iteration;
@@ -32,20 +32,20 @@ import org.springframework.data.release.model.TrainIteration;
  * 
  * @author Oliver Gierke
  */
-public class DeploymentInformationIntegrationTests extends AbstractIntegrationTests {
+class DeploymentInformationIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired DeploymentProperties properties;
 
 	@Test
-	public void createsDeploymentInformation() {
+	void createsDeploymentInformation() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.HOPPER, Iteration.M1);
 		ModuleIteration buildModule = iteration.getModule(Projects.BUILD);
 
 		DeploymentInformation information = new DefaultDeploymentInformation(buildModule, properties);
 
-		assertThat(information.getDeploymentTargetUrl(), containsString(properties.getServer().getUri().toString()));
-		assertThat(information.getBuildName(), is("Spring Data Build - Release"));
-		assertThat(information.getTargetRepository(), is("test-libs-milestone-local"));
+		assertThat(information.getDeploymentTargetUrl()).contains(properties.getServer().getUri().toString());
+		assertThat(information.getBuildName()).isEqualTo("Spring Data Build - Release");
+		assertThat(information.getTargetRepository()).isEqualTo("test-libs-milestone-local");
 	}
 }

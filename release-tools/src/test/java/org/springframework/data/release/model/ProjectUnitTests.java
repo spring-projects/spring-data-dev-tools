@@ -15,22 +15,20 @@
  */
 package org.springframework.data.release.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Oliver Gierke
  */
-public class ProjectUnitTests {
+class ProjectUnitTests {
 
 	@Test
-	public void testname() {
+	void testname() {
 
 		List<Project> projects = new ArrayList<>(Projects.PROJECTS);
 		// Collections.reverse(projects);
@@ -38,27 +36,27 @@ public class ProjectUnitTests {
 
 		projects.stream().map(Project::getName).forEach(System.out::println);
 
-		assertThat(projects.get(0), is(Projects.BUILD));
-		assertThat(projects.get(1), is(Projects.COMMONS));
+		assertThat(projects.get(0)).isEqualTo(Projects.BUILD);
+		assertThat(projects.get(1)).isEqualTo(Projects.COMMONS);
 	}
 
 	/**
 	 * @see #28
 	 */
 	@Test
-	public void findsProjectByKey() {
-		assertThat(Projects.requiredByName("DATACMNS"), is(Projects.COMMONS));
+	void findsProjectByKey() {
+		assertThat(Projects.requiredByName("DATACMNS")).isEqualTo(Projects.COMMONS);
 	}
 
 	@Test
-	public void returnsCustomFullNameIfSet() {
+	void returnsCustomFullNameIfSet() {
 
-		assertThat(Projects.BUILD.getFullName(), is("Spring Data Build"));
-		assertThat(Projects.CASSANDRA.getFullName(), is("Spring Data for Apache Cassandra"));
+		assertThat(Projects.BUILD.getFullName()).isEqualTo("Spring Data Build");
+		assertThat(Projects.CASSANDRA.getFullName()).isEqualTo("Spring Data for Apache Cassandra");
 	}
 
 	@Test
-	public void returnsAllDependencies() {
+	void returnsAllDependencies() {
 
 		assertThat(Projects.REDIS.getDependencies())//
 				.contains(Projects.COMMONS, Projects.KEY_VALUE, Projects.BUILD);

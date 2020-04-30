@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.release.issues.jira;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.test.util.AssertionErrors.fail;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.Iteration;
@@ -34,68 +32,68 @@ import org.springframework.data.release.model.ReleaseTrains;
  *
  * @author Mark Paluch
  */
-public class TicketsUnitTests {
+class TicketsUnitTests {
 
 	@Test
-	public void hasReleaseTicketShouldReturnTrue() throws Exception {
+	void hasReleaseTicketShouldReturnTrue() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
-		assertThat(result, is(true));
+		assertThat(result).isTrue();
 	}
 
 	@Test
-	public void hasReleaseTickeForTicketWithoutTrainNameShouldReturnFalse() throws Exception {
+	void hasReleaseTickeForTicketWithoutTrainNameShouldReturnFalse() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
-		assertThat(result, is(false));
+		assertThat(result).isFalse();
 	}
 
 	@Test
-	public void getReleaseTicketReturnsReleaseTicket() throws Exception {
+	void getReleaseTicketReturnsReleaseTicket() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Ticket releaseTicket = tickets
 				.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
-		assertThat(releaseTicket, is(ticket));
+		assertThat(releaseTicket).isEqualTo(ticket);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void getReleaseTicketThrowsExceptionWithoutAReleaseTicket() throws Exception {
+	@Test
+	void getReleaseTicketThrowsExceptionWithoutAReleaseTicket() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
-		tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
-		fail("Missing IllegalStateException");
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> tickets.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA)));
 	}
 
 	@Test
-	public void getResolvedReleaseTicket() throws Exception {
+	void getResolvedReleaseTicket() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(true, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Ticket releaseTicket = tickets
 				.getReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
-		assertThat(releaseTicket, is(ticket));
+		assertThat(releaseTicket).isEqualTo(ticket);
 	}
 
 	@Test
-	public void getReleaseTicketsReturnsReleaseTickets() throws Exception {
+	void getReleaseTicketsReturnsReleaseTickets() {
 
 		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Tickets result = tickets
 				.getReleaseTickets(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA).getTrainIteration());
-		assertThat(result.getTickets().contains(ticket), is(true));
+		assertThat(result.getTickets().contains(ticket)).isTrue();
 	}
 }

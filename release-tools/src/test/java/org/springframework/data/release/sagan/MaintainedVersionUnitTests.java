@@ -17,7 +17,7 @@ package org.springframework.data.release.sagan;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
@@ -27,10 +27,10 @@ import org.springframework.data.release.model.ReleaseTrains;
  * 
  * @author Oliver Gierke
  */
-public class MaintainedVersionUnitTests {
+class MaintainedVersionUnitTests {
 
 	@Test
-	public void newerVersionIsOrderedFirst() {
+	void newerVersionIsOrderedFirst() {
 
 		MaintainedVersion ingalls = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("1.13.0.RELEASE"),
 				ReleaseTrains.INGALLS);

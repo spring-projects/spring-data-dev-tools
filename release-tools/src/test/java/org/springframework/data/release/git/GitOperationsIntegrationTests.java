@@ -15,8 +15,7 @@
  */
 package org.springframework.data.release.git;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.release.model.Projects.*;
 
@@ -24,8 +23,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.model.ReleaseTrains;
@@ -34,12 +35,13 @@ import org.springframework.data.release.model.TestReleaseTrains;
 /**
  * @author Oliver Gierke
  */
-public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
+@Disabled
+class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired GitOperations gitOperations;
 
-	@BeforeClass
-	public static void beforeClass() {
+	@BeforeAll
+	static void beforeClass() {
 
 		try {
 			URL url = new URL("https://github.com");
@@ -52,25 +54,25 @@ public class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	public void updatesGitRepositories() throws Exception {
+	void updatesGitRepositories() throws Exception {
 		gitOperations.update(ReleaseTrains.GOSLING);
 	}
 
 	@Test
-	public void showTags() throws Exception {
+	void showTags() throws Exception {
 
 		gitOperations.update(TestReleaseTrains.SAMPLE);
 
-		assertThat(gitOperations.getTags(BUILD).asList(), is(not(emptyIterable())));
+		assertThat(gitOperations.getTags(BUILD).asList()).isNotEmpty();
 	}
 
 	@Test
-	public void foo() throws Exception {
+	void foo() throws Exception {
 		gitOperations.update(TestReleaseTrains.SAMPLE);
 	}
 
 	@Test
-	public void obtainsVersionTagsForRepoThatAlsoHasOtherTags() {
+	void obtainsVersionTagsForRepoThatAlsoHasOtherTags() {
 		gitOperations.getTags(MONGO_DB);
 	}
 }

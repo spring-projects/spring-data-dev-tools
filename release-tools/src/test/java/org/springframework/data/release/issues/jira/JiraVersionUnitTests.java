@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.issues.jira;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Projects;
@@ -29,10 +29,10 @@ import org.springframework.data.release.model.ReleaseTrains;
  *
  * @author Oliver Gierke
  */
-public class JiraVersionUnitTests {
+class JiraVersionUnitTests {
 
 	@Test
-	public void rendersJiraGaVersionCorrectly() {
+	void rendersJiraGaVersionCorrectly() {
 
 		assertIterationVersion(Iteration.M1, "1.8 M1 (Dijkstra)");
 		assertIterationVersion(Iteration.RC1, "1.8 RC1 (Dijkstra)");
@@ -45,30 +45,30 @@ public class JiraVersionUnitTests {
 	}
 
 	@Test
-	public void usesCustomModuleIterationStartVersion() {
+	void usesCustomModuleIterationStartVersion() {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.M1);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString(), is("1.0 M1 (Dijkstra)"));
+		assertThat(version.toString()).isEqualTo("1.0 M1 (Dijkstra)");
 	}
 
 	@Test
-	public void doesNotUseCustomIterationOnNonFirstiterations() {
+	void doesNotUseCustomIterationOnNonFirstiterations() {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.RC1);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString(), is("1.0 RC1 (Dijkstra)"));
+		assertThat(version.toString()).isEqualTo("1.0 RC1 (Dijkstra)");
 	}
 
 	@Test
-	public void rendersDescriptionCorrectly() {
+	void rendersDescriptionCorrectly() {
 
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.ELASTICSEARCH, Iteration.M1);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.getDescription(), is("Dijkstra M2"));
+		assertThat(version.getDescription()).isEqualTo("Dijkstra M2");
 	}
 
 	private void assertIterationVersion(Iteration iteration, String expected) {
@@ -76,6 +76,6 @@ public class JiraVersionUnitTests {
 		ModuleIteration module = ReleaseTrains.DIJKSTRA.getModuleIteration(Projects.COMMONS, iteration);
 
 		JiraVersion version = new JiraVersion(module);
-		assertThat(version.toString(), is(expected));
+		assertThat(version.toString()).isEqualTo(expected);
 	}
 }

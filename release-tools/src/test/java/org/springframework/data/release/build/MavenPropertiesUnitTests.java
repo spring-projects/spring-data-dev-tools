@@ -15,25 +15,24 @@
  */
 package org.springframework.data.release.build;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link MavenProperties}.
  * 
  * @author Oliver Gierke
  */
-public class MavenPropertiesUnitTests {
+class MavenPropertiesUnitTests {
 
 	MavenProperties properties;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		this.properties = new MavenProperties();
 		this.properties.setPlugins(Collections.singletonMap("versions", "org.codehaus.mojo:versions-maven-plugin:2.2"));
@@ -43,25 +42,25 @@ public class MavenPropertiesUnitTests {
 	 * @see #8
 	 */
 	@Test
-	public void expandsGoalsCorrectly() {
+	void expandsGoalsCorrectly() {
 
-		assertThat(properties.getFullyQualifiedPlugin("versions:set"),
-				is("org.codehaus.mojo:versions-maven-plugin:2.2:set"));
+		assertThat(properties.getFullyQualifiedPlugin("versions:set"))
+				.isEqualTo("org.codehaus.mojo:versions-maven-plugin:2.2:set");
 	}
 
 	/**
 	 * @see #8
 	 */
 	@Test
-	public void doesNotExpandGoalStartingWithDash() {
-		assertThat(properties.getFullyQualifiedPlugin("-versions:set"), is("-versions:set"));
+	void doesNotExpandGoalStartingWithDash() {
+		assertThat(properties.getFullyQualifiedPlugin("-versions:set")).isEqualTo("-versions:set");
 	}
 
 	/**
 	 * @see #8
 	 */
 	@Test
-	public void doesNotExpandGoalWithoutColon() {
-		assertThat(properties.getFullyQualifiedPlugin("versions-set"), is("versions-set"));
+	void doesNotExpandGoalWithoutColon() {
+		assertThat(properties.getFullyQualifiedPlugin("versions-set")).isEqualTo("versions-set");
 	}
 }
