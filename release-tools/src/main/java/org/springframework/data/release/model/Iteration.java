@@ -18,7 +18,10 @@ package org.springframework.data.release.model;
 import lombok.NonNull;
 import lombok.Value;
 
+import java.lang.reflect.Field;
+
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Value object to represent an individual release train iteration.
@@ -27,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  */
 @Value
-public class Iteration {
+public class Iteration implements Comparable<Iteration> {
 
 	public static final Iteration SR24 = new Iteration("SR23", null);
 	public static final Iteration SR23 = new Iteration("SR23", SR24);
@@ -54,8 +57,19 @@ public class Iteration {
 	public static final Iteration SR2 = new Iteration("SR2", SR3);
 	public static final Iteration SR1 = new Iteration("SR1", SR2);
 	public static final Iteration GA = new Iteration("GA", SR1);
+	public static final Iteration RC4 = new Iteration("RC4", GA);
+	public static final Iteration RC3 = new Iteration("RC3", GA);
+	public static final Iteration RC2 = new Iteration("RC2", GA);
 	public static final Iteration RC1 = new Iteration("RC1", GA);
+	public static final Iteration M5 = new Iteration("M5", RC1);
+	public static final Iteration M4 = new Iteration("M4", RC1);
+	public static final Iteration M3 = new Iteration("M3", RC1);
+	public static final Iteration M2 = new Iteration("M2", RC1);
 	public static final Iteration M1 = new Iteration("M1", RC1);
+
+	private static final int GREATER_THAN = 1;
+	private static final int LESS_THAN = -GREATER_THAN;
+	private static final int EQUAL = 0;
 
 	/**
 	 * The name of the iteration.
@@ -69,6 +83,24 @@ public class Iteration {
 
 		this.name = name;
 		this.next = next;
+	}
+
+	/**
+	 * Lookup {@link Iteration} by its string value.
+	 * 
+	 * @param iteration
+	 * @return
+	 * @throws IllegalArgumentException if iteration cannot be resolved.
+	 */
+	public static Iteration valueOf(String iteration) {
+
+		Field field = ReflectionUtils.findField(Iteration.class, iteration);
+
+		if (field == null) {
+			throw new IllegalArgumentException("Cannot resolve iteration " + iteration);
+		}
+
+		return (Iteration) ReflectionUtils.getField(field, null);
 	}
 
 	public boolean isGAIteration() {
@@ -106,6 +138,27 @@ public class Iteration {
 		return this.equals(M1);
 	}
 
+	public boolean isMilestone() {
+		return name.startsWith("M");
+	}
+
+	public boolean isReleaseCandidate() {
+		return name.startsWith("RC");
+	}
+
+	public int getIterationValue() {
+
+		if (isMilestone()) {
+			return Integer.parseInt(name.substring(1));
+		}
+
+		if (isReleaseCandidate() || isServiceIteration()) {
+			return Integer.parseInt(name.substring(2));
+		}
+
+		return EQUAL;
+	}
+
 	public int getBugfixValue() {
 		return name.startsWith("SR") ? Integer.parseInt(name.substring(2)) : 0;
 	}
@@ -117,5 +170,57 @@ public class Iteration {
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public int compareTo(Iteration o) {
+
+		if (isMilestone()) {
+
+			if (o.isMilestone()) {
+				return Integer.compare(getIterationValue(), o.getIterationValue());
+			}
+
+			return LESS_THAN;
+		}
+
+		if (isReleaseCandidate()) {
+
+			if (o.isMilestone()) {
+				return GREATER_THAN;
+			}
+
+			if (o.isReleaseCandidate()) {
+				return Integer.compare(getIterationValue(), o.getIterationValue());
+			}
+
+			return LESS_THAN;
+		}
+
+		if (isGAIteration()) {
+
+			if (o.isMilestone() || o.isReleaseCandidate()) {
+				return GREATER_THAN;
+			}
+
+			if (o.isGAIteration()) {
+				return EQUAL;
+			}
+
+			return LESS_THAN;
+		}
+
+		if (isServiceIteration()) {
+
+			if (o.isMilestone() || o.isReleaseCandidate() || o.isGAIteration()) {
+				return GREATER_THAN;
+			}
+
+			if (o.isServiceIteration()) {
+				return Integer.compare(getIterationValue(), o.getIterationValue());
+			}
+		}
+
+		return EQUAL;
 	}
 }

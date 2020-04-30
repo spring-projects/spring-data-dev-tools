@@ -15,10 +15,59 @@
  */
 package org.springframework.data.release.model;
 
+import static org.assertj.core.api.Assertions.*;
+
+import org.junit.Test;
+
 /**
- *
- * @author Oliver Gierke
+ * Unit tests for {@link Iteration}.
+ * 
+ * @author Mark Paluch
  */
 public class IterationUnitTests {
 
+	@Test
+	public void shouldCompareMilestoneIterationsCorrectly() {
+
+		assertThat(Iteration.M1).isEqualByComparingTo(Iteration.M1);
+		assertThat(Iteration.M1).isLessThan(Iteration.RC1);
+		assertThat(Iteration.M1).isLessThan(Iteration.GA);
+		assertThat(Iteration.M1).isLessThan(Iteration.SR1);
+
+		assertThat(Iteration.M2).isLessThan(Iteration.M3);
+		assertThat(Iteration.M2).isGreaterThan(Iteration.M1);
+	}
+
+	@Test
+	public void shouldCompareReleaseCandidateIterationsCorrectly() {
+
+		assertThat(Iteration.RC1).isGreaterThan(Iteration.M1);
+		assertThat(Iteration.RC1).isEqualByComparingTo(Iteration.RC1);
+		assertThat(Iteration.RC1).isLessThan(Iteration.GA);
+		assertThat(Iteration.RC1).isLessThan(Iteration.SR1);
+
+		assertThat(Iteration.RC2).isLessThan(Iteration.RC3);
+		assertThat(Iteration.RC2).isGreaterThan(Iteration.RC1);
+	}
+
+	@Test
+	public void shouldCompareGAIterationsCorrectly() {
+
+		assertThat(Iteration.GA).isGreaterThan(Iteration.M1);
+		assertThat(Iteration.GA).isGreaterThan(Iteration.RC1);
+		assertThat(Iteration.GA).isEqualByComparingTo(Iteration.GA);
+		assertThat(Iteration.GA).isLessThan(Iteration.SR1);
+	}
+
+	@Test
+	public void shouldCompareServiceReleaseIterationsCorrectly() {
+
+		assertThat(Iteration.SR1).isGreaterThan(Iteration.M1);
+		assertThat(Iteration.SR1).isGreaterThan(Iteration.RC1);
+		assertThat(Iteration.SR1).isGreaterThan(Iteration.GA);
+		assertThat(Iteration.SR1).isEqualByComparingTo(Iteration.SR1);
+
+		assertThat(Iteration.SR2).isLessThan(Iteration.SR3);
+		assertThat(Iteration.SR2).isGreaterThan(Iteration.SR1);
+	}
 }
