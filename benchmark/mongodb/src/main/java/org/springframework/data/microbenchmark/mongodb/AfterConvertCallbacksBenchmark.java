@@ -99,7 +99,13 @@ public class AfterConvertCallbacksBenchmark extends AbstractMicrobenchmark {
 
 		@Bean
 		AfterConvertCallback<Person> afterConvertCallback() {
-			return (it, document, collection) -> {
+			return new PersonAfterConvertCallback();
+		}
+
+		private static class PersonAfterConvertCallback implements AfterConvertCallback<Person> {
+
+			@Override
+			public Person onAfterConvert(Person it, Document document, String collection) {
 
 				Person target = new Person();
 				target.id = it.id;
@@ -108,7 +114,7 @@ public class AfterConvertCallbacksBenchmark extends AbstractMicrobenchmark {
 
 				target.address = it.address;
 				return target;
-			};
+			}
 		}
 	}
 
