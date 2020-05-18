@@ -79,13 +79,14 @@ class MavenBuildSystem implements BuildSystem {
 
 		if (updater.isBuildProject()) {
 
-			updateBom(information, "bom/pom.xml", BUILD);
+			if (information.isBomInBuildProject()) {
+				updateBom(information, "bom/pom.xml", BUILD);
+			}
+
 			updateParentPom(information);
 
 		} else if (updater.isBomProject()) {
-
-			updateBom(information, "pom.xml", BOM);
-
+			updateBom(information, "bom/pom.xml", BOM);
 		} else {
 
 			execute(workspace.getFile(POM_XML, updater.getProject()), pom -> {
@@ -219,25 +220,27 @@ class MavenBuildSystem implements BuildSystem {
 
 		CommandLine goals = CommandLine.of(goal("versions:set"), goal("versions:commit"));
 
-		mvn.execute(project, goals.and(arg("newVersion").withValue(information.getProjectVersionToSet(project)))
-				.and(arg("generateBackupPoms").withValue("false")));
+		if (BOM.equals(project)) {
 
-		if (BUILD.equals(project)) {
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
+					.and(arg("generateBackupPoms").withValue("false")));
+
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
+					.and(arg("generateBackupPoms").withValue("false")) //
+					.and(arg("processAllModules").withValue("true")) //
+					.and(Argument.of("-pl").withValue("bom")));
+
+		} else {
+			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getProjectVersionToSet(project)))
+					.and(arg("generateBackupPoms").withValue("false")));
+		}
+
+		if (BUILD.equals(project) && !module.getTrain().usesCalver()) {
 
 			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainNameVersion())) //
 					.and(arg("generateBackupPoms").withValue("false")) //
 					.and(arg("groupId").withValue("org.springframework.data")) //
 					.and(arg("artifactId").withValue("spring-data-releasetrain")));
-
-			mvn.execute(project, CommandLine.of(Goal.INSTALL));
-		}
-
-		if (BOM.equals(project)) {
-
-			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
-					.and(arg("generateBackupPoms").withValue("false")) //
-					.and(arg("groupId").withValue("org.springframework.data")) //
-					.and(arg("artifactId").withValue("spring-data-bom")));
 
 			mvn.execute(project, CommandLine.of(Goal.INSTALL));
 		}

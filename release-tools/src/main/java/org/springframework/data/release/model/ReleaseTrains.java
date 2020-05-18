@@ -63,11 +63,11 @@ public class ReleaseTrains {
 				new Module(MONGO_DB, "3.0"), //
 				new Module(JDBC, "2.0"), //
 				new Module(R2DBC, "1.1")) //
-				.filterModules(module -> !module.getProject().equals(GEMFIRE))
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+				.filterModules(module -> !module.getProject().equals(GEMFIRE));
 
-		OCKHAM = NEUMANN.next("Ockham", Transition.MINOR).withCalver("2020.0.0")
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+		OCKHAM = NEUMANN.next("Ockham", Transition.MINOR, //
+				new Module(BOM, "2020.0.0") //
+		).withCalver("2020.0.0").withIterations(new Train.Iterations(M1, M2, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
 		// Trains
 

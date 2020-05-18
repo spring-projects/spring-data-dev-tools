@@ -43,18 +43,10 @@ class DeploymentOperationsIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	void testname() {
 
-		Train train = ReleaseTrains.HOPPER;
-		ModuleIteration buildModule = train.getModuleIteration(Projects.BUILD, Iteration.M1);
+		Train train = ReleaseTrains.OCKHAM;
+		ModuleIteration buildModule = train.getModuleIteration(Projects.BOM, Iteration.M1);
 
 		git.update(train);
 		build.prepareVersion(buildModule, Phase.PREPARE);
-
-		DeploymentInformation information = build.buildAndDeployRelease(buildModule);
-
-		try {
-			deployment.promote(information);
-		} finally {
-			client.deleteArtifacts(information);
-		}
 	}
 }

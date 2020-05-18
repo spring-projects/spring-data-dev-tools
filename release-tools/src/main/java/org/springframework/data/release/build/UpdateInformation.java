@@ -40,7 +40,7 @@ public class UpdateInformation {
 
 	/**
 	 * Returns the {@link ArtifactVersion} to be set for the given {@link Project}.
-	 * 
+	 *
 	 * @param dependency must not be {@literal null}.
 	 * @return will never be {@literal null}.
 	 */
@@ -64,7 +64,7 @@ public class UpdateInformation {
 
 	/**
 	 * Returns the {@link ArtifactVersion} to be set for the parent reference.
-	 * 
+	 *
 	 * @return will never be {@literal null}.
 	 */
 	public ArtifactVersion getParentVersionToSet() {
@@ -85,7 +85,7 @@ public class UpdateInformation {
 
 	/**
 	 * Returns the {@link Repository} to use (milestone or release).
-	 * 
+	 *
 	 * @return will never be {@literal null}.
 	 */
 	public Repository getRepository() {
@@ -94,7 +94,7 @@ public class UpdateInformation {
 
 	/**
 	 * Returns the version {@link String} to be used to describe the release train.
-	 * 
+	 *
 	 * @return will never be {@literal null}.
 	 */
 	public String getReleaseTrainNameVersion() {
@@ -119,7 +119,7 @@ public class UpdateInformation {
 
 	/**
 	 * Returns the version {@link String} to be used to describe the release train.
-	 * 
+	 *
 	 * @return will never be {@literal null}.
 	 */
 	public String getReleaseTrainVersion() {
@@ -140,5 +140,9 @@ public class UpdateInformation {
 		}
 
 		throw new IllegalStateException("Unexpected phase detected " + phase + " detected!");
+	}
+
+	public boolean isBomInBuildProject() {
+		return !train.getTrain().usesCalver();
 	}
 }
