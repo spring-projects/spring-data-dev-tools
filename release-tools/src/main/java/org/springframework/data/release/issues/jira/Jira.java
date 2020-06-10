@@ -39,6 +39,7 @@ import org.springframework.data.release.issues.jira.JiraIssue.StatusCategory;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectKey;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
@@ -230,7 +231,7 @@ class Jira implements JiraConnector {
 
 		Optional<JiraReleaseVersion> versionsForModuleIteration = findJiraReleaseVersion(moduleIteration);
 
-		if (versionsForModuleIteration.isPresent()) {
+		if (versionsForModuleIteration.isPresent() || moduleIteration.getProject() == Projects.GEMFIRE) {
 			return;
 		}
 
@@ -303,28 +304,45 @@ class Jira implements JiraConnector {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
-
-		Map<String, Object> parameters = newUrlTemplateVariables();
-
 		Tickets tickets = getTicketsFor(moduleIteration);
 
-		if (tickets.hasReleaseTicket(moduleIteration)) {
+		if (tickets.hasReleaseTicket(moduleIteration) || moduleIteration.getProject() == Projects.GEODE) {
 			return;
 		}
 
-		findJiraReleaseVersion(moduleIteration).orElseThrow(
-				() -> new IllegalStateException(String.format("No release version for %s found containing %s!",
-						moduleIteration.getProject().getFullName(), new JiraVersion(moduleIteration))));
-
-		JiraComponents jiraComponents = getJiraComponents(moduleIteration.getProjectKey());
-
 		logger.log(moduleIteration, "Creating release ticket…");
 
-		JiraIssue jiraIssue = prepareJiraIssueToCreate(moduleIteration, jiraComponents);
+		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration));
+	}
 
-		operations.exchange(CREATE_ISSUES_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(jiraIssue, httpHeaders),
-				CreatedJiraIssue.class, parameters).getBody();
+	@Override
+	public Ticket createTicket(ModuleIteration moduleIteration, String text) {
+
+		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
+
+		logger.log(moduleIteration, "Creating ticket…");
+
+		return doCreateTicket(moduleIteration, text);
+	}
+
+	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text) {
+
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		Map<String, Object> parameters = newUrlTemplateVariables();
+
+		findJiraReleaseVersion(moduleIteration).orElseThrow(
+				() -> new IllegalStateException(String.format("No release version for %s found", moduleIteration)));
+
+		JiraComponents jiraComponents = getJiraComponents(moduleIteration.getProjectKey());
+		JiraIssue jiraIssue = prepareJiraIssueToCreate(text, moduleIteration, jiraComponents);
+
+		CreatedJiraIssue created = operations.exchange(CREATE_ISSUES_TEMPLATE, HttpMethod.POST,
+				new HttpEntity<Object>(jiraIssue, httpHeaders), CreatedJiraIssue.class, parameters).getBody();
+
+		JiraIssue createdIssue = getJiraIssue(created.getKey())
+				.orElseThrow(() -> new IllegalStateException(String.format("Cannot retrieve ticket %s", created.getKey())));
+
+		return toTicket(createdIssue);
 	}
 
 	/*
@@ -357,7 +375,8 @@ class Jira implements JiraConnector {
 			operations.exchange(ISSUE_TEMPLATE, HttpMethod.PUT, new HttpEntity<Object>(editMeta, httpHeaders), String.class,
 					parameters).getBody();
 		} catch (HttpClientErrorException e) {
-			logger.warn("Ticket", "Self-assignment of %s failed with status ", ticket, e.getStatusCode());
+			logger.warn("Ticket", "Self-assignment of %s failed with status %s (%s)", ticket, e.getStatusCode(),
+					e.getResponseBodyAsString());
 		}
 	}
 
@@ -409,7 +428,8 @@ class Jira implements JiraConnector {
 			operations.exchange(TRANSITION_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(editMeta, httpHeaders),
 					String.class, parameters).getBody();
 		} catch (HttpClientErrorException e) {
-			logger.warn("Ticket", "Start progress of %s failed with status ", ticket, e.getStatusCode());
+			logger.warn("Ticket", "Start progress of %s failed with status %s (%s)", ticket, e.getStatusCode(),
+					e.getResponseBodyAsString());
 		}
 	}
 
@@ -436,7 +456,8 @@ class Jira implements JiraConnector {
 				operations.exchange(TRANSITION_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(editMeta, httpHeaders),
 						String.class, parameters).getBody();
 			} catch (HttpClientErrorException e) {
-				logger.warn("Ticket", "Resolution of %s failed with status ", ticket, e.getStatusCode());
+				logger.warn("Ticket", "Resolution of %s failed with status %s (%s)", ticket, e.getStatusCode(),
+						e.getResponseBodyAsString());
 			}
 		}
 	}
@@ -564,11 +585,11 @@ class Jira implements JiraConnector {
 		return JiraComponents.of(components);
 	}
 
-	private JiraIssue prepareJiraIssueToCreate(ModuleIteration moduleIteration, JiraComponents jiraComponents) {
+	private JiraIssue prepareJiraIssueToCreate(String text, ModuleIteration moduleIteration,
+			JiraComponents jiraComponents) {
 
 		JiraIssue jiraIssue = JiraIssue.createTask();
-		jiraIssue.project(moduleIteration.getProjectKey()).summary(Tracker.releaseTicketSummary(moduleIteration))
-				.fixVersion(moduleIteration);
+		jiraIssue.project(moduleIteration.getProjectKey()).summary(text).fixVersion(moduleIteration);
 
 		Fields fields = jiraIssue.getFields();
 
@@ -684,7 +705,8 @@ class Jira implements JiraConnector {
 			jiraTicketStatus = JiraTicketStatus.UNKNOWN;
 		}
 
-		return new Ticket(issue.getKey(), fields.getSummary(), jiraTicketStatus);
+		return new Ticket(issue.getKey(), fields.getSummary(),
+				String.format("%s/browse/%s", jiraProperties.getApiUrl(), issue.getKey()), jiraTicketStatus);
 	}
 
 	/**

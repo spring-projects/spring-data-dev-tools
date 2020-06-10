@@ -246,24 +246,38 @@ class GitHub implements IssueTracker {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
 		Tickets tickets = getTicketsFor(moduleIteration);
-
 		if (tickets.hasReleaseTicket(moduleIteration)) {
 			return;
 		}
 
+		logger.log(moduleIteration, "Creating release ticket…");
+
+		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration));
+	}
+
+	@Override
+	public Ticket createTicket(ModuleIteration moduleIteration, String text) {
+
+		logger.log(moduleIteration, "Creating ticket…");
+
+		return doCreateTicket(moduleIteration, text);
+	}
+
+	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text) {
+		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 		Milestone milestone = getMilestone(moduleIteration, repositoryName);
-		GitHubIssue gitHubIssue = GitHubIssue.of(Tracker.releaseTicketSummary(moduleIteration), milestone);
+		GitHubIssue gitHubIssue = GitHubIssue.of(text, milestone);
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 
-		logger.log(moduleIteration, "Creating release ticket…");
+		GitHubIssue body = operations.exchange(ISSUES_URI_TEMPLATE, HttpMethod.POST,
+				new HttpEntity<Object>(gitHubIssue, httpHeaders), GitHubIssue.class, parameters).getBody();
 
-		operations.exchange(ISSUES_URI_TEMPLATE, HttpMethod.POST, new HttpEntity<Object>(gitHubIssue, httpHeaders),
-				GitHubIssue.class, parameters).getBody();
+		return toTicket(body);
 	}
 
 	@Cacheable("tickets")
@@ -530,12 +544,12 @@ class GitHub implements IssueTracker {
 		Optional<Milestone> milestone = findMilestone(moduleIteration, repositoryName);
 
 		return milestone
-				.orElseThrow(() -> new IllegalArgumentException(String.format("No milestone for %s found containing %s!", //
+				.orElseThrow(() -> new IllegalStateException(String.format("No milestone for %s found containing %s!", //
 						moduleIteration.getProject().getFullName(), //
 						new GithubMilestone(moduleIteration))));
 	}
 
 	private static Ticket toTicket(GitHubIssue issue) {
-		return new Ticket(issue.getId(), issue.getTitle(), new GithubTicketStatus(issue.getState()));
+		return new Ticket(issue.getId(), issue.getTitle(), issue.getHtmlUrl(), new GithubTicketStatus(issue.getState()));
 	}
 }

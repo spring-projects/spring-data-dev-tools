@@ -158,6 +158,6 @@ public class ModuleIteration implements IterationVersion, ProjectAware {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s %s", module.getProject().getFullName(), getShortVersionString());
+		return String.format("%s %s", module.getProject().getFullName(), getMediumVersionString());
 	}
 }

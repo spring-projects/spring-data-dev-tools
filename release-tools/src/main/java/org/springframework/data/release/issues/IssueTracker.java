@@ -96,10 +96,18 @@ public interface IssueTracker extends Plugin<Project> {
 	void createReleaseTicket(ModuleIteration module);
 
 	/**
+	 * Creates a ticket for the given {@link ModuleIteration} and summary {@code text}.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @param text the text to use.
+	 * @return the created ticket.
+	 */
+	Ticket createTicket(ModuleIteration module, String text);
+
+	/**
 	 * Assigns the ticket to the current user.
 	 *
 	 * @param ticket must not be {@literal null}.
-	 * @param credentials must not be {@literal null}.
 	 */
 	void assignTicketToMe(Ticket ticket);
 

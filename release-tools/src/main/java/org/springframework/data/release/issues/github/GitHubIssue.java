@@ -15,7 +15,6 @@
  */
 package org.springframework.data.release.issues.github;
 
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.util.Collections;
@@ -25,31 +24,42 @@ import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
  */
 @Value
-@RequiredArgsConstructor
 class GitHubIssue {
 
 	String number, title, state;
 	List<Object> assignees;
+	String htmlUrl;
 	Object milestone;
 
+	public GitHubIssue(String number, String title, String state, List<Object> assignees,
+			@JsonProperty("html_url") String htmlUrl, Object milestone) {
+		this.number = number;
+		this.title = title;
+		this.state = state;
+		this.assignees = assignees;
+		this.htmlUrl = htmlUrl;
+		this.milestone = milestone;
+	}
+
 	public static GitHubIssue of(String title, Milestone milestone) {
-		return new GitHubIssue(null, title, null, null, milestone.number);
+		return new GitHubIssue(null, title, null, null, null, milestone.number);
 	}
 
 	public static GitHubIssue assignedTo(String username) {
 
 		Assert.hasText(username, "Username must not be null or empty!");
-		return new GitHubIssue(null, null, null, Collections.singletonList(username), null);
+		return new GitHubIssue(null, null, null, Collections.singletonList(username), null, null);
 	}
 
 	public GitHubIssue close() {
-		return new GitHubIssue(this.number, this.title, "closed", this.assignees, this.milestone);
+		return new GitHubIssue(this.number, this.title, "closed", this.assignees, null, this.milestone);
 	}
 
 	public String getId() {

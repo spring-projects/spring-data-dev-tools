@@ -24,13 +24,15 @@ import org.springframework.util.Assert;
 
 /**
  * Value object to represent a {@link Ticket}.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value
 public class Ticket {
 
 	String id, summary;
+	String url;
 	TicketStatus ticketStatus;
 
 	/*
@@ -39,7 +41,7 @@ public class Ticket {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%14s - %s", id, summary);
+		return String.format("%14s - %s (%s)", id, summary, url);
 	}
 
 	public boolean isResolved() {
@@ -48,7 +50,7 @@ public class Ticket {
 
 	/**
 	 * Returns whether the current {@link Ticket} is the release ticket for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @return
 	 */
@@ -60,7 +62,7 @@ public class Ticket {
 
 	/**
 	 * Returns whether the current {@link Ticket} is a release ticket for the given {@link TrainIteration}.
-	 * 
+	 *
 	 * @param train must not be {@literal null}.
 	 * @return
 	 */

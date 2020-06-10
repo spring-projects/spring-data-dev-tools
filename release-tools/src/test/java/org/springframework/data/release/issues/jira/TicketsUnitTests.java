@@ -37,7 +37,7 @@ class TicketsUnitTests {
 	@Test
 	void hasReleaseTicketShouldReturnTrue() {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", null, JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
@@ -47,7 +47,7 @@ class TicketsUnitTests {
 	@Test
 	void hasReleaseTickeForTicketWithoutTrainNameShouldReturnFalse() {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA", null, JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		boolean result = tickets.hasReleaseTicket(ReleaseTrains.HOPPER.getModuleIteration(Projects.JPA, Iteration.GA));
@@ -57,7 +57,7 @@ class TicketsUnitTests {
 	@Test
 	void getReleaseTicketReturnsReleaseTicket() {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", null, JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Ticket releaseTicket = tickets
@@ -69,20 +69,23 @@ class TicketsUnitTests {
 	void getReleaseTicketReturnsCalverReleaseTicket() {
 
 		Tickets tickets = new Tickets(
-				Collections.singletonList(new Ticket("1234", "Release 2.4 GA (2020.0.0)", JiraTicketStatus.of(false, "", ""))));
+				Collections
+						.singletonList(new Ticket("1234", "Release 2.4 GA (2020.0.0)", null, JiraTicketStatus.of(false, "", ""))));
 
 		Ticket releaseTicket = tickets
 				.getReleaseTicket(ReleaseTrains.OCKHAM.getModuleIteration(Projects.JPA, Iteration.GA));
 		assertThat(releaseTicket).isNotNull();
 
 		tickets = new Tickets(
-				Collections.singletonList(new Ticket("1234", "Release 2.4 M1 (2020.0.0)", JiraTicketStatus.of(false, "", ""))));
+				Collections
+						.singletonList(new Ticket("1234", "Release 2.4 M1 (2020.0.0)", null, JiraTicketStatus.of(false, "", ""))));
 
 		releaseTicket = tickets.getReleaseTicket(ReleaseTrains.OCKHAM.getModuleIteration(Projects.JPA, Iteration.M1));
 		assertThat(releaseTicket).isNotNull();
 
 		tickets = new Tickets(
-				Collections.singletonList(new Ticket("1234", "Release 2.4.1 (2020.0.1)", JiraTicketStatus.of(false, "", ""))));
+				Collections
+						.singletonList(new Ticket("1234", "Release 2.4.1 (2020.0.1)", null, JiraTicketStatus.of(false, "", ""))));
 
 		releaseTicket = tickets.getReleaseTicket(ReleaseTrains.OCKHAM.getModuleIteration(Projects.JPA, Iteration.SR1));
 		assertThat(releaseTicket).isNotNull();
@@ -91,7 +94,7 @@ class TicketsUnitTests {
 	@Test
 	void getReleaseTicketThrowsExceptionWithoutAReleaseTicket() {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA", JiraTicketStatus.of(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA", null, JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		assertThatIllegalArgumentException().isThrownBy(
@@ -101,7 +104,7 @@ class TicketsUnitTests {
 	@Test
 	void getResolvedReleaseTicket() {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(true, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", null, JiraTicketStatus.of(true, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Ticket releaseTicket = tickets
@@ -112,7 +115,7 @@ class TicketsUnitTests {
 	@Test
 	void getReleaseTicketsReturnsReleaseTickets() {
 
-		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", JiraTicketStatus.of(false, "", ""));
+		Ticket ticket = new Ticket("1234", "Release 1.10 GA (Hopper)", null, JiraTicketStatus.of(false, "", ""));
 		Tickets tickets = new Tickets(Collections.singletonList(ticket));
 
 		Tickets result = tickets

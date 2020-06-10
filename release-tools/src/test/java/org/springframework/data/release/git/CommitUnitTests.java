@@ -33,7 +33,8 @@ class CommitUnitTests {
 	@Test
 	void shouldRenderCommitMessage() {
 
-		assertThat(new Commit(new Ticket("1234", "Hello", Mockito.mock(TicketStatus.class)), "Summary", Optional.empty()))
+		assertThat(
+				new Commit(new Ticket("1234", "Hello", null, Mockito.mock(TicketStatus.class)), "Summary", Optional.empty()))
 				.hasToString("1234 - Summary.");
 	}
 
@@ -41,7 +42,8 @@ class CommitUnitTests {
 	void shouldRenderCommitMessageWithDetail() {
 
 		assertThat(
-				new Commit(new Ticket("1234", "Hello", Mockito.mock(TicketStatus.class)), "Summary", Optional.of("detail")))
+				new Commit(new Ticket("1234", "Hello", null, Mockito.mock(TicketStatus.class)), "Summary",
+						Optional.of("detail")))
 						.hasToString("1234 - Summary.\n" + "\n" + "detail");
 	}
 }

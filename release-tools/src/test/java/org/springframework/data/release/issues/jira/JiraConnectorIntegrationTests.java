@@ -181,6 +181,8 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockGetProjectComponentsWith("projectComponents.json", moduleIteration.getProjectKey());
 		mockSearchWith("emptyTickets.json");
 		prepareCreateIssueAndReturn("issueCreated.json");
+		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREDIS-42")).//
+				willReturn(json("existingTicket.json")));
 
 		jira.createReleaseTicket(moduleIteration);
 
@@ -200,6 +202,8 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockGetProjectComponentsWith("emptyProjectComponents.json", moduleIteration.getProjectKey());
 		mockSearchWith("emptyTickets.json");
 		prepareCreateIssueAndReturn("issueCreated.json");
+		mockService.stubFor(get(urlPathMatching("/rest/api/2/issue/DATAREDIS-42")).//
+				willReturn(json("existingTicket.json")));
 
 		jira.createReleaseTicket(moduleIteration);
 
@@ -218,7 +222,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockGetProjectVersionsWith("emptyReleaseVersions.json", moduleIteration.getProjectKey());
 
 		assertThatIllegalStateException().isThrownBy(() -> jira.createReleaseTicket(moduleIteration))
-				.withMessageContaining("No release version for Spring Data REST found containing 2.5 RC1 (Hopper)!");
+				.withMessageContaining("No release version for Spring Data REST 2.5 RC1 (Hopper) found");
 	}
 
 	@Test // #5
@@ -247,7 +251,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(put(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
 				willReturn(aResponse().withStatus(204)));
 
-		jira.assignTicketToMe(new Ticket("DATAREDIS-302", "", null));
+		jira.assignTicketToMe(new Ticket("DATAREDIS-302", "", null, null));
 
 		verify(putRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).withRequestBody(equalToJson(
 				"{\"update\":{\"assignee\":[ {\"set\":{\"name\":\"dummy\"}} ] }, \"transition\":{}, \"fields\":{}}")));
@@ -267,7 +271,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATACASS-302")).//
 				willReturn(aResponse().withStatus(204)));
 
-		jira.assignTicketToMe(new Ticket("DATACASS-302", "", null));
+		jira.assignTicketToMe(new Ticket("DATACASS-302", "", null, null));
 
 		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/issue/DATACASS-302")));
 	}
