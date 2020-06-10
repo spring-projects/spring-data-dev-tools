@@ -24,20 +24,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
+
+import org.apache.commons.io.IOUtils;
 
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectAware;
@@ -47,7 +48,6 @@ import org.springframework.data.util.Streamable;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Build executor service.
@@ -58,23 +58,19 @@ import org.springframework.util.StringUtils;
 class BuildExecutor {
 
 	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
-	private final Logger logger;
 	private final MavenProperties mavenProperties;
 	private final ExecutorService executor;
 
 	public BuildExecutor(PluginRegistry<BuildSystem, Project> buildSystems, Logger logger,
-			MavenProperties mavenProperties) {
+			MavenProperties mavenProperties, ExecutorService buildExecutor) {
 
 		this.buildSystems = buildSystems;
-		this.logger = logger;
 		this.mavenProperties = mavenProperties;
 
 		if (this.mavenProperties.isParallelize()) {
-			int processors = Runtime.getRuntime().availableProcessors();
-			int parallelity = Math.max(2, (processors / 2));
-			executor = new ThreadPoolExecutor(parallelity, parallelity, 10, TimeUnit.MINUTES, new ArrayBlockingQueue<>(256));
+			this.executor = buildExecutor;
 		} else {
-			executor = ImmediateExecutorService.INSTANCE;
+			this.executor = ImmediateExecutorService.INSTANCE;
 		}
 	}
 
@@ -226,8 +222,8 @@ class BuildExecutor {
 
 		@Override
 		public String toString() {
-			return String.format("%20s - %s", project.getName(),
-					isSuccessful() ? "Successful" : "Error: " + failure.getMessage());
+			return String.format("%-14s - %s", project.getName(),
+					isSuccessful() ? "🆗 Successful" : "🧨 Error: " + failure.getMessage());
 		}
 
 		public boolean isSuccessful() {
@@ -260,8 +256,8 @@ class BuildExecutor {
 			StringBuilder builder = new StringBuilder();
 
 			builder.append("Execution summary");
-			builder.append("\n");
-			builder.append(StringUtils.collectionToDelimitedString(executions, "\n"));
+			builder.append(IOUtils.LINE_SEPARATOR);
+			builder.append(executions.stream().map(it -> "\t" + it).collect(Collectors.joining(IOUtils.LINE_SEPARATOR)));
 
 			return builder.toString();
 		}

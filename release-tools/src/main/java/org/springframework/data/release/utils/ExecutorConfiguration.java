@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
@@ -23,13 +25,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
  * @author Mark Paluch
  */
 @Configuration(proxyBeanMethods = false)
+@Slf4j
 class ExecutorConfiguration {
 
 	@Bean
 	public ThreadPoolExecutorFactoryBean executorService() {
 
+		int processors = Runtime.getRuntime().availableProcessors();
+		int threadCount = Math.max(2, processors - 4);
+		log.info(String.format("Setting up Executor Service with %d Threads", threadCount));
+
 		ThreadPoolExecutorFactoryBean scheduler = new ThreadPoolExecutorFactoryBean();
-		scheduler.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+		scheduler.setCorePoolSize(threadCount);
 		scheduler.setQueueCapacity(32);
 
 		return scheduler;
