@@ -23,14 +23,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.io.IOUtils;
 
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ListWrapperCollector;
 import org.springframework.data.util.Streamable;
-import org.springframework.util.StringUtils;
 
 /**
  * Value object to represent a list of {@link Ticket}s.
@@ -100,8 +102,8 @@ public class Tickets implements Streamable<Ticket> {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(String.format("Train only tickets: %s of %s", tickets.size(), overallTotal));
-		builder.append("\n");
-		builder.append(StringUtils.collectionToDelimitedString(tickets, "\n"));
+		builder.append(IOUtils.LINE_SEPARATOR);
+		builder.append(tickets.stream().map(it -> "\t" + it).collect(Collectors.joining(IOUtils.LINE_SEPARATOR)));
 
 		return builder.toString();
 	}

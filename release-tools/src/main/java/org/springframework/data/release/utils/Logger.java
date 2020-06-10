@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Logger {
 
-	private static final String PREFIX_TEMPLATE = "%s > %s";
+	private static final String PREFIX_TEMPLATE = "%-14s > %s";
 
 	private final java.util.logging.Logger LOGGER = HandlerUtils.getLogger(getClass());
 

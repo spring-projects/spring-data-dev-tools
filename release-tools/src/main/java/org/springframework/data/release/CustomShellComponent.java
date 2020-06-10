@@ -30,7 +30,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * Extension of {@link JLineShellComponent} to customize the {@link ExecutionStrategy} to one that can deal with package
  * protected command classes.
- * 
+ *
  * @author Oliver Gierke
  * @see https://github.com/spring-projects/spring-shell/pull/93
  */
@@ -38,7 +38,7 @@ class CustomShellComponent extends JLineShellComponent {
 
 	private final ExecutionStrategy executionStrategy = new CustomExecutionStrategy();
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.JLineShellComponent#getExecutionStrategy()
 	 */
@@ -88,7 +88,7 @@ class CustomShellComponent extends JLineShellComponent {
 				ReflectionUtils.makeAccessible(method);
 				return ReflectionUtils.invokeMethod(method, parseResult.getInstance(), parseResult.getArguments());
 			} catch (Throwable th) {
-				logger.severe("Command failed " + th);
+				logger.severe("Command failed");
 				return handleThrowable(th);
 			}
 		}

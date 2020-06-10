@@ -351,7 +351,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		Gpg gpg = this.gpg.isGpgAvailable() ? this.gpg : properties.getGpg();
 
-		CommandLine arguments = CommandLine.of(Goal.DEPLOY, //
+		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
 				profile("ci,release,central"), //
 				SKIP_TESTS, //
 				arg("gpg.executable").withValue(gpg.getExecutable()), //

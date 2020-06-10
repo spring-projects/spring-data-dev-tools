@@ -69,7 +69,7 @@ class MavenRuntime {
 
 	public void execute(Project project, CommandLine arguments) {
 
-		logger.log(project, "Executing mvn %s", arguments.toString());
+		logger.log(project, "📦 Executing mvn %s", arguments.toString());
 
 		try (MavenLogger mavenLogger = getLogger(project, arguments.getGoals())) {
 
@@ -94,11 +94,12 @@ class MavenRuntime {
 			InvocationResult result = invoker.execute(request);
 
 			if (result.getExitCode() != 0) {
-				logger.warn(project, "Failed execution mvn %s", arguments.toString());
+				logger.warn(project, "🙈 Failed execution mvn %s", arguments.toString());
 
-				throw new IllegalStateException("Failed execution mvn " + arguments.toString(), result.getExecutionException());
+				throw new IllegalStateException("🙈 Failed execution mvn " + arguments.toString(),
+						result.getExecutionException());
 			}
-			logger.log(project, "Successful execution mvn %s", arguments.toString());
+			logger.log(project, "🆗 Successful execution mvn %s", arguments.toString());
 		} catch (Exception e) {
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
