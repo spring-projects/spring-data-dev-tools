@@ -75,7 +75,14 @@ class SaganOperations {
 		Map<Project, MaintainedVersions> versions = findVersions(trains);
 
 		ExecutionUtils.run(executor, Streamable.of(versions.entrySet()),
-				entry -> client.updateProjectMetadata(entry.getKey(), entry.getValue()));
+				entry -> {
+
+					if (entry.getKey() == Projects.BOM) {
+						return;
+					}
+
+					client.updateProjectMetadata(entry.getKey(), entry.getValue());
+				});
 	}
 
 	/**

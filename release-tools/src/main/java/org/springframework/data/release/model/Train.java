@@ -147,10 +147,10 @@ public class Train implements Streamable<Module> {
 
 		List<Project> exclusionList = Arrays.asList(exclusions);
 
-		return modules.stream().//
-				filter(module -> !exclusionList.contains(module.getProject())).//
-				map(module -> new ModuleIteration(module, new TrainIteration(this, iteration))).//
-				collect(Collectors.toList());
+		return modules.stream() //
+				.filter(module -> !exclusionList.contains(module.getProject())) //
+				.map(module -> new ModuleIteration(module, new TrainIteration(this, iteration))) //
+				.collect(Collectors.toList());
 	}
 
 	public TrainIteration getIteration(String name) {

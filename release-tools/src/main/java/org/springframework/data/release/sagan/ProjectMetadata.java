@@ -45,7 +45,7 @@ class ProjectMetadata {
 	/**
 	 * Creates a new {@link ProjectMetadata} instace from the given {@link MaintainedVersion} in the context of the
 	 * {@link MaintainedVersions}.
-	 * 
+	 *
 	 * @param version must not be {@literal null}.
 	 * @param versions must not be {@literal null}.
 	 */
@@ -61,7 +61,7 @@ class ProjectMetadata {
 
 	/**
 	 * Returns the release status used on Sagan.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getReleaseStatus() {
@@ -85,7 +85,7 @@ class ProjectMetadata {
 
 	/**
 	 * Returns the group identifier of the release.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getGroupId() {
@@ -94,7 +94,7 @@ class ProjectMetadata {
 
 	/**
 	 * Returns the artifact identifier.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getArtifactId() {
@@ -108,7 +108,7 @@ class ProjectMetadata {
 
 	/**
 	 * Returns whether the version is the most current one.
-	 * 
+	 *
 	 * @return
 	 */
 	public Boolean getCurrent() {
@@ -117,7 +117,7 @@ class ProjectMetadata {
 
 	/**
 	 * Returns the reference documentation URL for non-snapshot versions and not the build project.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getRefDocUrl() {
@@ -129,7 +129,7 @@ class ProjectMetadata {
 
 	/**
 	 * Returns the JavaDoc URL for non-snapshot versions and not the build project.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getApiDocUrl() {
@@ -146,7 +146,7 @@ class ProjectMetadata {
 	/**
 	 * Return the version to use. For the build project that's the release train name, for everything else the artifact
 	 * version.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getVersion() {
@@ -163,7 +163,7 @@ class ProjectMetadata {
 					return train.getCalver().toMajorMinorBugfix();
 				}
 
-				return String.format("%s-%s", train.getName(), version.getReleaseTrainSuffix());
+				return String.format("%s-%s", train.getCalver().toMajorMinorBugfix(), version.getReleaseTrainSuffix());
 			}
 
 			return String.format("%s-%s", train.getName(),

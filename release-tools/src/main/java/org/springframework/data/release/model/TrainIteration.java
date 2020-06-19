@@ -114,11 +114,10 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 	public String getNextBugfixName() {
 
 		Version version = getTrain().getCalver();
-		int currentBugfixLevel = 0;
 		if (getIteration().isServiceIteration()) {
-			currentBugfixLevel = getIteration().getBugfixValue();
+			return version.withBugfix(getIteration().getBugfixValue() + 1).toMajorMinorBugfix();
 		}
 
-		return version.withBugfix(currentBugfixLevel + 1).toString();
+		return version.toMajorMinorBugfix();
 	}
 }
