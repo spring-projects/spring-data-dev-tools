@@ -42,7 +42,7 @@ public class AnnouncementOperations {
 
 		StringBuilder builder = new StringBuilder();
 
-		iteration.getModulesExcept(BUILD).forEach(module -> {
+		iteration.getModulesExcept(BUILD, BOM).forEach(module -> {
 
 			Project project = module.getProject();
 

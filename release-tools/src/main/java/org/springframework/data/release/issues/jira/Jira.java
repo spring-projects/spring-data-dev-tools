@@ -306,7 +306,7 @@ class Jira implements JiraConnector {
 
 		Tickets tickets = getTicketsFor(moduleIteration);
 
-		if (tickets.hasReleaseTicket(moduleIteration) || moduleIteration.getProject() == Projects.GEODE) {
+		if (tickets.hasReleaseTicket(moduleIteration) || moduleIteration.getProject() == Projects.GEMFIRE) {
 			return;
 		}
 

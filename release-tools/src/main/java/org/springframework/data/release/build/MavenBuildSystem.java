@@ -113,6 +113,10 @@ class MavenBuildSystem implements BuildSystem {
 			return module;
 		}
 
+		if (BOM.equals(project)) {
+			return module;
+		}
+
 		if (!isMavenProject(project)) {
 			logger.log(project, "Skipping project as no pom.xml could be found in the working directory!");
 			return module;
@@ -235,12 +239,14 @@ class MavenBuildSystem implements BuildSystem {
 					.and(arg("generateBackupPoms").withValue("false")));
 		}
 
-		if (BUILD.equals(project) && !module.getTrain().usesCalver()) {
+		if (BUILD.equals(project)) {
 
-			mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainNameVersion())) //
-					.and(arg("generateBackupPoms").withValue("false")) //
-					.and(arg("groupId").withValue("org.springframework.data")) //
-					.and(arg("artifactId").withValue("spring-data-releasetrain")));
+			if (!module.getTrain().usesCalver()) {
+				mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainNameVersion())) //
+						.and(arg("generateBackupPoms").withValue("false")) //
+						.and(arg("groupId").withValue("org.springframework.data")) //
+						.and(arg("artifactId").withValue("spring-data-releasetrain")));
+			}
 
 			mvn.execute(project, CommandLine.of(Goal.INSTALL));
 		}
