@@ -20,11 +20,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.git.GitOperations;
@@ -106,8 +106,8 @@ class SaganOperations {
 			return ExecutionUtils.runAndReturn(executor,
 					Streamable.of(() -> train.stream().filter(module -> !TO_FILTER.contains(module.getProject()))), module -> {
 						return getLatestVersion(module, train);
-					});
-		}).stream().flatMap(Collection::stream).collect(
+					}).stream().flatMap(MaintainedVersion::all);
+		}).stream().flatMap(Function.identity()).collect(
 				Collectors.groupingBy(MaintainedVersion::getProject, ListWrapperCollector.collectInto(MaintainedVersions::of)));
 	}
 
