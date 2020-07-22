@@ -66,7 +66,8 @@ public class ReleaseTrains {
 				.filterModules(module -> !module.getProject().equals(GEMFIRE));
 
 		OCKHAM = NEUMANN.next("Ockham", Transition.MINOR, //
-				new Module(BOM, "2020.0.0") //
+				new Module(BOM, "2020.0.0"), //
+				new Module(NEO4J, "6.0") //
 		).withCalver("2020.0.0").withIterations(new Train.Iterations(M1, M2, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
 		// Trains
