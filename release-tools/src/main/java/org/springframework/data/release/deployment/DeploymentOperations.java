@@ -49,7 +49,7 @@ public class DeploymentOperations {
 
 		if (information.getModule().getIteration().isPublic()) {
 			logger.log(information.getModule(),
-					"Skipping build promotion as it's a public version and was deployed to Maven Central directly,");
+					"Skipping build promotion as it's a public version and was staged to OSS Sonatype.");
 			return;
 		}
 
