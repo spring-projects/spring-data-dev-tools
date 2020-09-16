@@ -180,7 +180,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	}
 
 	public boolean isBugFixVersion() {
-		return isReleaseVersion() && !version.toMajorMinorBugfix().endsWith("0");
+		return isReleaseVersion() && !version.toMajorMinorBugfix().endsWith(".0");
 	}
 
 	/**
