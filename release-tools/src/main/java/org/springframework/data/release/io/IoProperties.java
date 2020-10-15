@@ -22,10 +22,12 @@ import java.io.File;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @Slf4j
 @Data
@@ -37,13 +39,26 @@ class IoProperties {
 
 	public void setWorkDir(String workDir) {
 
-		log.info(String.format("Using %s as working directory!", workDir));
+		log.info(String.format("🔧 Using %s as working directory!", workDir));
 		this.workDir = new File(workDir.replace("~", System.getProperty("user.home")));
 	}
 
 	public void setJavaHome(String javaHome) {
 
-		log.info(String.format("Using %s as Java home!", javaHome));
-		this.workDir = new File(javaHome.replace("~", System.getProperty("user.home")));
+		if (!StringUtils.hasText(javaHome)) {
+			return;
+		}
+
+		File javaHomeDir = new File(javaHome.replace("~", System.getProperty("user.home")));
+
+		if (!javaHomeDir.isDirectory()) {
+			log.warn(String.format(
+					"⚠️️ Property 'io.javaHome' does not point to a vaild directory ('%s')! Falling back to os.default.",
+					javaHomeDir.getPath()));
+			return;
+		}
+
+		log.info(String.format("🔧 Setting javaHome to: '%s'.", javaHomeDir.getPath()));
+		this.javaHome = javaHomeDir;
 	}
 }

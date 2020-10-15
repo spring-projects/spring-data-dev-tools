@@ -5,8 +5,15 @@ git.email=
 git.password=
 github.api.url=https://api.github.com
 
+# IO
+
+# Optionally set the JavaHome path used for exeuting maven goals (eg. /Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/)
+# If the property does not exist, is empty or points to an invalid directory the OS default JavaHome will be used.
+#io.javaHome=
+
 # Maven
 maven.mavenHome=
+maven.parallelize=true
 
 # Deployment
 deployment.repository-prefix=
