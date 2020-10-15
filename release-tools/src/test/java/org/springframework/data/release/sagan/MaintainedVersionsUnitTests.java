@@ -24,7 +24,7 @@ import org.springframework.data.release.model.ReleaseTrains;
 
 /**
  * Unit tests for {@link MaintainedVersions}.
- * 
+ *
  * @author Oliver Gierke
  */
 class MaintainedVersionsUnitTests {
@@ -33,9 +33,9 @@ class MaintainedVersionsUnitTests {
 	void considersMostRecentReleaseVersionTheMainOne() {
 
 		MaintainedVersion ingalls = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("1.13.0.RELEASE"),
-				ReleaseTrains.INGALLS);
+				ReleaseTrains.INGALLS, null, null);
 		MaintainedVersion hopper = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("1.12.0.RELEASE"),
-				ReleaseTrains.HOPPER);
+				ReleaseTrains.HOPPER, null, null);
 
 		MaintainedVersions versions = MaintainedVersions.of(ingalls, hopper);
 

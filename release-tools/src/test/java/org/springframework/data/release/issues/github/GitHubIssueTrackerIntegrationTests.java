@@ -105,12 +105,23 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test // #5
-	void noReleaseTicketFound() {
+	void noMilestoneNoReleaseTicketFound() {
 
 		mockGetMilestonesWith("emptyMilestones.json");
 
-		assertThatIllegalArgumentException().isThrownBy(() -> github.getReleaseTicketFor(BUILD_HOPPER_RC1))
+		assertThatIllegalStateException().isThrownBy(() -> github.getReleaseTicketFor(BUILD_HOPPER_RC1))
 				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1 (Hopper)!");
+	}
+
+	@Test // #5
+	void noReleaseTicketFound() {
+
+		mockGetMilestonesWith("milestones.json");
+		mockGetIssuesWith("emptyIssues.json");
+
+		assertThatIllegalArgumentException().isThrownBy(() -> github.getReleaseTicketFor(BUILD_HOPPER_RC1))
+				.withMessageContaining(
+						"Did not find a release ticket for Spring Data Build 1.8 RC1 (Hopper) containing Release 1.8 RC1 (Hopper)!");
 	}
 
 	@Test // #5
@@ -156,7 +167,7 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		mockGetIssuesWith("emptyIssues.json");
 		mockGetMilestonesWith("emptyMilestones.json");
 
-		assertThatIllegalArgumentException().isThrownBy(() -> github.createReleaseTicket(moduleIteration))
+		assertThatIllegalStateException().isThrownBy(() -> github.createReleaseTicket(moduleIteration))
 				.withMessageContaining("No milestone for Spring Data Build found containing 1.8 RC1 (Hopper)!");
 	}
 

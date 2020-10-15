@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,8 +32,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 /**
  * Dummy implementation of {@link SaganClient} to just dump the request payloads into {@link System#out} instead of
  * communicating with a real server.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -61,7 +63,7 @@ class DummySaganClient implements SaganClient {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.sagan.SaganClient#getProjectMetadata(org.springframework.data.release.sagan.MaintainedVersion)
 	 */
@@ -69,13 +71,13 @@ class DummySaganClient implements SaganClient {
 	public String getProjectMetadata(MaintainedVersion version) {
 
 		try {
-			return mapper.writeValueAsString(new ProjectMetadata(version, MaintainedVersions.of(version)));
+			return mapper.writeValueAsString(new ProjectMetadata(version, MaintainedVersions.of(Collections.emptyList())));
 		} catch (JsonProcessingException o_O) {
 			throw new RuntimeException(o_O);
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.sagan.SaganClient#getProjectMetadata(org.springframework.data.release.model.Project)
 	 */

@@ -15,11 +15,17 @@
  */
 package org.springframework.data.release.sagan;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.AbstractIntegrationTests;
+import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 
@@ -48,14 +54,25 @@ class SaganOperationsIntegrationTests extends AbstractIntegrationTests {
 						String output = version.toString();
 						System.out.println(versions.isMainVersion(version) ? output.concat(" (main release)") : output);
 					});
-
-					System.out.println();
 				});
 	}
 
 	@Test
 	void updateVersions() {
 		sagan.updateProjectMetadata(ReleaseTrains.KAY, ReleaseTrains.INGALLS, ReleaseTrains.HOPPER);
+	}
+
+	@Test
+	void findVersions() {
+		Map<Project, MaintainedVersions> versions = sagan.findVersions(ReleaseTrains.LOVELACE, ReleaseTrains.MOORE,
+				ReleaseTrains.NEUMANN);
+
+		List<MaintainedVersion> maintainedVersions = versions.get(Projects.ELASTICSEARCH)
+				.filter(it -> it.getVersion().isReleaseVersion()).toList();
+
+		assertThat(maintainedVersions).isNotEmpty();
+		assertThat(maintainedVersions.get(0).getGenerationInception()).isNotNull();
+		assertThat(maintainedVersions.get(0).getReleaseDate()).isNotNull();
 	}
 
 	@Test

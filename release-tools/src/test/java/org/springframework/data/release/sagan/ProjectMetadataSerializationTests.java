@@ -25,8 +25,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * Tests for serialization of {@link ProjectMetadata}.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 class ProjectMetadataSerializationTests {
 
@@ -35,14 +36,15 @@ class ProjectMetadataSerializationTests {
 
 		ObjectWriter mapper = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
-		MaintainedVersion kay = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("2.0.0.RC1"), ReleaseTrains.KAY);
+		MaintainedVersion kay = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("2.0.0.RC1"), ReleaseTrains.KAY,
+				null, null);
 		MaintainedVersion ingalls = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("1.13.5.RELEASE"),
-				ReleaseTrains.INGALLS);
+				ReleaseTrains.INGALLS, null, null);
 		MaintainedVersion ingallsSnapshot = ingalls.nextDevelopmentVersion();
 		MaintainedVersion hopper = MaintainedVersion.of(Projects.COMMONS, ArtifactVersion.of("1.12.8.RELEASE"),
-				ReleaseTrains.HOPPER);
+				ReleaseTrains.HOPPER, null, null);
 
-		MaintainedVersions versions = MaintainedVersions.of(kay, ingalls, ingallsSnapshot, hopper);
+		MaintainedVersions versions = MaintainedVersions.of(kay, ingalls, hopper);
 
 		System.out.println(mapper.writeValueAsString(new ProjectMetadata(kay, versions)));
 		System.out.println(mapper.writeValueAsString(new ProjectMetadata(ingallsSnapshot, versions)));

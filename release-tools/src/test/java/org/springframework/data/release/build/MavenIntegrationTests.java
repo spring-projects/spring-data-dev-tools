@@ -91,6 +91,6 @@ class MavenIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	void findsSnapshotDependencies() throws Exception {
 
-		Pom pom = projection.io().file(workspace.getFile("bom/pom.xml", Projects.BUILD)).read(Pom.class);
+		Pom pom = projection.io().file(workspace.getFile("pom.xml", Projects.BUILD)).read(Pom.class);
 	}
 }

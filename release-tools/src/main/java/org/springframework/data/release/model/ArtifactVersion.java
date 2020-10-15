@@ -272,4 +272,8 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	private String getSnapshotSuffix() {
 		return modifierFormat ? SNAPSHOT_MODIFIER : SNAPSHOT_SUFFIX;
 	}
+
+	public String getGeneration() {
+		return String.format("%s.%s.x", version.getMajor(), version.getMinor());
+	}
 }

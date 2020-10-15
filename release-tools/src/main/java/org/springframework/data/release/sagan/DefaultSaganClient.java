@@ -21,6 +21,7 @@ import lombok.experimental.FieldDefaults;
 import net.minidev.json.JSONArray;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,9 +68,9 @@ class DefaultSaganClient implements SaganClient {
 	@Override
 	public String getProjectMetadata(Project project) {
 
-		URI resource = properties.getProjectMetadataResource(project);
+		URI resource = properties.getProjectReleasesResource(project);
 
-		logger.log(project, "Getting project metadata from %s…", resource);
+		logger.log(project, "Getting project releases from %s…", resource);
 
 		return operations.getForObject(resource, String.class);
 	}
@@ -81,28 +82,44 @@ class DefaultSaganClient implements SaganClient {
 	@Override
 	public void updateProjectMetadata(Project project, MaintainedVersions versions) {
 
-		URI resource = properties.getProjectMetadataResource(project);
+		URI resource = properties.getProjectReleasesResource(project);
 
 		String versionsString = versions.stream()//
 				.map(MaintainedVersion::getVersion)//
 				.map(Object::toString) //
 				.collect(Collectors.joining(", "));
+		List<String> versionsToRetain = versions.stream() //
+				.map(version -> new ProjectMetadata(version, versions)).map(ProjectMetadata::getVersion)
+				.collect(Collectors.toList());
+		List<String> versionsInSagan = new ArrayList<>();
 
-		logger.log(project, "Updating project metadata to %s via %s…", versionsString, resource);
+		logger.log(project, "Updating project version to %s via %s…", versionsString, resource);
 
 		// Delete all existing versions first
-		Arrays.stream(JsonPath.compile("$..version").<JSONArray> read(getProjectMetadata(project)).toArray())//
-				.map(version -> properties.getProjectMetadataResource(project, version.toString()))//
-				.peek(uri -> logger.log(project, "Deleting existing project metadata at %s…", uri)) //
-				.forEach(operations::delete);
+		deleteExistingVersions(project, versionsToRetain, versionsInSagan);
 
-		logger.log(project, "Writing project metadata for versions %s!", versionsString);
+		logger.log(project, "Writing project versions %s.", versionsString);
 
 		// Write new ones
-		List<ProjectMetadata> payload = versions.stream() //
-				.map(version -> new ProjectMetadata(version, versions)) //
-				.collect(Collectors.toList());
+		createVersions(versions, resource, versionsInSagan);
+	}
 
-		operations.put(resource, payload);
+	private void createVersions(MaintainedVersions versions, URI resource, List<String> versionsInSagan) {
+
+		versions.stream() //
+				.map(it -> new ProjectMetadata(it, versions)) //
+				.filter(version -> !versionsInSagan.contains(version.getVersion())) //
+				.forEach(payload -> operations.postForObject(resource, payload, String.class));
+	}
+
+	private void deleteExistingVersions(Project project, List<String> versionsToRetain, List<String> versionsInSagan) {
+
+		Arrays.stream(JsonPath.compile("$..version").<JSONArray> read(getProjectMetadata(project)).toArray())//
+				.map(Object::toString) //
+				.peek(versionsInSagan::add) //
+				.filter(version -> !versionsToRetain.contains(version)) //
+				.map(version -> properties.getProjectReleaseResource(project, version))//
+				.peek(uri -> logger.log(project, "Deleting existing project version at %s…", uri)) //
+				.forEach(operations::delete);
 	}
 }

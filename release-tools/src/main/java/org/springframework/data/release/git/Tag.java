@@ -17,34 +17,43 @@ package org.springframework.data.release.git;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.release.model.ArtifactVersion;
 
 /**
  * Value object to represent an SCM tag.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class Tag implements Comparable<Tag> {
 
 	private final String name;
+	private final LocalDateTime creationDate;
 
 	public static Tag of(String source) {
+		return of(source, LocalDateTime.now());
+	}
+
+	public static Tag of(String source, LocalDateTime creationDate) {
 
 		int slashIndex = source.lastIndexOf('/');
 
-		return new Tag(source.substring(slashIndex == -1 ? 0 : slashIndex + 1));
+		return new Tag(source.substring(slashIndex == -1 ? 0 : slashIndex + 1), creationDate);
 	}
 
 	/**
 	 * Returns the part of the name of the tag that is suitable to derive a version from the tag. Will transparently strip
 	 * a {@code v} prefix from the name.
-	 * 
+	 *
 	 * @return
 	 */
 	private String getVersionSource() {
@@ -66,15 +75,15 @@ public class Tag implements Comparable<Tag> {
 
 	/**
 	 * Creates a new {@link Tag} for the given {@link ArtifactVersion} based on the format of the current one.
-	 * 
+	 *
 	 * @param version
 	 * @return
 	 */
 	public Tag createNew(ArtifactVersion version) {
-		return new Tag(name.startsWith("v") ? "v".concat(version.toString()) : version.toString());
+		return new Tag(name.startsWith("v") ? "v".concat(version.toString()) : version.toString(), LocalDateTime.now());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -83,7 +92,7 @@ public class Tag implements Comparable<Tag> {
 		return name;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

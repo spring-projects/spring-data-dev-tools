@@ -29,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
  * Configuration for the Sagan interaction subsystem.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Configuration
 class SaganConfiguration {
@@ -50,6 +51,6 @@ class SaganConfiguration {
 
 	@Bean
 	RestTemplate saganRestTemplate() {
-		return new RestTemplateBuilder().basicAuthentication(properties.key, "").build();
+		return new RestTemplateBuilder().basicAuthentication("mp911de", properties.key).build();
 	}
 }

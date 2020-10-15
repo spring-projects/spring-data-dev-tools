@@ -17,6 +17,7 @@ package org.springframework.data.release.sagan;
 
 import lombok.Value;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -24,12 +25,14 @@ import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Represents a maintained project version to be represented in Sagan.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Value(staticConstructor = "of")
 class MaintainedVersion implements Comparable<MaintainedVersion> {
@@ -37,16 +40,19 @@ class MaintainedVersion implements Comparable<MaintainedVersion> {
 	Project project;
 	ArtifactVersion version;
 	Train train;
+	@Nullable LocalDate releaseDate;
+	@Nullable LocalDate generationInception;
 
 	/**
-	 * Creates a new {@link MaintainedVersion} representing the snaphot version of the given {@link Module} and
+	 * Creates a new {@link MaintainedVersion} representing the snapshot version of the given {@link Module} and
 	 * {@link Train}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param train must not be {@literal null}.
+	 * @param train can be {@literal null}.
 	 * @return
 	 */
-	public static MaintainedVersion snapshot(Module module, Train train) {
+	public static MaintainedVersion snapshot(Module module, Train train, LocalDate generationInception) {
 
 		Assert.notNull(module, "Module must not be null!");
 		Assert.notNull(train, "Train must not be null!");
@@ -54,13 +60,13 @@ class MaintainedVersion implements Comparable<MaintainedVersion> {
 		ArtifactVersion snapshotVersion = ArtifactVersion.of(module.getVersion()).withModifierFormat(train.usesCalver())
 				.getSnapshotVersion();
 
-		return MaintainedVersion.of(module.getProject(), snapshotVersion, train);
+		return MaintainedVersion.of(module.getProject(), snapshotVersion, train, null, generationInception);
 	}
 
 	/**
 	 * Returns a {@link Stream} of {@link MaintainedVersion} that are related to the current one. In case the current one
 	 * is not a snapshot version in the first place, the next development version is added, too.
-	 * 
+	 *
 	 * @return
 	 */
 	Stream<MaintainedVersion> all() {
@@ -69,14 +75,14 @@ class MaintainedVersion implements Comparable<MaintainedVersion> {
 
 	/**
 	 * Creates the {@link MaintainedVersion} for the next development version of the current one.
-	 * 
+	 *
 	 * @return
 	 */
 	MaintainedVersion nextDevelopmentVersion() {
-		return MaintainedVersion.of(project, version.getNextBugfixVersion(), train);
+		return MaintainedVersion.of(project, version.getNextBugfixVersion(), train, LocalDate.now(), generationInception);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

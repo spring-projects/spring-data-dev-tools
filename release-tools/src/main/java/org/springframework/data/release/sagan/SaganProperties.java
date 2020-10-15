@@ -20,74 +20,78 @@ import lombok.Setter;
 import java.net.URI;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.data.release.model.Password;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriTemplate;
 
 /**
  * Configuration properties for the Sagan instance to talk to.
- * 
+ *
  * @author Oliver Gierke
  */
 @Component
 @ConfigurationProperties(prefix = "sagan")
 class SaganProperties {
 
-	private static String SAGAN_PROJECT_METADATA = "https://spring.io/project_metadata/{project}/releases";
-	private static String SAGAN_PROJECT_VERSION_METADATA = SAGAN_PROJECT_METADATA.concat("/{version}");
+	private static String SAGAN_BASE = "https://spring.io/api/";
+	private static String SAGAN_RELEASES = SAGAN_BASE.concat("projects/{project}/releases");
+	private static String SAGAN_GENERATIONS = SAGAN_BASE.concat("projects/{project}/generations");
+	private static String SAGAN_RELEASE_VERSION = SAGAN_RELEASES.concat("/{version}");
 
 	@Setter String key;
 
 	/**
-	 * Returns the {@link HttpBasicCredentials} to be used when talking to the server.
-	 * 
-	 * @return
-	 */
-	HttpBasicCredentials getCredentials() {
-		return new HttpBasicCredentials(key, Password.NONE);
-	}
-
-	/**
-	 * Returns the URI to the resource exposing the project metadata for the given {@link Project}.
-	 * 
+	 * Returns the URI to the resource exposing the project releases for the given {@link Project}.
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 */
-	URI getProjectMetadataResource(Project project) {
+	URI getProjectReleasesResource(Project project) {
 
-		Assert.notNull(project, "Project  must not be null!");
+		Assert.notNull(project, "Project must not be null!");
 
-		return new UriTemplate(SAGAN_PROJECT_METADATA).expand(getProjectPathSegment(project));
+		return new UriTemplate(SAGAN_RELEASES).expand(getProjectPathSegment(project));
 	}
 
 	/**
-	 * Returns the URI to the resource exposing the project metadata for the given {@link Project} and version
+	 * Returns the URI to the resource exposing the project generations for the given {@link Project}.
+	 *
+	 * @param project must not be {@literal null}.
+	 * @return
+	 */
+	URI getProjectGenerationsResource(Project project) {
+
+		Assert.notNull(project, "Project must not be null!");
+
+		return new UriTemplate(SAGAN_GENERATIONS).expand(getProjectPathSegment(project));
+	}
+
+	/**
+	 * Returns the URI to the resource exposing the project version for the given {@link Project} and version
 	 * {@link String}.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @param version must not be {@literal null}.
 	 * @return
 	 */
-	URI getProjectMetadataResource(Project project, String version) {
+	URI getProjectReleaseResource(Project project, String version) {
 
 		Assert.notNull(project, "Project  must not be null!");
 		Assert.hasText(version, "Version must not be null!");
 
-		return new UriTemplate(SAGAN_PROJECT_VERSION_METADATA).expand(getProjectPathSegment(project), version);
+		return new UriTemplate(SAGAN_RELEASE_VERSION).expand(getProjectPathSegment(project), version);
 	}
 
 	/**
-	 * Returns the {@link URI} to the resource exposing the project metadata for the given {@link MaintainedVersion}.
-	 * 
+	 * Returns the {@link URI} to the resource exposing the project version for the given {@link MaintainedVersion}.
+	 *
 	 * @param version must not be {@literal null}.
 	 * @return
 	 */
 	URI getProjectMetadataResource(MaintainedVersion version) {
-		return getProjectMetadataResource(version.getProject(), version.getVersion().toString());
+		return getProjectReleaseResource(version.getProject(), version.getVersion().toString());
 	}
 
 	private static String getProjectPathSegment(Project project) {

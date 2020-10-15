@@ -17,7 +17,6 @@ package org.springframework.data.release.sagan;
 
 import java.util.Locale;
 
-import org.springframework.data.release.build.MavenArtifact;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Train;
@@ -25,11 +24,13 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Simple value object to create payloads to update project metadata in Sagan.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @JsonInclude(Include.NON_NULL)
 class ProjectMetadata {
@@ -38,13 +39,11 @@ class ProjectMetadata {
 	private static String DOCS = DOCS_BASE.concat("/reference/html/");
 	private static String JAVADOC = DOCS_BASE.concat("/api");
 
-	private final MaintainedVersions versions;
 	private final MaintainedVersion version;
-	private final MavenArtifact artifact;
+	private final MaintainedVersions versions;
 
 	/**
-	 * Creates a new {@link ProjectMetadata} instace from the given {@link MaintainedVersion} in the context of the
-	 * {@link MaintainedVersions}.
+	 * Creates a new {@link ProjectMetadata} instance from the given {@link MaintainedVersion}.
 	 *
 	 * @param version must not be {@literal null}.
 	 * @param versions must not be {@literal null}.
@@ -52,67 +51,9 @@ class ProjectMetadata {
 	public ProjectMetadata(MaintainedVersion version, MaintainedVersions versions) {
 
 		Assert.notNull(version, "MaintainedVersion must not be null!");
-		Assert.notNull(versions, "MaintainedVersions must not be null!");
 
 		this.version = version;
 		this.versions = versions;
-		this.artifact = new MavenArtifact(version.getProject(), version.getVersion());
-	}
-
-	/**
-	 * Returns the release status used on Sagan.
-	 *
-	 * @return
-	 */
-	public String getReleaseStatus() {
-
-		ArtifactVersion artifactVersion = version.getVersion();
-
-		if (artifactVersion.isReleaseVersion()) {
-			return "GENERAL_AVAILABILITY";
-		}
-
-		if (artifactVersion.isMilestoneVersion()) {
-			return "PRERELEASE";
-		}
-
-		if (artifactVersion.isSnapshotVersion()) {
-			return "SNAPSHOT";
-		}
-
-		throw new IllegalStateException();
-	}
-
-	/**
-	 * Returns the group identifier of the release.
-	 *
-	 * @return
-	 */
-	public String getGroupId() {
-		return artifact.getGroupId();
-	}
-
-	/**
-	 * Returns the artifact identifier.
-	 *
-	 * @return
-	 */
-	public String getArtifactId() {
-
-		if (Projects.BUILD.equals(version.getProject())) {
-			return "spring-data-releasetrain";
-		}
-
-		return artifact.getArtifactId();
-	}
-
-	/**
-	 * Returns whether the version is the most current one.
-	 *
-	 * @return
-	 */
-	public Boolean getCurrent() {
-		return versions.isMainVersion(version) ? true : null;
 	}
 
 	/**
@@ -120,11 +61,21 @@ class ProjectMetadata {
 	 *
 	 * @return
 	 */
-	public String getRefDocUrl() {
+	public String getReferenceDocUrl() {
 
 		return version.getVersion().isSnapshotVersion() || Projects.BUILD.equals(version.getProject()) //
 				? "" //
 				: String.format(DOCS, version.getProject().getName().toLowerCase(Locale.US));
+	}
+
+	/**
+	 * Returns whether the version is the most current one.
+	 *
+	 * @return
+	 */
+	@JsonProperty("isCurrent")
+	public boolean getCurrent() {
+		return versions.isMainVersion(version);
 	}
 
 	/**
@@ -137,10 +88,6 @@ class ProjectMetadata {
 		return version.getVersion().isSnapshotVersion() || Projects.BUILD.equals(version.getProject()) //
 				? "" //
 				: String.format(JAVADOC, version.getProject().getName().toLowerCase(Locale.US));
-	}
-
-	public Repository getRepository() {
-		return new Repository();
 	}
 
 	/**
@@ -171,39 +118,5 @@ class ProjectMetadata {
 		}
 
 		return version.toString();
-	}
-
-	public class Repository {
-
-		public String getId() {
-			return artifact.getRepository().getId();
-		}
-
-		public boolean isSnapshotsEnabled() {
-			return version.getVersion().isSnapshotVersion();
-		}
-
-		public String getUrl() {
-			return artifact.getRepository().getUrl();
-		}
-
-		public String getName() {
-
-			String result = "Spring ";
-
-			if (version.getVersion().isMilestoneVersion()) {
-				return result.concat("Milestones");
-			}
-
-			if (version.getVersion().isReleaseVersion()) {
-				return result.concat("Releases");
-			}
-
-			if (isSnapshotsEnabled()) {
-				return result.concat("Snapshots");
-			}
-
-			throw new IllegalStateException();
-		}
 	}
 }

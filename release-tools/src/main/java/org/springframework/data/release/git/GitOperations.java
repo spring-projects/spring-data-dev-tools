@@ -21,12 +21,15 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -38,10 +41,12 @@ import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -67,6 +72,7 @@ import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.data.util.Streamable;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -309,8 +315,35 @@ public class GitOperations {
 
 		return doWithGit(project, git -> {
 			return new VersionTags(git.tagList().call().stream()//
-					.map(ref -> Tag.of(ref.getName()))//
+					.map(ref -> {
+
+						RevCommit commit = getCommit(git.getRepository(), ref);
+
+						PersonIdent authorIdent = commit.getAuthorIdent();
+						Date authorDate = authorIdent.getWhen();
+						TimeZone authorTimeZone = authorIdent.getTimeZone();
+						LocalDateTime localDate = authorDate.toInstant().atZone(authorTimeZone.toZoneId()).toLocalDateTime();
+
+						return Tag.of(ref.getName(), localDate);
+					})//
 					.collect(Collectors.toList()));
+		});
+	}
+
+	private RevCommit getCommit(Repository repository, Ref ref) {
+
+		return doWithGit(repository, git -> {
+
+			Ref peeledRef = git.getRepository().getRefDatabase().peel(ref);
+			LogCommand log = git.log();
+			if (peeledRef.getPeeledObjectId() != null) {
+				log.add(peeledRef.getPeeledObjectId());
+			} else {
+				log.add(ref.getObjectId());
+			}
+
+			return Streamable.of(log.call()).stream().findFirst()
+					.orElseThrow(() -> new IllegalStateException("Cannot resolve commit for " + ref));
 		});
 	}
 
@@ -788,9 +821,16 @@ public class GitOperations {
 	private <T> T doWithGit(Project project, GitCallback<T> callback) {
 
 		try (Git git = new Git(getRepository(project))) {
-			T result = callback.doWithGit(git);
-			Thread.sleep(100);
-			return result;
+			return callback.doWithGit(git);
+		} catch (Exception o_O) {
+			throw new RuntimeException(o_O);
+		}
+	}
+
+	private <T> T doWithGit(Repository repository, GitCallback<T> callback) {
+
+		try (Git git = new Git(repository)) {
+			return callback.doWithGit(git);
 		} catch (Exception o_O) {
 			throw new RuntimeException(o_O);
 		}

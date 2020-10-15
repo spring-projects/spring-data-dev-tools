@@ -19,12 +19,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.git.GitOperations;
@@ -106,22 +108,25 @@ class SaganOperations {
 			return ExecutionUtils.runAndReturn(executor,
 					Streamable.of(() -> train.stream().filter(module -> !TO_FILTER.contains(module.getProject()))), module -> {
 						return getLatestVersion(module, train);
-					}).stream().flatMap(MaintainedVersion::all);
-		}).stream().flatMap(Function.identity()).collect(
+					});
+		}).stream().flatMap(Collection::stream).flatMap(Collection::stream).collect(
 				Collectors.groupingBy(MaintainedVersion::getProject, ListWrapperCollector.collectInto(MaintainedVersions::of)));
 	}
 
-	private MaintainedVersion getLatestVersion(Module module, Train train) {
+	private List<MaintainedVersion> getLatestVersion(Module module, Train train) {
 
 		Project project = module.getProject();
 
-		MaintainedVersion version = git.getTags(project).stream()//
+		List<MaintainedVersion> version = git.getTags(project).stream()//
 				.filter(tag -> matches(tag, module.getVersion())).max(Comparator.naturalOrder()) //
-				.flatMap(Tag::toArtifactVersion) //
-				.map(it -> MaintainedVersion.of(module.getProject(), it, train)) //
-				.orElseGet(() -> MaintainedVersion.snapshot(module, train));
+				.map(it -> {
+					MaintainedVersion maintainedVersion = MaintainedVersion.of(module.getProject(), it.toArtifactVersion().get(),
+							train, it.getCreationDate().toLocalDate(), it.getCreationDate().toLocalDate());
+					return Arrays.asList(maintainedVersion, maintainedVersion.nextDevelopmentVersion());
+				}) //
+				.orElseGet(() -> Collections.singletonList(MaintainedVersion.snapshot(module, train, LocalDate.now())));
 
-		logger.log(project, "Found version %s for train %s!", version.getVersion(), train.getName());
+		logger.log(project, "Found version %s for train %s!", version, train.getName());
 
 		return version;
 	}
