@@ -79,7 +79,7 @@ class IssueTrackerConfiguration {
 
 	@Bean
 	PluginRegistry<IssueTracker, Project> issueTrackers(List<? extends IssueTracker> plugins) {
-		return OrderAwarePluginRegistry.create(plugins);
+		return OrderAwarePluginRegistry.of(plugins);
 	}
 
 	/**

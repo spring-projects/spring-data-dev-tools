@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
+import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 
@@ -84,10 +85,11 @@ class MavenRuntime {
 				invoker.setLocalRepositoryDirectory(localRepository);
 			}
 
-			DefaultInvocationRequest request = new DefaultInvocationRequest();
+			InvocationRequest request = new DefaultInvocationRequest();
 			request.setJavaHome(os.getJavaHome());
 			request.setShellEnvironmentInherited(true);
 			request.setBaseDirectory(workspace.getProjectDirectory(project));
+			request.setBatchMode(true);
 
 			request.setGoals(arguments.toCommandLine(it -> properties.getFullyQualifiedPlugin(it.getGoal())));
 
