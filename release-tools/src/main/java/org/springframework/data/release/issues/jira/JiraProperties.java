@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 @Data
 @Component
 @ConfigurationProperties(prefix = "jira")
-class JiraProperties {
+public class JiraProperties {
 
 	private @Getter(AccessLevel.PRIVATE) Password password;
 	private String username, apiUrl;

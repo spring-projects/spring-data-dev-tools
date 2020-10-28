@@ -131,7 +131,7 @@ class GitHub implements IssueTracker {
 			try {
 
 				GitHubIssue gitHubIssue = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.GET,
-						new HttpEntity<>(newUserScopedHttpHeaders()), ISSUE_TYPE, parameters).getBody();
+						new HttpEntity<>(new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
 
 				tickets.add(toTicket(gitHubIssue));
 
@@ -219,7 +219,7 @@ class GitHub implements IssueTracker {
 		GithubMilestone githubMilestone = new GithubMilestone(moduleIteration);
 		logger.log(moduleIteration, "Creating GitHub milestone %s", githubMilestone);
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 
@@ -265,7 +265,7 @@ class GitHub implements IssueTracker {
 	}
 
 	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text) {
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 		Milestone milestone = getMilestone(moduleIteration, repositoryName);
@@ -313,7 +313,7 @@ class GitHub implements IssueTracker {
 		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername());
 
 		GitHubIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
-				new HttpEntity<>(edit, newUserScopedHttpHeaders()), ISSUE_TYPE, parameters).getBody();
+				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
 
 		return toTicket(response);
 	}
@@ -347,21 +347,13 @@ class GitHub implements IssueTracker {
 		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername()).close();
 
 		GitHubIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
-				new HttpEntity<>(edit, newUserScopedHttpHeaders()), ISSUE_TYPE, parameters).getBody();
+				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
 
 		return toTicket(response);
 	}
 
 	private String stripHash(Ticket ticket) {
 		return ticket.getId().startsWith("#") ? ticket.getId().substring(1) : ticket.getId();
-	}
-
-	private HttpHeaders newUserScopedHttpHeaders() {
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", properties.getHttpCredentials().toString());
-
-		return headers;
 	}
 
 	private Map<String, Object> newUrlTemplateVariables() {
@@ -382,7 +374,7 @@ class GitHub implements IssueTracker {
 
 			logger.log(moduleIteration, "Looking up milestone…");
 
-			doWithPaging(MILESTONE_URI, HttpMethod.GET, parameters, new HttpEntity<>(newUserScopedHttpHeaders()),
+			doWithPaging(MILESTONE_URI, HttpMethod.GET, parameters, new HttpEntity<>(new HttpHeaders()),
 					MILESTONES_TYPE, milestones -> {
 
 						Optional<GitHubIssue.Milestone> milestone = milestones.stream(). //
@@ -477,7 +469,7 @@ class GitHub implements IssueTracker {
 
 		// - mark version as released
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		GitProject project = GitProject.of(module.getProject());
 
@@ -530,7 +522,7 @@ class GitHub implements IssueTracker {
 	private Stream<GitHubIssue> getForIssues(String template, Map<String, Object> parameters) {
 
 		List<GitHubIssue> issues = new ArrayList<>();
-		doWithPaging(template, HttpMethod.GET, parameters, new HttpEntity<>(newUserScopedHttpHeaders()), ISSUES_TYPE,
+		doWithPaging(template, HttpMethod.GET, parameters, new HttpEntity<>(new HttpHeaders()), ISSUES_TYPE,
 				tickets -> {
 					issues.addAll(tickets);
 					return true;

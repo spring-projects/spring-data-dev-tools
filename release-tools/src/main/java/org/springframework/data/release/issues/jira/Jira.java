@@ -173,7 +173,7 @@ class Jira implements JiraConnector {
 		JqlQuery query = JqlQuery
 				.from(trainIteration.stream().filter(moduleIteration -> supports(moduleIteration.getProject())));
 
-		HttpHeaders headers = newUserScopedHttpHeaders();
+		HttpHeaders headers = new HttpHeaders();
 
 		List<Ticket> tickets = new ArrayList<>();
 
@@ -227,7 +227,7 @@ class Jira implements JiraConnector {
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		Optional<JiraReleaseVersion> versionsForModuleIteration = findJiraReleaseVersion(moduleIteration);
 
@@ -257,7 +257,7 @@ class Jira implements JiraConnector {
 
 		Assert.notNull(module, "ModuleIteration must not be null.");
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		findJiraReleaseVersion(module) //
 				.filter(JiraReleaseVersion::isActive) //
@@ -327,7 +327,7 @@ class Jira implements JiraConnector {
 
 	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text) {
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 		Map<String, Object> parameters = newUrlTemplateVariables();
 
 		findJiraReleaseVersion(moduleIteration).orElseThrow(
@@ -354,7 +354,7 @@ class Jira implements JiraConnector {
 
 		Assert.notNull(ticket, "Ticket must not be null.");
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("ticketId", ticket.getId());
@@ -408,7 +408,7 @@ class Jira implements JiraConnector {
 
 		Assert.notNull(ticket, "Ticket must not be null.");
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("ticketId", ticket.getId());
@@ -437,7 +437,7 @@ class Jira implements JiraConnector {
 
 		Assert.notNull(ticket, "Ticket must not be null.");
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("ticketId", ticket.getId());
@@ -521,7 +521,7 @@ class Jira implements JiraConnector {
 
 		// - mark version as releases
 
-		HttpHeaders httpHeaders = newUserScopedHttpHeaders();
+		HttpHeaders httpHeaders = new HttpHeaders();
 
 		findJiraReleaseVersion(module) //
 				.filter(JiraReleaseVersion::isOpen) //
@@ -707,18 +707,6 @@ class Jira implements JiraConnector {
 
 		return new Ticket(issue.getKey(), fields.getSummary(),
 				String.format("%s/browse/%s", jiraProperties.getApiUrl(), issue.getKey()), jiraTicketStatus);
-	}
-
-	/**
-	 * Returns new {@link HttpHeaders} with authentication headers.
-	 *
-	 * @return
-	 */
-	private HttpHeaders newUserScopedHttpHeaders() {
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", jiraProperties.getCredentials().toString());
-		return headers;
 	}
 
 	private Map<String, Object> newUrlTemplateVariables() {

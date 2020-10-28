@@ -17,6 +17,18 @@ package org.springframework.data.release.issues;
 
 import java.util.List;
 
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.CacheManager;
@@ -24,7 +36,11 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.release.issues.github.GitHubProperties;
+import org.springframework.data.release.issues.jira.JiraProperties;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.utils.HttpBasicCredentials;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
@@ -67,19 +83,52 @@ class IssueTrackerConfiguration {
 	}
 
 	@Bean
+	HttpComponentsClientHttpRequestFactory clientHttpRequestFactory(JiraProperties jiraProperties,
+			GitHubProperties gitHubProperties) {
+
+		// Preemptive auth
+		CredentialsProvider credsProvider = new BasicCredentialsProvider();
+		AuthCache authCache = new BasicAuthCache();
+
+		addPreemptiveAuth(credsProvider, authCache, jiraProperties.getApiUrl(), jiraProperties.getCredentials());
+		addPreemptiveAuth(credsProvider, authCache, gitHubProperties.getApiUrl(), gitHubProperties.getHttpCredentials());
+
+		CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credsProvider).build();
+
+		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+		factory.setHttpContextFactory((httpMethod, uri) -> {
+			HttpClientContext context = HttpClientContext.create();
+			context.setAuthCache(authCache);
+			return context;
+		});
+
+		return factory;
+	}
+
+	@Bean
 	@Qualifier("tracker")
-	RestTemplateBuilder restTemplate() {
+	RestTemplateBuilder restTemplate(ClientHttpRequestFactory clientHttpRequestFactory) {
 
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setObjectMapper(jacksonObjectMapper());
 
 		return new RestTemplateBuilder().messageConverters(converter)
-				.requestFactory(HttpComponentsClientHttpRequestFactory.class);
+				.requestFactory(() -> clientHttpRequestFactory);
 	}
 
 	@Bean
 	PluginRegistry<IssueTracker, Project> issueTrackers(List<? extends IssueTracker> plugins) {
 		return OrderAwarePluginRegistry.of(plugins);
+	}
+
+	private static void addPreemptiveAuth(CredentialsProvider credsProvider, AuthCache authCache, String requestUrl,
+			HttpBasicCredentials credentials) {
+		HttpHost jiraHost = HttpHost.create(requestUrl);
+
+		credsProvider.setCredentials(new AuthScope(jiraHost),
+				new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword().toString()));
+
+		authCache.put(jiraHost, new BasicScheme());
 	}
 
 	/**
