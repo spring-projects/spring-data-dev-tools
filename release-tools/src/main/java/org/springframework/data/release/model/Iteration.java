@@ -62,12 +62,12 @@ public class Iteration implements Comparable<Iteration> {
 	public static final Iteration RC4 = new Iteration("RC4", GA);
 	public static final Iteration RC3 = new Iteration("RC3", GA);
 	public static final Iteration RC2 = new Iteration("RC2", GA);
-	public static final Iteration RC1 = new Iteration("RC1", GA);
+	public static final Iteration RC1 = new Iteration("RC1", RC2);
 	public static final Iteration M5 = new Iteration("M5", RC1);
 	public static final Iteration M4 = new Iteration("M4", RC1);
 	public static final Iteration M3 = new Iteration("M3", RC1);
-	public static final Iteration M2 = new Iteration("M2", RC1);
-	public static final Iteration M1 = new Iteration("M1", RC1);
+	public static final Iteration M2 = new Iteration("M2", M3);
+	public static final Iteration M1 = new Iteration("M1", M2);
 
 	private static final int GREATER_THAN = 1;
 	private static final int LESS_THAN = -GREATER_THAN;
@@ -89,7 +89,7 @@ public class Iteration implements Comparable<Iteration> {
 
 	/**
 	 * Lookup {@link Iteration} by its string value.
-	 * 
+	 *
 	 * @param iteration
 	 * @return
 	 * @throws IllegalArgumentException if iteration cannot be resolved.
