@@ -242,7 +242,7 @@ class MavenBuildSystem implements BuildSystem {
 		if (BUILD.equals(project)) {
 
 			if (!module.getTrain().usesCalver()) {
-				mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainNameVersion())) //
+				mvn.execute(project, goals.and(arg("newVersion").withValue(information.getReleaseTrainVersion())) //
 						.and(arg("generateBackupPoms").withValue("false")) //
 						.and(arg("groupId").withValue("org.springframework.data")) //
 						.and(arg("artifactId").withValue("spring-data-releasetrain")));

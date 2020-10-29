@@ -81,7 +81,7 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 				return String.format("%s-%s", getCalver().toMajorMinorBugfix(), iteration);
 			}
 
-			return getCalver().toString();
+			return getCalver().toMajorMinorBugfix();
 		}
 
 		if (iteration.isGAIteration()) {
@@ -104,19 +104,23 @@ public class TrainIteration implements Streamable<ModuleIteration> {
 
 		Version version = getTrain().getCalver();
 
-		if (getIteration().isServiceIteration()) {
-			return version.withBugfix(getIteration().getBugfixValue());
-		}
-
-		return version;
+		return version.withBugfix(getIteration().getBugfixValue());
 	}
 
 	public String getNextBugfixName() {
 
 		Version version = getTrain().getCalver();
-		if (getIteration().isServiceIteration()) {
+
+		if (getIteration().isGAIteration() || getIteration().isServiceIteration()) {
 			return version.withBugfix(getIteration().getBugfixValue() + 1).toMajorMinorBugfix();
 		}
+
+		return version.toMajorMinorBugfix();
+	}
+
+	public String getNextIterationName() {
+
+		Version version = getTrain().getCalver().nextMinor();
 
 		return version.toMajorMinorBugfix();
 	}

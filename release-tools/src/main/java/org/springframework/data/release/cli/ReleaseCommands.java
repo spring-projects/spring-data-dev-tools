@@ -73,7 +73,7 @@ class ReleaseCommands extends TimedCommand {
 
 		git.prepare(iteration);
 
-		// build.runPreReleaseChecks(iteration);
+		build.runPreReleaseChecks(iteration);
 
 		misc.prepareChangelogs(iteration);
 		misc.updateResources(iteration);

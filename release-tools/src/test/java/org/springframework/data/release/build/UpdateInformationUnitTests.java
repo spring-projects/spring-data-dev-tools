@@ -30,7 +30,7 @@ import org.springframework.data.release.model.TrainIteration;
 
 /**
  * Unit tests for {@link UpdateInformation}.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -74,6 +74,17 @@ class UpdateInformationUnitTests {
 		assertThat(updateInformation.getProjectVersionToSet(Projects.JPA).toString()).isEqualTo("1.10.0.BUILD-SNAPSHOT");
 	}
 
+	@Test // #155
+	void calculatesProjectCalverVersionToSetCorrectly() {
+
+		TrainIteration ockhamGa = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.GA);
+
+		assertThat(UpdateInformation.of(ockhamGa, Phase.CLEANUP).getProjectVersionToSet(Projects.BOM).toString())
+				.isEqualTo("2020.1.0-SNAPSHOT");
+		assertThat(UpdateInformation.of(ockhamGa, Phase.MAINTENANCE).getProjectVersionToSet(Projects.BOM).toString())
+				.isEqualTo("2020.0.1-SNAPSHOT");
+	}
+
 	@Test // #22
 	void returnsCorrectReleaseTrainVersions() {
 
@@ -83,5 +94,38 @@ class UpdateInformationUnitTests {
 		assertThat(UpdateInformation.of(hopperGa, Phase.PREPARE).getReleaseTrainVersion()).isEqualTo("Hopper-RELEASE");
 		assertThat(UpdateInformation.of(hopperM1, Phase.PREPARE).getReleaseTrainVersion()).isEqualTo("Hopper-M1");
 		assertThat(UpdateInformation.of(hopperSr1, Phase.PREPARE).getReleaseTrainVersion()).isEqualTo("Hopper-SR1");
+	}
+
+	@Test // #155
+	void returnsCorrectReleaseTrainCalverVersions() {
+
+		TrainIteration ockhamGa = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.GA);
+		TrainIteration ockhamM1 = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.M1);
+		TrainIteration ockhamSr1 = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.SR1);
+
+		assertThat(UpdateInformation.of(ockhamGa, Phase.PREPARE).getReleaseTrainVersion()).isEqualTo("2020.0.0");
+		assertThat(UpdateInformation.of(ockhamM1, Phase.PREPARE).getReleaseTrainVersion()).isEqualTo("2020.0.0-M1");
+		assertThat(UpdateInformation.of(ockhamSr1, Phase.PREPARE).getReleaseTrainVersion()).isEqualTo("2020.0.1");
+	}
+
+	@Test // #155
+	void returnsCorrectCleanupReleaseTrainCalverVersions() {
+
+		TrainIteration ockhamGa = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.GA);
+		TrainIteration ockhamM1 = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.M1);
+		TrainIteration ockhamSr1 = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.SR1);
+
+		assertThat(UpdateInformation.of(ockhamGa, Phase.CLEANUP).getReleaseTrainVersion()).isEqualTo("2020.1.0-SNAPSHOT");
+		assertThat(UpdateInformation.of(ockhamM1, Phase.CLEANUP).getReleaseTrainVersion()).isEqualTo("2020.0.0-SNAPSHOT");
+		assertThat(UpdateInformation.of(ockhamSr1, Phase.CLEANUP).getReleaseTrainVersion()).isEqualTo("2020.0.2-SNAPSHOT");
+	}
+
+	@Test // #155
+	void returnsCorrectMaintenanceReleaseTrainCalverVersions() {
+
+		TrainIteration ockhamGa = new TrainIteration(ReleaseTrains.OCKHAM, Iteration.GA);
+
+		assertThat(UpdateInformation.of(ockhamGa, Phase.MAINTENANCE).getReleaseTrainVersion())
+				.isEqualTo("2020.0.1-SNAPSHOT");
 	}
 }

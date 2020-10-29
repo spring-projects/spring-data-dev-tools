@@ -16,9 +16,11 @@
 package org.springframework.data.release.build;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.Assume.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -91,6 +93,10 @@ class MavenIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	void findsSnapshotDependencies() throws Exception {
 
-		Pom pom = projection.io().file(workspace.getFile("pom.xml", Projects.BUILD)).read(Pom.class);
+		File file = workspace.getFile("pom.xml", Projects.BUILD);
+
+		assumeThat(file).exists();
+
+		Pom pom = projection.io().file(file).read(Pom.class);
 	}
 }

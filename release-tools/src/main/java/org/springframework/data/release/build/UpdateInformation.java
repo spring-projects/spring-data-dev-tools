@@ -97,31 +97,6 @@ public class UpdateInformation {
 	 *
 	 * @return will never be {@literal null}.
 	 */
-	public String getReleaseTrainNameVersion() {
-
-		boolean usesCalver = train.getTrain().usesCalver();
-
-		switch (phase) {
-			case PREPARE:
-				return train.getReleaseTrainNameAndVersion();
-			case CLEANUP:
-			case MAINTENANCE:
-
-				if (usesCalver) {
-					return String.format("%s-SNAPSHOT", train.getNextBugfixName());
-				}
-
-				return String.format("%s-BUILD-SNAPSHOT", train.getName());
-		}
-
-		throw new IllegalStateException("Unexpected phase detected " + phase + " detected!");
-	}
-
-	/**
-	 * Returns the version {@link String} to be used to describe the release train.
-	 *
-	 * @return will never be {@literal null}.
-	 */
 	public String getReleaseTrainVersion() {
 
 		boolean usesCalver = train.getTrain().usesCalver();
@@ -129,10 +104,19 @@ public class UpdateInformation {
 		switch (phase) {
 			case PREPARE:
 				return train.getReleaseTrainNameAndVersion();
-			case CLEANUP:
 			case MAINTENANCE:
+				if (usesCalver) {
+					return String.format("%s-SNAPSHOT", train.getNextBugfixName());
+				}
+
+			case CLEANUP:
 
 				if (usesCalver) {
+
+					if (train.getIteration().isGAIteration()) {
+						return String.format("%s-SNAPSHOT", train.getNextIterationName());
+					}
+
 					return String.format("%s-SNAPSHOT", train.getNextBugfixName());
 				}
 
