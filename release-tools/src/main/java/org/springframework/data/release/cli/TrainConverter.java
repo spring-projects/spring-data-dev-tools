@@ -16,7 +16,9 @@
 package org.springframework.data.release.cli;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.shell.core.Completion;
@@ -27,11 +29,14 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 public class TrainConverter implements Converter<Train> {
 
-	/* 
+	private static final Pattern CALVER = Pattern.compile("(\\d{4})(\\.(\\d))+");
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.Converter#supports(java.lang.Class, java.lang.String)
 	 */
@@ -40,16 +45,27 @@ public class TrainConverter implements Converter<Train> {
 		return Train.class.isAssignableFrom(type);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.Converter#convertFromText(java.lang.String, java.lang.Class, java.lang.String)
 	 */
 	@Override
 	public Train convertFromText(String value, Class<?> targetType, String optionContext) {
-		return StringUtils.hasText(value) ? ReleaseTrains.getTrainByName(value) : null;
+
+		if (StringUtils.isEmpty(value)) {
+			return null;
+		}
+
+		if (CALVER.matcher(value).matches()) {
+
+			ArtifactVersion version = ArtifactVersion.of(value);
+			return ReleaseTrains.getTrainByCalver(version.getVersion());
+		}
+
+		return ReleaseTrains.getTrainByName(value);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.shell.core.Converter#getAllPossibleValues(java.util.List, java.lang.Class, java.lang.String, java.lang.String, org.springframework.shell.core.MethodTarget)
 	 */

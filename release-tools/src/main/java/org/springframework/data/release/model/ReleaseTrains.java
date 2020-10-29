@@ -122,6 +122,15 @@ public class ReleaseTrains {
 				.orElse(null);
 	}
 
+	public static Train getTrainByCalver(Version calver) {
+
+		return TRAINS.stream() //
+				.filter(Train::usesCalver)
+				.filter(it -> it.getCalver().getMajor() == calver.getMajor() && it.getCalver().getMinor() == calver.getMinor()) //
+				.findFirst() //
+				.orElse(null);
+	}
+
 	public static Project getProjectByName(String name) {
 
 		return PROJECTS.stream() //

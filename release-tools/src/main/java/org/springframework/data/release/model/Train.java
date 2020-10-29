@@ -157,6 +157,7 @@ public class Train implements Streamable<Module> {
 		return new TrainIteration(this, iterations.getIterationByName(name));
 	}
 
+
 	public ArtifactVersion getModuleVersion(Project project, Iteration iteration) {
 
 		Module module = getModule(project);
@@ -169,7 +170,18 @@ public class Train implements Streamable<Module> {
 	}
 
 	public Train withCalver(String calverVersion) {
-		return new Train(name, modules, Version.parse(calverVersion), iterations, alwaysUseBranch);
+
+		Version calver = Version.parse(calverVersion);
+		Set<Module> modules = this.modules.stream().map(it -> {
+
+			if (it.getProject() == Projects.BOM) {
+				return new Module(it.getProject(), calver.toMajorMinorBugfix());
+			}
+			return it;
+
+		}).collect(Collectors.toSet());
+
+		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch);
 	}
 
 	/*
@@ -199,7 +211,7 @@ public class Train implements Streamable<Module> {
 	 * @return
 	 * @throws IllegalArgumentException in case the given {@link Iteration} is not available in this {@link Train}.
 	 */
-	private TrainIteration getIteration(Iteration iteration) {
+	public TrainIteration getIteration(Iteration iteration) {
 
 		Assert.isTrue(iterations.contains(iteration),
 				String.format("Iteration %s is not a valid one for the configured iterations %s!", iteration, iterations));

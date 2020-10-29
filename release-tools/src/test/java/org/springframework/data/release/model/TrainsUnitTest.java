@@ -21,8 +21,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for release {@link Train}s.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 class TrainsUnitTest {
 
@@ -37,5 +38,13 @@ class TrainsUnitTest {
 	@Test
 	void addsNewlyAddedModule() {
 		assertThat(ReleaseTrains.HOPPER.getModule(Projects.ENVERS)).isNotNull();
+	}
+
+	@Test
+	void considersCalverInBom() {
+
+		assertThat(ReleaseTrains.OCKHAM.getModule(Projects.BOM).getVersion().toMajorMinorBugfix()).isEqualTo("2020.0.0");
+
+		assertThat(ReleaseTrains.PASCAL.getModule(Projects.BOM).getVersion().toMajorMinorBugfix()).isEqualTo("2021.0.0");
 	}
 }

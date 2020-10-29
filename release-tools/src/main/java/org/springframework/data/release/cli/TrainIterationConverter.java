@@ -16,7 +16,9 @@
 package org.springframework.data.release.cli;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
@@ -28,9 +30,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Component
 public class TrainIterationConverter implements Converter<TrainIteration> {
+
+	private static final Pattern CALVER = Pattern.compile("(\\d{4})(\\.(\\d))+(-M(\\d)|-RC(\\d))?");
 
 	/*
 	 * (non-Javadoc)
@@ -47,6 +52,21 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 	 */
 	@Override
 	public TrainIteration convertFromText(String value, Class<?> targetType, String optionContext) {
+
+		if (CALVER.matcher(value).matches()) {
+
+			ArtifactVersion version = ArtifactVersion.of(value);
+			Train train = ReleaseTrains.getTrainByCalver(version.getVersion());
+
+			if (version.isReleaseVersion()) {
+				if (version.isBugFixVersion()) {
+					return train.getIteration("SR" + version.getVersion().getBugfix());
+				}
+				return train.getIteration(Iteration.GA);
+			}
+
+			return train.getIteration(version.getSuffix());
+		}
 
 		String[] parts = value.split(" ");
 
@@ -74,6 +94,10 @@ public class TrainIterationConverter implements Converter<TrainIteration> {
 				TrainIteration trainIteration = train.getIteration(iteration.getName());
 
 				completions.add(new Completion(trainIteration.toString()));
+
+				if (trainIteration.getTrain().usesCalver()) {
+					completions.add(new Completion(trainIteration.getCalver().toMajorMinorBugfix()));
+				}
 			}
 		}
 

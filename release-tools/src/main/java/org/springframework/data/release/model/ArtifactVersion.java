@@ -47,7 +47,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	private static final String VALID_SUFFIX = String.format("%s|%s|%s|-%s|-%s|-%s", RELEASE_SUFFIX, MILESTONE_SUFFIX,
 			SNAPSHOT_SUFFIX, RELEASE_SUFFIX, MILESTONE_SUFFIX, SNAPSHOT_MODIFIER);
 
-	private final Version version;
+	private final @Getter Version version;
 	private final @With boolean modifierFormat;
 	private final @Getter String suffix;
 
@@ -163,7 +163,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 	 * @return
 	 */
 	public boolean isReleaseVersion() {
-		return suffix.equals(RELEASE_SUFFIX);
+		return suffix.equals("") || suffix.equals(RELEASE_SUFFIX);
 	}
 
 	/**
