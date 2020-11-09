@@ -22,18 +22,12 @@ import lombok.experimental.FieldDefaults;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CherryPickResult;
@@ -63,15 +57,19 @@ import org.eclipse.jgit.transport.URIish;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Gpg;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.data.util.Pair;
 import org.springframework.data.util.Streamable;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
@@ -311,10 +309,40 @@ public class GitOperations {
 		logger.log(project, "Project update done!");
 	}
 
+	/**
+	 * Updates the given {@link Project} by fetching all tags.
+	 *
+	 * @param project must not be {@literal null}.
+	 */
+	public void fetchTags(Project project) {
+
+		Assert.notNull(project, "Project must not be null!");
+
+		logger.log(project, "Updating project tags…");
+
+		GitProject gitProject = new GitProject(project, server);
+		String repositoryName = gitProject.getRepositoryName();
+
+		doWithGit(project, git -> {
+
+			if (workspace.hasProjectDirectory(project)) {
+
+				logger.log(project, "Found existing repository %s. Obtaining tags…", repositoryName);
+				logger.log(project, "git fetch --tags");
+				git.fetch().setTagOpt(TagOpt.FETCH_TAGS).call();
+
+			} else {
+				clone(project);
+			}
+		});
+
+		logger.log(project, "Project tags update done!");
+	}
+
 	public VersionTags getTags(Project project) {
 
 		return doWithGit(project, git -> {
-			return new VersionTags(git.tagList().call().stream()//
+			return new VersionTags(project, git.tagList().call().stream()//
 					.map(ref -> {
 
 						RevCommit commit = getCommit(git.getRepository(), ref);
@@ -373,6 +401,120 @@ public class GitOperations {
 			return TicketBranches
 					.from(tickets.stream().collect(Collectors.toMap(ticket -> ticketIds.get(ticket.getId()), ticket -> ticket)));
 		});
+	}
+
+	/**
+	 * Lookup the previous {@link TrainIteration} from existing tags.
+	 *
+	 * @param trainIteration must not be {@literal null}.
+	 * @return
+	 * @throws IllegalStateException if no previous iteration could be found.
+	 */
+	public TrainIteration getPreviousIteration(TrainIteration trainIteration) {
+
+		Assert.notNull(trainIteration, "TrainIteration must not be null!");
+
+		if (trainIteration.getIteration().isMilestone() && trainIteration.getIteration().getIterationValue() == 1) {
+
+			Train trainToUse = getPreviousTrain(trainIteration);
+			return trainToUse.getIteration(Iteration.GA);
+		}
+
+		Optional<TrainIteration> mostRecentBefore = getTags(Projects.BUILD) //
+				.filter((tag, ti) -> ti.getTrain().equals(trainIteration.getTrain())) //
+				.find((tag, iteration) -> iteration.getIteration().compareTo(trainIteration.getIteration()) < 0,
+						Pair::getSecond);
+
+		return mostRecentBefore.orElseThrow(() -> new IllegalStateException(
+				"Cannot determine previous iteration for " + trainIteration.getReleaseTrainNameAndVersion()));
+	}
+
+	public List<TicketReference> getTicketReferencesBetween(Project project, TrainIteration from, TrainIteration to) {
+
+		VersionTags tags = getTags(project);
+
+		List<TicketReference> ticketReferences = doWithGit(project, git -> {
+
+			Repository repo = git.getRepository();
+
+			ModuleIteration toModuleIteration = to.getModule(project);
+			ObjectId fromTag = resolveLowerBoundary(project, from, tags, repo);
+			ObjectId toTag = resolveUpperBoundary(toModuleIteration, tags, repo);
+
+			Iterable<RevCommit> commits = git.log().addRange(fromTag, toTag).call();
+
+			return StreamSupport.stream(commits.spliterator(), false).flatMap(it -> {
+
+				ParsedCommitMessage message = ParsedCommitMessage.parse(it.getFullMessage());
+
+				if (message.getTicketReference() == null) {
+					logger.warn(toModuleIteration, "Commit %s does not refer to a ticket (%s)", it.getName(),
+							it.getShortMessage());
+					return Stream.empty();
+				}
+
+				return Stream.of(message.getTicketReference());
+
+			}).collect(Collectors.toList());
+		});
+
+		// make TicketReference unique
+		Set<String> uniqueIds = new HashSet<>();
+		List<TicketReference> uniqueTicketReferences = new ArrayList<>();
+
+		for (TicketReference reference : ticketReferences) {
+			if (uniqueIds.add(reference.getId())) {
+				uniqueTicketReferences.add(reference);
+			}
+		}
+
+		uniqueTicketReferences.sort(Comparator.<TicketReference> naturalOrder().reversed());
+
+		return uniqueTicketReferences;
+	}
+
+	protected ObjectId resolveLowerBoundary(Project project, TrainIteration iteration, VersionTags tags, Repository repo)
+			throws IOException {
+
+		if (iteration.contains(project)) {
+
+			Optional<Tag> fromTag = tags.filter(iteration.getTrain()).findTag(iteration.getIteration());
+
+			Tag tag = fromTag.get();
+
+			return repo.parseCommit(repo.resolve(tag.getName()));
+		}
+
+		return repo.resolve(getFirstCommit(repo));
+	}
+
+	protected ObjectId resolveUpperBoundary(ModuleIteration iteration, VersionTags tags, Repository repo)
+			throws IOException {
+
+		Optional<Tag> tag = tags.filter(iteration.getTrain()).findTag(iteration.getIteration());
+		String rangeEnd = tag.map(Tag::getName).orElse(Branch.from(iteration).toString());
+		return repo.parseCommit(repo.resolve(rangeEnd));
+	}
+
+	private static String getFirstCommit(Repository repo) throws IOException {
+
+		try (RevWalk revWalk = new RevWalk(repo)) {
+			return revWalk.parseCommit(repo.resolve("master")).getName();
+		}
+	}
+
+	private static Train getPreviousTrain(TrainIteration trainIteration) {
+
+		Train trainToUse = ReleaseTrains.CODD;
+
+		for (Train train : ReleaseTrains.trains()) {
+			if (train.isBefore(trainIteration.getTrain())) {
+				trainToUse = train;
+			} else {
+				break;
+			}
+		}
+		return trainToUse;
 	}
 
 	private Stream<Branch> getRemoteBranches(Project project) {
@@ -900,5 +1042,10 @@ public class GitOperations {
 			}
 			return false;
 		}
+	}
+
+	private static class VersionedIterations {
+
+
 	}
 }

@@ -21,16 +21,21 @@ import lombok.RequiredArgsConstructor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
+import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.release.issues.TicketReference;
+import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.table.Table;
@@ -46,6 +51,7 @@ import org.springframework.util.StringUtils;
 class GitCommands extends TimedCommand {
 
 	private final @NonNull GitOperations git;
+	private final @NonNull Executor executor;
 
 	@CliCommand("git co-train")
 	public void checkout(@CliOption(key = "", mandatory = true) Train train) throws Exception {
@@ -69,6 +75,34 @@ class GitCommands extends TimedCommand {
 		Project project = ReleaseTrains.getProjectByName(projectName);
 
 		return StringUtils.collectionToDelimitedString(git.getTags(project).asList(), "\n");
+	}
+
+	@CliCommand("git previous")
+	public String previous(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+		return git.getPreviousIteration(iteration).toString();
+	}
+
+	@CliCommand("git changelog")
+	public String changelog(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+
+		TrainIteration previousIteration = git.getPreviousIteration(iteration);
+
+		return ExecutionUtils.runAndReturn(executor, iteration, moduleIteration -> {
+
+			List<TicketReference> ticketRefs = git.getTicketReferencesBetween(moduleIteration.getProject(), previousIteration,
+					iteration);
+
+			return Changelog.of(moduleIteration, toTickets(ticketRefs));
+
+		}).stream() //
+				.map(Changelog::toString) //
+				.collect(Collectors.joining("\n"));
+	}
+
+	private Tickets toTickets(List<TicketReference> ticketRefs) {
+
+		return new Tickets(
+				ticketRefs.stream().map(it -> new Ticket(it.getId(), it.getMessage(), "", null)).collect(Collectors.toList()));
 	}
 
 	/**

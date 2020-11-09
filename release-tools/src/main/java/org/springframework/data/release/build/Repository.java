@@ -63,7 +63,7 @@ public class Repository {
 			return "snapshot";
 		}
 
-		if (version.isMilestoneVersion()) {
+		if (version.isMilestoneVersion() || version.isReleaseCandidateVersion()) {
 			return "milestone";
 		}
 

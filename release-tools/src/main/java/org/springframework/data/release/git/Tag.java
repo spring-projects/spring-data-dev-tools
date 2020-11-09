@@ -67,10 +67,14 @@ public class Tag implements Comparable<Tag> {
 	public Optional<ArtifactVersion> toArtifactVersion() {
 
 		try {
-			return Optional.of(ArtifactVersion.of(getVersionSource()));
+			return Optional.of(getRequiredArtifactVersion());
 		} catch (IllegalArgumentException o_O) {
 			return Optional.empty();
 		}
+	}
+
+	public ArtifactVersion getRequiredArtifactVersion() {
+		return ArtifactVersion.of(getVersionSource());
 	}
 
 	/**

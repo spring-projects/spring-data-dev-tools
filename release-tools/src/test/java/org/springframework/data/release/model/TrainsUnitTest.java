@@ -47,4 +47,23 @@ class TrainsUnitTest {
 
 		assertThat(ReleaseTrains.PASCAL.getModule(Projects.BOM).getVersion().toMajorMinorBugfix()).isEqualTo("2021.0.0");
 	}
+
+	@Test
+	void beforeShouldConsiderNonCalver() {
+		assertThat(ReleaseTrains.HOPPER.isBefore(ReleaseTrains.GOSLING)).isFalse();
+		assertThat(ReleaseTrains.HOPPER.isBefore(ReleaseTrains.INGALLS)).isTrue();
+	}
+
+	@Test
+	void beforeShouldConsiderCalver() {
+		assertThat(ReleaseTrains.PASCAL.isBefore(ReleaseTrains.OCKHAM)).isFalse();
+		assertThat(ReleaseTrains.OCKHAM.isBefore(ReleaseTrains.PASCAL)).isTrue();
+	}
+
+	@Test
+	void beforeShouldConsiderMixedCalver() {
+		assertThat(ReleaseTrains.PASCAL.isBefore(ReleaseTrains.INGALLS)).isFalse();
+		assertThat(ReleaseTrains.INGALLS.isBefore(ReleaseTrains.PASCAL)).isTrue();
+	}
+
 }

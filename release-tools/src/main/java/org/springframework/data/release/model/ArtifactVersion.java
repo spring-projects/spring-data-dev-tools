@@ -15,10 +15,10 @@
  */
 package org.springframework.data.release.model;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.With;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,7 +30,6 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-@EqualsAndHashCode
 public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	private static final Pattern PATTERN = Pattern
@@ -40,12 +39,13 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 			.compile("((\\d+)\\.(\\d+)(\\.\\d+)?)(-((RC\\d+)|(M\\d+)|(SNAPSHOT)))?");
 
 	private static final String RELEASE_SUFFIX = "RELEASE";
-	private static final String MILESTONE_SUFFIX = "M\\d|RC\\d";
+	private static final String MILESTONE_SUFFIX = "M\\d";
+	private static final String RC_SUFFIX = "RC\\d";
 	private static final String SNAPSHOT_SUFFIX = "BUILD-SNAPSHOT";
 	private static final String SNAPSHOT_MODIFIER = "SNAPSHOT";
 
-	private static final String VALID_SUFFIX = String.format("%s|%s|%s|-%s|-%s|-%s", RELEASE_SUFFIX, MILESTONE_SUFFIX,
-			SNAPSHOT_SUFFIX, RELEASE_SUFFIX, MILESTONE_SUFFIX, SNAPSHOT_MODIFIER);
+	private static final String VALID_SUFFIX = String.format("%s|%s|%s|%s|-%s|-%s|-%s", RELEASE_SUFFIX, MILESTONE_SUFFIX,
+			RC_SUFFIX, SNAPSHOT_SUFFIX, RELEASE_SUFFIX, MILESTONE_SUFFIX, SNAPSHOT_MODIFIER);
 
 	private final @Getter Version version;
 	private final @With boolean modifierFormat;
@@ -175,6 +175,39 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return suffix.matches(MILESTONE_SUFFIX);
 	}
 
+	/**
+	 * Returns whether the version is a RC version.
+	 *
+	 * @return
+	 */
+	public boolean isReleaseCandidateVersion() {
+		return suffix.matches(RC_SUFFIX);
+	}
+
+	public int getLevel() {
+
+		if (isMilestoneVersion()) {
+			Pattern pattern = Pattern.compile("M(\\d+)");
+			Matcher matcher = pattern.matcher(suffix);
+			matcher.find();
+			return Integer.parseInt(matcher.group(1));
+		}
+
+		if (isReleaseCandidateVersion()) {
+			Pattern pattern = Pattern.compile("RC(\\d+)");
+			Matcher matcher = pattern.matcher(suffix);
+			matcher.find();
+			return Integer.parseInt(matcher.group(1));
+		}
+
+		if (isBugFixVersion()) {
+			return version.getBugfix();
+		}
+
+		throw new IllegalStateException("Not a M/RC/SR release");
+
+	}
+
 	public boolean isSnapshotVersion() {
 		return suffix.matches(SNAPSHOT_SUFFIX) || suffix.matches(SNAPSHOT_MODIFIER);
 	}
@@ -217,9 +250,16 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		return isSnapshotVersion() ? this : new ArtifactVersion(version, modifierFormat, getSnapshotSuffix());
 	}
 
+	/**
+	 * @return the next minor version retaining the modifier and snapshot suffix.
+	 */
+	public ArtifactVersion getNextMinorVersion() {
+		return new ArtifactVersion(version.nextMinor(), modifierFormat, suffix);
+	}
+
 	public String getReleaseTrainSuffix() {
 
-		if (isSnapshotVersion() || isMilestoneVersion()) {
+		if (isSnapshotVersion() || isMilestoneVersion() || isReleaseCandidateVersion()) {
 			return suffix;
 		}
 
@@ -250,7 +290,7 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 		if (modifierFormat) {
 
-			if (isSnapshotVersion() || isMilestoneVersion()) {
+			if (isSnapshotVersion() || isMilestoneVersion() || isReleaseCandidateVersion()) {
 				return String.format("%s-%s", version.toMajorMinorBugfix(), suffix);
 			}
 
@@ -275,5 +315,25 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 
 	public String getGeneration() {
 		return String.format("%s.%s.x", version.getMajor(), version.getMinor());
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof ArtifactVersion)) {
+			return false;
+		}
+		ArtifactVersion other = (ArtifactVersion) o;
+		return version.equals(other.version) && isReleaseVersion() == other.isReleaseVersion()
+				&& isSnapshotVersion() == other.isSnapshotVersion() && isMilestoneVersion() == other.isMilestoneVersion()
+				&& isReleaseCandidateVersion() == other.isReleaseCandidateVersion();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(version, isReleaseVersion(), isSnapshotVersion(), isMilestoneVersion(),
+				isReleaseCandidateVersion());
 	}
 }

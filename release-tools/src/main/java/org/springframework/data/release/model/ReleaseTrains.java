@@ -139,4 +139,8 @@ public class ReleaseTrains {
 				.findFirst() //
 				.orElse(null);
 	}
+
+	public static List<Train> trains() {
+		return TRAINS;
+	}
 }

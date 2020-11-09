@@ -46,9 +46,10 @@ import org.springframework.util.Assert;
  */
 @Value
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(of = "name")
 public class Train implements Streamable<Module> {
 
-	private final String name;;
+	private final String name;
 	private final Modules modules;
 	private @Nullable Version calver;
 	private @With Iterations iterations;
@@ -136,7 +137,7 @@ public class Train implements Streamable<Module> {
 
 		Module module = getModule(project);
 
-		return new ModuleIteration(module, getIteration(iteration));
+		return new ModuleIteration(module, doGetTrainIteration(iteration));
 	}
 
 	public Iterable<ModuleIteration> getModuleIterations(Iteration iteration) {
@@ -154,7 +155,7 @@ public class Train implements Streamable<Module> {
 	}
 
 	public TrainIteration getIteration(String name) {
-		return new TrainIteration(this, iterations.getIterationByName(name));
+		return doGetTrainIteration(iterations.getIterationByName(name));
 	}
 
 
@@ -182,6 +183,31 @@ public class Train implements Streamable<Module> {
 		}).collect(Collectors.toSet());
 
 		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch);
+	}
+
+	/**
+	 * Check whether this train comes before {@link Train other}.
+	 *
+	 * @param other
+	 * @return
+	 */
+	public boolean isBefore(Train other) {
+
+		Assert.notNull(other, "Train must not be null");
+
+		if (usesCalver() && other.usesCalver()) {
+			return getCalver().compareTo(other.getCalver()) < 0;
+		}
+
+		if (usesCalver()) {
+			return false;
+		}
+
+		if (other.usesCalver()) {
+			return true;
+		}
+
+		return getName().compareToIgnoreCase(other.getName()) < 0;
 	}
 
 	/*
@@ -216,6 +242,10 @@ public class Train implements Streamable<Module> {
 		Assert.isTrue(iterations.contains(iteration),
 				String.format("Iteration %s is not a valid one for the configured iterations %s!", iteration, iterations));
 
+		return doGetTrainIteration(iteration);
+	}
+
+	protected TrainIteration doGetTrainIteration(Iteration iteration) {
 		return new TrainIteration(this, iteration);
 	}
 
