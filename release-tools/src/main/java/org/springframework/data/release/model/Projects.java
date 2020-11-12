@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -140,4 +141,9 @@ public class Projects {
 		return byName(name).//
 				orElseThrow(() -> new IllegalArgumentException(String.format("No project named %s available!", name)));
 	}
+
+	public static List<Project> all() {
+		return PROJECTS.stream().collect(Collectors.toList());
+	}
+
 }

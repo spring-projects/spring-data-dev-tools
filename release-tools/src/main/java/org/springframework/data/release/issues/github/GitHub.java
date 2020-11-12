@@ -25,9 +25,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,19 +51,16 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestOperations;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
  */
 @Component
-class GitHub implements IssueTracker {
+class GitHub extends GitHubSupport implements IssueTracker {
 
 	private static final String MILESTONE_URI = "/repos/spring-projects/{repoName}/milestones?state={state}";
 	private static final String ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues?milestone={id}&state=all&assignee={assignee}";
@@ -80,7 +74,6 @@ class GitHub implements IssueTracker {
 	private static final ParameterizedTypeReference<List<GitHubIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubIssue>>() {};
 	private static final ParameterizedTypeReference<GitHubIssue> ISSUE_TYPE = new ParameterizedTypeReference<GitHubIssue>() {};
 
-	private final RestOperations operations;
 	private final Logger logger;
 	private final GitHubProperties properties;
 	private final ExecutorService executorService;
@@ -88,7 +81,7 @@ class GitHub implements IssueTracker {
 	public GitHub(@Qualifier("tracker") RestTemplateBuilder templateBuilder, Logger logger, GitHubProperties properties,
 			ExecutorService executorService) {
 
-		this.operations = templateBuilder.uriTemplateHandler(new DefaultUriBuilderFactory(properties.getApiUrl())).build();
+		super(createOperations(templateBuilder, properties));
 		this.logger = logger;
 		this.properties = properties;
 		this.executorService = executorService;
@@ -388,58 +381,6 @@ class GitHub implements IssueTracker {
 		}
 
 		return Optional.ofNullable(milestoneRef.get());
-	}
-
-	/**
-	 * Apply a {@link Predicate callback} with GitHub paging starting at {@code endpointUri}. The given
-	 * {@link Predicate#test(Object)} outcome controls whether paging continues by returning {@literal true} or stops.
-	 *
-	 * @param endpointUri
-	 * @param method
-	 * @param parameters
-	 * @param entity
-	 * @param type
-	 * @param callbackContinue
-	 * @param <T>
-	 */
-	private <T> void doWithPaging(String endpointUri, HttpMethod method, Map<String, Object> parameters,
-			HttpEntity<?> entity, ParameterizedTypeReference<T> type, Predicate<T> callbackContinue) {
-
-		ResponseEntity<T> exchange = operations.exchange(endpointUri, method, entity, type, parameters);
-
-		Pattern pattern = Pattern.compile("<([^ ]*)>; rel=\"(\\w+)\"");
-
-		while (true) {
-
-			if (!callbackContinue.test(exchange.getBody())) {
-				return;
-			}
-
-			HttpHeaders responseHeaders = exchange.getHeaders();
-			List<String> links = responseHeaders.getValuesAsList("Link");
-
-			if (links.isEmpty()) {
-				return;
-			}
-
-			String nextLink = null;
-			for (String link : links) {
-
-				Matcher matcher = pattern.matcher(link);
-				if (matcher.find()) {
-					if (matcher.group(2).equals("next")) {
-						nextLink = matcher.group(1);
-						break;
-					}
-				}
-			}
-
-			if (nextLink == null) {
-				return;
-			}
-
-			exchange = operations.exchange(nextLink, method, entity, type, parameters);
-		}
 	}
 
 	/*
