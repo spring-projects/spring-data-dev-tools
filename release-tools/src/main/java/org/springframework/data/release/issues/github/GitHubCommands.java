@@ -43,13 +43,8 @@ class GitHubCommands extends TimedCommand {
 	@NonNull Executor executor;
 
 	@CliCommand(value = "github update labels")
-	public void createOrUpdateLabels(@CliOption(key = "", mandatory = false) Project project) {
-
-		if (project == null) {
-			// Projects.all().forEach(gitHubLabels::createOrUpdateLabels);
-		} else {
-			gitHubLabels.createOrUpdateLabels(project);
-		}
+	public void createOrUpdateLabels(@CliOption(key = "", mandatory = true) Project project) {
+		gitHubLabels.createOrUpdateLabels(project);
 	}
 
 }

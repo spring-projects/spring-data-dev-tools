@@ -73,3 +73,13 @@ $ tracker archive $trainIteration.previous
 * Update versions in Sagan with `$ sagan update $releasetrains`.
 * Announce release (Blog, Twitter) and notify downstream dependency projects as needed. Dev-tools can assist you with `$ announcement $trainIteration`. Make sure to remove the changelog link to Envers as this module has no changelog.
 
+### Utilities
+
+#### GitHub Labels
+
+`ProjectLabelConfiguration` contains a per-project configuration which labels should be present in a project. To apply that configuration (create or update), use:
+
+```
+$ github update labels $project
+```
+
