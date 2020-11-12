@@ -19,18 +19,23 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.IssueTracker;
+import org.springframework.data.release.issues.TicketReference;
+import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
@@ -43,6 +48,8 @@ import org.springframework.util.Assert;
 @Component
 @RequiredArgsConstructor
 public class ReleaseOperations {
+
+	public static boolean COMMIT_BASED_CHANGELOG = true;
 
 	private static final Set<String> CHANGELOG_LOCATIONS;
 
@@ -59,49 +66,68 @@ public class ReleaseOperations {
 	private final Workspace workspace;
 	private final GitOperations git;
 	private final Logger logger;
+	private final ExecutorService executorService;
 
 	/**
 	 * Creates {@link Changelog} instances for all modules of the given {@link Train} and {@link Iteration}.
 	 *
-	 * @param train must not be {@literal null}.
 	 * @param iteration must not be {@literal null}.
-	 * @throws Exception
 	 */
-	public void prepareChangelogs(TrainIteration iteration) throws Exception {
+	public void prepareChangelogs(TrainIteration iteration) {
 
 		Assert.notNull(iteration, "Iteration must not be null!");
 
-		for (ModuleIteration module : iteration) {
+		TrainIteration previousIteration = git.getPreviousIteration(iteration);
 
-			Changelog changelog = trackers
-					.getRequiredPluginFor(module.getProject(),
-							() -> String.format("No issue tracker found for project %s!", module.getProject()))//
-					.getChangelogFor(module);
+		ExecutionUtils.run(executorService, iteration,
+				moduleIteration -> prepareChangelog(iteration, previousIteration, moduleIteration));
+	}
 
-			for (String location : CHANGELOG_LOCATIONS) {
+	protected void prepareChangelog(TrainIteration iteration, TrainIteration previousIteration, ModuleIteration module) {
+		IssueTracker issueTracker = trackers.getRequiredPluginFor(module.getProject(),
+				() -> String.format("No issue tracker found for project %s!", module.getProject()));
 
-				boolean processed = workspace.processFile(location, module.getProject(), (line, number) -> {
+		Changelog changelog = getChangelog(iteration, previousIteration, module, issueTracker);
 
-					if (line.startsWith("=")) {
+		for (String location : CHANGELOG_LOCATIONS) {
 
-						StringBuilder builder = new StringBuilder();
-						builder.append(line).append("\n\n");
-						builder.append(changelog.toString());
+			boolean processed = workspace.processFile(location, module.getProject(), (line, number) -> {
 
-						return Optional.of(builder.toString());
-					} else {
-						return Optional.of(line);
-					}
-				});
+				if (line.startsWith("=")) {
 
-				if (processed) {
+					StringBuilder builder = new StringBuilder();
+					builder.append(line).append("\n\n");
+					builder.append(changelog.toString());
 
-					git.commit(module, "Updated changelog.");
-
-					logger.log(module.getProject(), "Updated changelog %s.", location);
+					return Optional.of(builder.toString());
+				} else {
+					return Optional.of(line);
 				}
+			});
+
+			if (processed) {
+
+				git.commit(module, "Updated changelog.");
+
+				logger.log(module.getProject(), "Updated changelog %s.", location);
 			}
 		}
+	}
+
+	protected Changelog getChangelog(TrainIteration iteration, TrainIteration previousIteration, ModuleIteration module,
+			IssueTracker issueTracker) {
+		Changelog changelog;
+
+		if (COMMIT_BASED_CHANGELOG) {
+
+			List<TicketReference> ticketReferences = git.getTicketReferencesBetween(module.getProject(), previousIteration,
+					iteration);
+			Tickets resolvedTickets = issueTracker.resolve(module, ticketReferences);
+			changelog = Changelog.of(module, resolvedTickets);
+		} else {
+			changelog = issueTracker.getChangelogFor(module);
+		}
+		return changelog;
 	}
 
 	public void updateResources(TrainIteration iteration) throws Exception {

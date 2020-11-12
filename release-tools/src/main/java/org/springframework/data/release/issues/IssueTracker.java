@@ -16,6 +16,7 @@
 package org.springframework.data.release.issues;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
@@ -141,4 +142,15 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @param module must not be {@literal null}.
 	 */
 	void closeIteration(ModuleIteration module);
+
+	/**
+	 * Resolve a {@link List} of {@link TicketReference}s to {@link Tickets} for a given {@link ModuleIteration}. The
+	 * implementation ensures to resolve only references that match the issue tracker scheme this issue tracker is
+	 * responsible for.
+	 *
+	 * @param moduleIteration must not be {@literal null}.
+	 * @param ticketReferences must not be {@literal null}.
+	 * @return
+	 */
+	Tickets resolve(ModuleIteration moduleIteration, List<TicketReference> ticketReferences);
 }

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.release.model;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ import lombok.RequiredArgsConstructor;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@RequiredArgsConstructor
 @EqualsAndHashCode
 public class ModuleIteration implements IterationVersion, ProjectAware {
 

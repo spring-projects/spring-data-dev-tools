@@ -30,7 +30,7 @@ public class Module implements VersionAware, ProjectAware, Comparable<Module> {
 	private final Version version;
 	private final Iteration customFirstIteration;
 
-	Module(Project project, String version) {
+	public Module(Project project, String version) {
 		this(project, version, null);
 	}
 

@@ -61,6 +61,15 @@ public class Ticket {
 	}
 
 	/**
+	 * Returns whether the current {@link Ticket} is the release ticket by checking the summary prefix.
+	 *
+	 * @return
+	 */
+	public boolean isReleaseTicket() {
+		return summary.startsWith(Tracker.RELEASE_PREFIX);
+	}
+
+	/**
 	 * Returns whether the current {@link Ticket} is a release ticket for the given {@link TrainIteration}.
 	 *
 	 * @param train must not be {@literal null}.

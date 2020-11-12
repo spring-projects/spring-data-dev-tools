@@ -31,6 +31,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.issues.jira.JiraIssue.Fields;
 import org.springframework.data.release.issues.jira.JiraIssue.Resolution;
@@ -571,6 +572,30 @@ class Jira implements JiraConnector {
 	@Override
 	public boolean supports(Project project) {
 		return project.uses(Tracker.JIRA);
+	}
+
+	@Override
+	public Tickets resolve(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
+
+		List<String> ids = ticketReferences.stream()
+				.filter(it -> it.getId().startsWith(moduleIteration.getProjectKey().getKey())).map(TicketReference::getId)
+				.collect(Collectors.toList());
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("jql", JqlQuery.from(ids));
+		parameters.put("fields", "summary,status,resolution,fixVersions");
+		parameters.put("startAt", 0);
+
+		logger.log(moduleIteration, "Resolving JIRA issues…");
+
+		JiraIssues issues = operations.getForObject(SEARCH_TEMPLATE, JiraIssues.class, parameters);
+		Tickets tickets = issues.stream().map(this::toTicket).filter(it -> {
+			return it.isReleaseTicketFor(moduleIteration) || !it.isReleaseTicket();
+		}).collect(Tickets.toTicketsCollector());
+
+		logger.log(moduleIteration, "Resolved %s tickets.", tickets.getOverallTotal());
+
+		return tickets;
 	}
 
 	protected JiraComponents getJiraComponents(ProjectKey projectKey) {

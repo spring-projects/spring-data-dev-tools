@@ -30,9 +30,12 @@ public enum Tracker {
 	JIRA("(([A-Z]{1,10})+-\\d+)"), //
 	GITHUB("((#)?\\d+)");
 
+	public static final String RELEASE_PREFIX = "Release ";
+
 	private final String ticketPattern;
 
 	public static String releaseTicketSummary(ModuleIteration moduleIteration) {
-		return "Release " + moduleIteration.getMediumVersionString();
+		return RELEASE_PREFIX + moduleIteration.getMediumVersionString();
 	}
+
 }

@@ -63,6 +63,8 @@ public class Iteration implements Comparable<Iteration> {
 	public static final Iteration RC3 = new Iteration("RC3", GA);
 	public static final Iteration RC2 = new Iteration("RC2", GA);
 	public static final Iteration RC1 = new Iteration("RC1", RC2);
+	public static final Iteration M7 = new Iteration("M7", RC1);
+	public static final Iteration M6 = new Iteration("M6", RC1);
 	public static final Iteration M5 = new Iteration("M5", RC1);
 	public static final Iteration M4 = new Iteration("M4", RC1);
 	public static final Iteration M3 = new Iteration("M3", RC1);
