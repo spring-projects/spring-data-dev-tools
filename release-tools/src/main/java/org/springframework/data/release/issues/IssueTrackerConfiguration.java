@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.issues;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 import org.apache.http.HttpHost;
@@ -40,6 +42,9 @@ import org.springframework.data.release.issues.github.GitHubProperties;
 import org.springframework.data.release.issues.jira.JiraProperties;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.utils.HttpBasicCredentials;
+import org.springframework.data.util.Lazy;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -60,7 +65,7 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableCaching(proxyTargetClass = true)
 class IssueTrackerConfiguration {
 
@@ -93,9 +98,17 @@ class IssueTrackerConfiguration {
 		addPreemptiveAuth(credsProvider, authCache, jiraProperties.getApiUrl(), jiraProperties.getCredentials());
 		addPreemptiveAuth(credsProvider, authCache, gitHubProperties.getApiUrl(), gitHubProperties.getHttpCredentials());
 
-		CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credsProvider).build();
+		Lazy<CloseableHttpClient> lazy = Lazy
+				.of(() -> HttpClientBuilder.create().setDefaultCredentialsProvider(credsProvider).build());
 
-		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory() {
+			@Override
+			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+				setHttpClient(lazy.get());
+				return super.createRequest(uri, httpMethod);
+			}
+		};
+
 		factory.setHttpContextFactory((httpMethod, uri) -> {
 			HttpClientContext context = HttpClientContext.create();
 			context.setAuthCache(authCache);
@@ -107,13 +120,13 @@ class IssueTrackerConfiguration {
 
 	@Bean
 	@Qualifier("tracker")
-	RestTemplateBuilder restTemplate(ClientHttpRequestFactory clientHttpRequestFactory) {
+	RestTemplateBuilder restTemplate(ClientHttpRequestFactory clientHttpRequestFactory,
+			ObjectMapper jacksonObjectMapper) {
 
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setObjectMapper(jacksonObjectMapper());
+		converter.setObjectMapper(jacksonObjectMapper);
 
-		return new RestTemplateBuilder().messageConverters(converter)
-				.requestFactory(() -> clientHttpRequestFactory);
+		return new RestTemplateBuilder().messageConverters(converter).requestFactory(() -> clientHttpRequestFactory);
 	}
 
 	@Bean

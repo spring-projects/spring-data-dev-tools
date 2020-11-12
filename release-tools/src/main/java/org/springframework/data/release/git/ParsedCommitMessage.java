@@ -27,8 +27,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.data.release.issues.TicketReference;
+import org.springframework.lang.Nullable;
 
 /**
+ * Value object representing a parsed commit message. The {@link #parse(String)} method inspects a commit message to
+ * extract a {@link TicketReference}, related tickets, a pull request reference and summary/body from the commit. Commit
+ * messages may used {@code &lt;ticket&gt; - summary} syntax for Jira and GitHub tickets (gh- and # notation). This
+ * parser also supports {@code Original pull request}, {@code Related ticket} and GitHub close keywords.
+ *
  * @author Mark Paluch
  */
 @Getter
@@ -54,38 +60,103 @@ class ParsedCommitMessage {
 			"Related (?>tickets|ticket):(?>\\s+)?((" + A_TICKET.pattern() + "(?>[\\s,]*))+)", Pattern.CASE_INSENSITIVE);
 
 	private final String summary;
-	private final String body;
+	private final @Nullable String body;
 
 	private final TicketReference ticketReference;
 	private final TicketReference pullRequestReference;
 	private final List<TicketReference> relatedTickets;
 
-	private ParsedCommitMessage(String summary, String body, TicketReference ticketReference,
-			TicketReference pullRequestReference, List<TicketReference> relatedTickets) {
+	private ParsedCommitMessage(String summary, @Nullable String body) {
+
 		this.summary = summary;
 		this.body = body;
+
+		TicketReference ticketReference = null;
+		TicketReference pullRequestReference = null;
+
+		// DATACASS-nnn - syntax
+		Optional<TicketReference> jiraTicket = tryParseJiraTicketReference(summary);
+
+		if (jiraTicket.isPresent()) {
+			ticketReference = jiraTicket.get();
+		}
+
+		// Closes (gh-nnn|#nnn) syntax
+		Matcher gitHubMatcher = GITHUB_CLOSE_SYNTAX.matcher(summary + "\n" + body);
+
+		// #nnn syntax
+		Optional<TicketReference> gitHubTicket = tryParseGitHubTicketReference(summary);
+
+		if (gitHubTicket.isPresent()) {
+			ticketReference = gitHubTicket.get();
+		} else {
+			if (gitHubMatcher.find()) {
+				ticketReference = new TicketReference(gitHubMatcher.group(1), summary, TicketReference.Style.GitHub);
+			}
+		}
+
+		List<TicketReference> relatedTickets = parseRelatedTickets(body, gitHubMatcher);
+		Optional<TicketReference> optionalOriginalPr = parsePullRequestReference(body);
+
+		if (optionalOriginalPr.isPresent()) {
+
+			pullRequestReference = optionalOriginalPr.get();
+
+			if (ticketReference == null) {
+				ticketReference = pullRequestReference;
+				pullRequestReference = null;
+			}
+		}
+
 		this.ticketReference = ticketReference;
 		this.pullRequestReference = pullRequestReference;
 		this.relatedTickets = relatedTickets;
 	}
 
+	/**
+	 * Parse a commit message into {@link ParsedCommitMessage}.
+	 *
+	 * @param message
+	 * @return
+	 */
 	public static ParsedCommitMessage parse(String message) {
 
 		int lineBreak = message.indexOf('\n');
 
-		String summary = null;
-		String body = null;
-		TicketReference ticketReference = null;
-		TicketReference pullRequestReference = null;
+		String summary;
+		String body;
 
 		if (lineBreak > -1) {
 			summary = message.substring(0, lineBreak).trim();
 			body = message.substring(lineBreak + 1).trim();
 		} else {
 			summary = message.trim();
+			body = null;
 		}
 
-		// DATACASS-nnn - syntax
+		return new ParsedCommitMessage(summary, body);
+	}
+
+	protected static Optional<TicketReference> tryParseGitHubTicketReference(String summary) {
+
+		Matcher gitHubPrefixMatcher = GITHUB_PREFIX_SYNTAX.matcher(summary);
+
+		if (gitHubPrefixMatcher.find()) {
+
+			MatchResult mr = gitHubPrefixMatcher.toMatchResult();
+			if (mr.start(1) == 0) {
+				int summaryStart = findSummaryIndex(summary, mr.end(1));
+
+				return Optional.of(new TicketReference(gitHubPrefixMatcher.group(1).toUpperCase(Locale.ROOT),
+						summaryStart > -1 ? summary.substring(summaryStart) : summary, TicketReference.Style.GitHub));
+			}
+		}
+
+		return Optional.empty();
+	}
+
+	protected static Optional<TicketReference> tryParseJiraTicketReference(String summary) {
+
 		Matcher jiraMatcher = JIRA_TICKET.matcher(summary);
 
 		if (jiraMatcher.find()) {
@@ -96,32 +167,29 @@ class ParsedCommitMessage {
 			if (mr.start(1) < 2) {
 				int summaryStart = findSummaryIndex(summary, mr.end(1));
 
-				ticketReference = new TicketReference(jiraMatcher.group(1).toUpperCase(Locale.ROOT),
-						summaryStart > -1 ? summary.substring(summaryStart) : summary, TicketReference.Style.Jira);
+				return Optional.of(new TicketReference(jiraMatcher.group(1).toUpperCase(Locale.ROOT),
+						summaryStart > -1 ? summary.substring(summaryStart) : summary, TicketReference.Style.Jira));
 			}
 		}
 
-		// Closes (gh-nnn|#nnn) syntax
-		Matcher gitHubMatcher = GITHUB_CLOSE_SYNTAX.matcher(message);
+		return Optional.empty();
+	}
 
-		// #nnn syntax
-		Matcher gitHubPrefixMatcher = GITHUB_PREFIX_SYNTAX.matcher(summary);
+	protected static Optional<TicketReference> parsePullRequestReference(String body) {
 
-		if (gitHubPrefixMatcher.find()) {
+		if (body != null) {
 
-			MatchResult mr = gitHubPrefixMatcher.toMatchResult();
-			if (mr.start(1) == 0) {
-				int summaryStart = findSummaryIndex(summary, mr.end(1));
+			Matcher prMatcher = ORIGINAL_PULL_REQUEST.matcher(body);
 
-				ticketReference = new TicketReference(gitHubPrefixMatcher.group(1).toUpperCase(Locale.ROOT),
-						summaryStart > -1 ? summary.substring(summaryStart) : summary, TicketReference.Style.GitHub);
-			}
-
-		} else {
-			if (gitHubMatcher.find()) {
-				ticketReference = new TicketReference(gitHubMatcher.group(1), summary, TicketReference.Style.GitHub);
+			if (prMatcher.find()) {
+				return extractTicket(prMatcher.group(1));
 			}
 		}
+
+		return Optional.empty();
+	}
+
+	protected static List<TicketReference> parseRelatedTickets(String body, Matcher gitHubMatcher) {
 
 		List<TicketReference> relatedTickets = new ArrayList<>();
 		if (body != null) {
@@ -141,26 +209,7 @@ class ParsedCommitMessage {
 			}
 		}
 
-		if (body != null) {
-
-			Matcher prMatcher = ORIGINAL_PULL_REQUEST.matcher(body);
-
-			if (prMatcher.find()) {
-
-				Optional<TicketReference> pullRequest = extractTicket(prMatcher.group(1));
-
-				if (pullRequest.isPresent()) {
-					pullRequestReference = pullRequest.get();
-				}
-
-				if (ticketReference == null && pullRequestReference != null) {
-					ticketReference = pullRequestReference;
-					pullRequestReference = null;
-				}
-			}
-		}
-
-		return new ParsedCommitMessage(summary, body, ticketReference, pullRequestReference, relatedTickets);
+		return relatedTickets;
 	}
 
 	protected static Optional<TicketReference> extractTicket(String ticketId) {

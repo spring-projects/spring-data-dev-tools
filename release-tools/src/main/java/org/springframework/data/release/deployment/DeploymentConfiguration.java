@@ -33,17 +33,17 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Configuration to set up deployment components.
- * 
+ *
  * @author Oliver Gierke
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 class DeploymentConfiguration {
 
 	@Autowired DeploymentProperties properties;
 
 	@Bean
-	public ArtifactoryClient client(Logger logger) {
-		return new ArtifactoryClient(artifactoryRestTemplate(), logger, properties);
+	public ArtifactoryClient client(Logger logger, RestTemplate artifactoryRestTemplate) {
+		return new ArtifactoryClient(artifactoryRestTemplate, logger, properties);
 	}
 
 	@Bean
@@ -60,7 +60,7 @@ class DeploymentConfiguration {
 
 		private final @NonNull DeploymentProperties properties;
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.http.client.ClientHttpRequestInterceptor#intercept(org.springframework.http.HttpRequest, byte[], org.springframework.http.client.ClientHttpRequestExecution)
 		 */

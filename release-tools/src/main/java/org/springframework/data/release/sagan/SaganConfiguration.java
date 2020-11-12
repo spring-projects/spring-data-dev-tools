@@ -22,6 +22,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.release.git.GitOperations;
+import org.springframework.data.release.git.GitProperties;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,26 +32,24 @@ import org.springframework.web.client.RestTemplate;
  * @author Oliver Gierke
  * @author Mark Paluch
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 class SaganConfiguration {
 
+	@Autowired GitProperties gitProperties;
 	@Autowired SaganProperties properties;
 	@Autowired Logger logger;
 
 	@Bean
-	public SaganOperations saganOperations(GitOperations operations, Executor executor) {
-		return new SaganOperations(operations, executor, saganClient(), logger);
+	public SaganOperations saganOperations(GitOperations operations, SaganClient saganClient, Executor executor) {
+		return new SaganOperations(operations, executor, saganClient, logger);
 	}
 
 	@Bean
 	SaganClient saganClient() {
 
-		return new DefaultSaganClient(saganRestTemplate(), properties, logger);
-		// return new DummySaganClient(logger, new ObjectMapper().writerWithDefaultPrettyPrinter());
-	}
+		RestTemplate restTemplate = new RestTemplateBuilder()
+				.basicAuthentication(gitProperties.getUsername(), properties.key).build();
 
-	@Bean
-	RestTemplate saganRestTemplate() {
-		return new RestTemplateBuilder().basicAuthentication("mp911de", properties.key).build();
+		return new DefaultSaganClient(restTemplate, properties, logger);
 	}
 }

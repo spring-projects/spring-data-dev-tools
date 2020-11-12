@@ -18,19 +18,14 @@ package org.springframework.data.release.build;
 import lombok.NonNull;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -66,12 +61,7 @@ class BuildExecutor {
 
 		this.buildSystems = buildSystems;
 		this.mavenProperties = mavenProperties;
-
-		if (this.mavenProperties.isParallelize()) {
-			this.executor = buildExecutor;
-		} else {
-			this.executor = ImmediateExecutorService.INSTANCE;
-		}
+		this.executor = buildExecutor;
 	}
 
 	@PreDestroy
@@ -267,84 +257,6 @@ class BuildExecutor {
 
 		public BuildFailed(Summary<?> summary) {
 			super(summary.toString());
-		}
-	}
-
-	enum ImmediateExecutorService implements ExecutorService {
-		INSTANCE;
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public List<Runnable> shutdownNow() {
-			return Collections.emptyList();
-		}
-
-		@Override
-		public boolean isShutdown() {
-			return false;
-		}
-
-		@Override
-		public boolean isTerminated() {
-			return false;
-		}
-
-		@Override
-		public boolean awaitTermination(long timeout, TimeUnit unit) {
-			return false;
-		}
-
-		@Override
-		public <T> Future<T> submit(Callable<T> task) {
-			try {
-				return CompletableFuture.completedFuture(task.call());
-			} catch (Exception e) {
-				CompletableFuture<T> f = new CompletableFuture<>();
-				f.completeExceptionally(e);
-				return f;
-			}
-		}
-
-		@Override
-		public <T> Future<T> submit(Runnable task, T result) {
-			return submit(() -> {
-				task.run();
-				return result;
-			});
-		}
-
-		@Override
-		public Future<?> submit(Runnable task) {
-			return submit(task, null);
-		}
-
-		@Override
-		public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public <T> T invokeAny(Collection<? extends Callable<T>> tasks) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public void execute(Runnable command) {
-			submit(command);
 		}
 	}
 

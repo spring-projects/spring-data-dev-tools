@@ -17,6 +17,7 @@ package org.springframework.data.release.misc;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.IssueTracker;
+import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.Iteration;
@@ -84,6 +86,7 @@ public class ReleaseOperations {
 	}
 
 	protected void prepareChangelog(TrainIteration iteration, TrainIteration previousIteration, ModuleIteration module) {
+
 		IssueTracker issueTracker = trackers.getRequiredPluginFor(module.getProject(),
 				() -> String.format("No issue tracker found for project %s!", module.getProject()));
 
@@ -116,14 +119,22 @@ public class ReleaseOperations {
 
 	protected Changelog getChangelog(TrainIteration iteration, TrainIteration previousIteration, ModuleIteration module,
 			IssueTracker issueTracker) {
+
 		Changelog changelog;
 
 		if (COMMIT_BASED_CHANGELOG) {
 
 			List<TicketReference> ticketReferences = git.getTicketReferencesBetween(module.getProject(), previousIteration,
 					iteration);
-			Tickets resolvedTickets = issueTracker.resolve(module, ticketReferences);
-			changelog = Changelog.of(module, resolvedTickets);
+
+			// TODO: Remove once all tickets are migrated to GitHub
+			List<Ticket> tickets = new ArrayList<>();
+
+			for (IssueTracker tracker : trackers) {
+				tickets.addAll(tracker.resolve(module, ticketReferences).getTickets());
+			}
+
+			changelog = Changelog.of(module, new Tickets(tickets));
 		} else {
 			changelog = issueTracker.getChangelogFor(module);
 		}

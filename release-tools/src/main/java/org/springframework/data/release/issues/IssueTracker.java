@@ -137,6 +137,18 @@ public interface IssueTracker extends Plugin<Project> {
 	Changelog getChangelogFor(ModuleIteration module);
 
 	/**
+	 * Returns the {@link Changelog} for the given {@link ModuleIteration} using {@link TicketReference}s.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @return
+	 */
+	default Changelog getChangelogFor(ModuleIteration module, List<TicketReference> ticketReferences) {
+
+		Tickets tickets = resolve(module, ticketReferences);
+		return Changelog.of(module, tickets);
+	}
+
+	/**
 	 * Closes the given {@link ModuleIteration}.
 	 *
 	 * @param module must not be {@literal null}.

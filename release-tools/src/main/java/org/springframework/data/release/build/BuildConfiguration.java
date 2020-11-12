@@ -30,10 +30,10 @@ import org.xmlbeam.config.DefaultXMLFactoriesConfig.NamespacePhilosophy;
 
 /**
  * Spring configuration for build related components.
- * 
+ *
  * @author Oliver Gierke
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 class BuildConfiguration {
 
 	@Bean

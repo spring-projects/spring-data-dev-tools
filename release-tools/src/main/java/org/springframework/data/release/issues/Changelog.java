@@ -63,9 +63,6 @@ public class Changelog {
 
 			builder.append("* ").append(ticket.getId()).append(" - ").append(summary != null ? summary.trim() : "");
 
-			if (summary == null) {
-				System.out.println();
-			}
 			if (!summary.endsWith(".")) {
 				builder.append(".");
 			}
