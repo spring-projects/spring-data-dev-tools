@@ -56,7 +56,7 @@ class ReleaseOperationsIntegrationTests extends AbstractIntegrationTests {
 		List<TicketReference> ticketReferences = gitOperations.getTicketReferencesBetween(Projects.MONGO_DB, from, to);
 		IssueTracker tracker = trackers.getRequiredPluginFor(Projects.MONGO_DB);
 
-		Tickets tickets = tracker.resolve(to.getModule(Projects.MONGO_DB), ticketReferences);
+		Tickets tickets = tracker.findTickets(to.getModule(Projects.MONGO_DB), ticketReferences);
 
 		assertThat(tickets).hasSize(15);
 	}
@@ -70,7 +70,7 @@ class ReleaseOperationsIntegrationTests extends AbstractIntegrationTests {
 		List<TicketReference> ticketReferences = gitOperations.getTicketReferencesBetween(Projects.R2DBC, from, to);
 		IssueTracker tracker = trackers.getRequiredPluginFor(Projects.R2DBC);
 
-		Tickets tickets = tracker.resolve(to.getModule(Projects.R2DBC), ticketReferences);
+		Tickets tickets = tracker.findTickets(to.getModule(Projects.R2DBC), ticketReferences);
 
 		assertThat(tickets).hasSize(22);
 	}

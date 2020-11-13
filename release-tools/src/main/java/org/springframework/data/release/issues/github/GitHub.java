@@ -320,18 +320,23 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		Assert.notNull(module, "ModuleIteration must not be null.");
 
 		Ticket releaseTicketFor = getReleaseTicketFor(module);
+		GitHubIssue response = close(module, releaseTicketFor);
+
+		return toTicket(response);
+	}
+
+	private GitHubIssue close(ModuleIteration module, Ticket ticket) {
+
 		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
-		parameters.put("id", stripHash(releaseTicketFor));
+		parameters.put("id", stripHash(ticket));
 
 		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername()).close();
 
-		GitHubIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
+		return operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
 				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
-
-		return toTicket(response);
 	}
 
 	private String stripHash(Ticket ticket) {
@@ -424,7 +429,12 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	}
 
 	@Override
-	public Tickets resolve(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
+	public void closeTicket(ModuleIteration module, Ticket ticket) {
+		close(module, ticket);
+	}
+
+	@Override
+	public Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
 
 		logger.log(moduleIteration, "Looking up GitHub issues from milestone …");
 

@@ -48,6 +48,9 @@ public interface Pom {
 	@XBWrite("/project/properties/{0}")
 	void setProperty(String property, @XBValue ArtifactVersion value);
 
+	@XBWrite("/project/properties/{0}")
+	void setProperty(String property, @XBValue String value);
+
 	@XBWrite("/project/repositories/repository[id=\"{0}\"]/id")
 	void setRepositoryId(String oldId, @XBValue String newId);
 
@@ -56,12 +59,15 @@ public interface Pom {
 
 	/**
 	 * Sets the version of the dependency with the given artifact identifier to the given {@link ArtifactVersion}.
-	 * 
+	 *
 	 * @param artifactId
 	 * @param version
 	 */
 	@XBWrite("/project/dependencies/dependency[artifactId=\"{0}\"]/version")
 	Pom setDependencyVersion(String artifactId, @XBValue ArtifactVersion version);
+
+	@XBRead("/project/dependencies/dependency[artifactId=\"{0}\"]/version")
+	String getDependencyVersion(String artifactId);
 
 	@XBWrite("/project/dependencyManagement/dependencies/dependency[artifactId=\"{0}\"]/version")
 	Pom setDependencyManagementVersion(String artifactId, @XBValue ArtifactVersion version);

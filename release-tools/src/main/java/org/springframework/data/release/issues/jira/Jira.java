@@ -543,6 +543,11 @@ class Jira implements JiraConnector {
 		// - if no next version exists, create
 	}
 
+	@Override
+	public void closeTicket(ModuleIteration module, Ticket ticket) {
+		resolve(ticket);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.release.jira.JiraConnector#getChangelogFor(org.springframework.data.release.model.Module, org.springframework.data.release.model.Iteration)
@@ -575,7 +580,7 @@ class Jira implements JiraConnector {
 	}
 
 	@Override
-	public Tickets resolve(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
+	public Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
 
 		List<String> ids = ticketReferences.stream()
 				.filter(it -> it.getId().startsWith(moduleIteration.getProjectKey().getKey())).map(TicketReference::getId)

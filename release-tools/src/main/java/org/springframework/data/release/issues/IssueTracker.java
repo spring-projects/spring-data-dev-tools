@@ -144,7 +144,7 @@ public interface IssueTracker extends Plugin<Project> {
 	 */
 	default Changelog getChangelogFor(ModuleIteration module, List<TicketReference> ticketReferences) {
 
-		Tickets tickets = resolve(module, ticketReferences);
+		Tickets tickets = findTickets(module, ticketReferences);
 		return Changelog.of(module, tickets);
 	}
 
@@ -156,6 +156,14 @@ public interface IssueTracker extends Plugin<Project> {
 	void closeIteration(ModuleIteration module);
 
 	/**
+	 * Resolve a {@link Ticket}.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @param ticket must not be {@literal null}.
+	 */
+	void closeTicket(ModuleIteration module, Ticket ticket);
+
+	/**
 	 * Resolve a {@link List} of {@link TicketReference}s to {@link Tickets} for a given {@link ModuleIteration}. The
 	 * implementation ensures to resolve only references that match the issue tracker scheme this issue tracker is
 	 * responsible for.
@@ -164,5 +172,5 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @param ticketReferences must not be {@literal null}.
 	 * @return
 	 */
-	Tickets resolve(ModuleIteration moduleIteration, List<TicketReference> ticketReferences);
+	Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences);
 }

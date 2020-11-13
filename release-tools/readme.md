@@ -83,3 +83,16 @@ $ tracker archive $trainIteration.previous
 $ github update labels $project
 ```
 
+#### Dependency Upgrade
+
+`ProjectDependencies` contains a per-project configuration of dependencies.
+
+Workflow:
+
+* Check for dependency upgrades `$ dependency check $trainIteration`
+
+Reports upgradable dependencies for Build and Modules and creates `dependency-upgrade-build.properties` file. 
+Edit `dependency-upgrade-build.properties` to specify the dependency version to upgrade. Removing a line will omit that dependency upgrade.
+
+* Apply dependency upgrade with `$ dependency upgrade $trainIteration`. Applies dependency upgrades currently only to Spring Data Build.
+* Report store-specific dependencies to Spring Boot's current upgrade ticket ([sample](https://github.com/spring-projects/spring-boot/issues/24036)) `$ dependency report $trainIteration`

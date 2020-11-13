@@ -233,28 +233,29 @@ public class GitOperations {
 	}
 
 	public void push(TrainIteration iteration) {
+		ExecutionUtils.run(executor, iteration, this::push);
+	}
 
-		ExecutionUtils.run(executor, iteration, module -> {
+	public void push(ModuleIteration module) {
 
-			Branch branch = Branch.from(module);
-			logger.log(module, "git push origin %s", branch);
+		Branch branch = Branch.from(module);
+		logger.log(module, "git push origin %s", branch);
 
-			if (!branchExists(module.getProject(), branch)) {
+		if (!branchExists(module.getProject(), branch)) {
 
-				logger.log(module, "No branch %s in %s, skip push", branch, module.getProject().getName());
-				return;
-			}
+			logger.log(module, "No branch %s in %s, skip push", branch, module.getProject().getName());
+			return;
+		}
 
-			doWithGit(module.getProject(), git -> {
+		doWithGit(module.getProject(), git -> {
 
-				Ref ref = git.getRepository().findRef(branch.toString());
+			Ref ref = git.getRepository().findRef(branch.toString());
 
-				git.push()//
-						.setRemote("origin")//
-						.setRefSpecs(new RefSpec(ref.getName()))//
-						.setCredentialsProvider(gitProperties.getCredentials())//
-						.call();
-			});
+			git.push()//
+					.setRemote("origin")//
+					.setRefSpecs(new RefSpec(ref.getName()))//
+					.setCredentialsProvider(gitProperties.getCredentials())//
+					.call();
 		});
 	}
 
@@ -620,6 +621,26 @@ public class GitOperations {
 		IssueTracker tracker = issueTracker.getRequiredPluginFor(project,
 				() -> String.format("No issue tracker found for project %s!", project));
 		Ticket ticket = tracker.getReleaseTicketFor(module);
+
+		commit(module, ticket, summary, details, files);
+	}
+
+	/**
+	 * Commits the given files for the given {@link ModuleIteration} using the given summary and details for the commit
+	 * message. If no files are given, all pending changes are committed.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
+	 * @param details can be {@literal null} or empty.
+	 * @param files can be empty.
+	 * @throws Exception
+	 */
+	public void commit(ModuleIteration module, Ticket ticket, String summary, Optional<String> details, File... files) {
+
+		Assert.notNull(module, "Module iteration must not be null!");
+		Assert.hasText(summary, "Summary must not be null or empty!");
+
+		Project project = module.getProject();
 
 		Commit commit = new Commit(ticket, summary, details);
 		String author = gitProperties.getAuthor();

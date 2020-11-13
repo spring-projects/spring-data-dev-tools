@@ -131,7 +131,7 @@ public class ReleaseOperations {
 			List<Ticket> tickets = new ArrayList<>();
 
 			for (IssueTracker tracker : trackers) {
-				tickets.addAll(tracker.resolve(module, ticketReferences).getTickets());
+				tickets.addAll(tracker.findTickets(module, ticketReferences).getTickets());
 			}
 
 			changelog = Changelog.of(module, new Tickets(tickets));
