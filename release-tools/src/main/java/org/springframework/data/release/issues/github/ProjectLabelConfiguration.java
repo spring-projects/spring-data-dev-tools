@@ -55,7 +55,6 @@ public class ProjectLabelConfiguration {
 		labelConfigurations.put(Projects.CASSANDRA, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
 			config.register(LabelFactories.IN_LABEL, "core", "Issues in core support");
-			config.register(LabelFactories.IN_LABEL, "map", "");
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
 			config.register(LabelFactories.IN_LABEL, "kotlin", "Kotlin support");
 		}));
@@ -78,21 +77,19 @@ public class ProjectLabelConfiguration {
 		labelConfigurations.put(Projects.GEODE, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
 			config.register(LabelFactories.IN_LABEL, "core", "Issues in core support");
-			config.register(LabelFactories.IN_LABEL, "map", "");
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
 		}));
 
 		labelConfigurations.put(Projects.GEMFIRE, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
 			config.register(LabelFactories.IN_LABEL, "core", "Issues in core support");
-			config.register(LabelFactories.IN_LABEL, "map", "");
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
 		}));
 
 		labelConfigurations.put(Projects.JDBC, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
-			config.register(LabelFactories.IN_LABEL, "statement-builder", "");
-			config.register(LabelFactories.IN_LABEL, "relational", "");
+			config.register(LabelFactories.IN_LABEL, "statement-builder", "SQL Statement builder API");
+			config.register(LabelFactories.IN_LABEL, "relational", "Relational module");
 		}));
 
 		labelConfigurations.put(Projects.JPA, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
@@ -105,7 +102,7 @@ public class ProjectLabelConfiguration {
 		labelConfigurations.put(Projects.KEY_VALUE, commonLabels.mergeWith(config -> {
 
 			config.register(LabelFactories.IN_LABEL, "core", "Issues in core support");
-			config.register(LabelFactories.IN_LABEL, "map", "");
+			config.register(LabelFactories.IN_LABEL, "map", "Map repositories/Map adapter");
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
 		}));
 
@@ -120,7 +117,7 @@ public class ProjectLabelConfiguration {
 		labelConfigurations.put(Projects.MONGO_DB, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
 			config.register(LabelFactories.IN_LABEL, "aggregation-framework", "Aggregation framework support");
-			config.register(LabelFactories.IN_LABEL, "gridfs", "");
+			config.register(LabelFactories.IN_LABEL, "gridfs", "GridFS support");
 			config.register(LabelFactories.IN_LABEL, "kotlin", "Kotlin support");
 		}));
 
