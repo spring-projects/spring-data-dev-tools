@@ -112,7 +112,10 @@ public class ProjectLabelConfiguration {
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
 		}));
 
-		labelConfigurations.put(Projects.NEO4J, commonLabels.mergeWith(coreMappingRepository));
+		labelConfigurations.put(Projects.NEO4J, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
+
+			config.register(LabelFactories.IN_LABEL, "ogm", "Object Graph Mapping (Legacy)");
+		}));
 
 		labelConfigurations.put(Projects.MONGO_DB, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
@@ -128,7 +131,6 @@ public class ProjectLabelConfiguration {
 			config.register(LabelFactories.IN_LABEL, "api-documentation", "");
 			config.register(LabelFactories.IN_LABEL, "content-negotiation", "");
 			config.register(LabelFactories.IN_LABEL, "query-parser", "Everything related to parsing JPQL or SQL");
-			config.register(LabelFactories.IN_LABEL, "querydsl", "Querydsl integration");
 		}));
 
 		labelConfigurations.put(Projects.REDIS, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
