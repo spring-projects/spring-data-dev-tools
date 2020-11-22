@@ -48,6 +48,8 @@ $ release build $trainIteration
 $ release conclude $trainIteration
 $ git push $trainIteration
 $ git push $trainIteration --tags
+# After GitHub issues migration:
+# github push $trainIteration
 $ git backport changelog $trainIteration --target $targets
 $ foreach $target -> git push $target
 ```

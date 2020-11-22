@@ -34,12 +34,17 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.release.git.GitProject;
+import org.springframework.data.release.git.Tag;
+import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.issues.github.GitHubIssue.Milestone;
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.DocumentationMetadata;
+import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Tracker;
@@ -69,6 +74,9 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	private static final String MILESTONE_BY_ID_URI_TEMPLATE = "/repos/spring-projects/{repoName}/milestones/{id}";
 	private static final String ISSUE_BY_ID_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues/{id}";
 	private static final String ISSUES_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues";
+	private static final String RELEASE_BY_TAG_URI_TEMPLATE = "/repos/spring-projects/{repoName}/releases/tags/{tag}";
+	private static final String RELEASE_URI_TEMPLATE = "/repos/spring-projects/{repoName}/releases";
+	private static final String RELEASE_BY_ID_URI_TEMPLATE = "/repos/spring-projects/{repoName}/releases/{id}";
 
 	private static final ParameterizedTypeReference<List<Milestone>> MILESTONES_TYPE = new ParameterizedTypeReference<List<Milestone>>() {};
 	private static final ParameterizedTypeReference<List<GitHubIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubIssue>>() {};
@@ -436,6 +444,12 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	@Override
 	public Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
 
+		return findGitHubIssues(moduleIteration, ticketReferences).stream().map(GitHub::toTicket)
+				.collect(Tickets.toTicketsCollector());
+	}
+
+	List<GitHubIssue> findGitHubIssues(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
+
 		logger.log(moduleIteration, "Looking up GitHub issues from milestone …");
 
 		Map<String, GitHubIssue> issues = getIssuesFor(moduleIteration, false, true)
@@ -448,13 +462,14 @@ class GitHub extends GitHubSupport implements IssueTracker {
 				Streamable.of(() -> ticketReferences.stream().filter(it -> it.getId().startsWith("#"))),
 				ticketReference -> getTicket(issues, repositoryName, ticketReference));
 
-		Tickets tickets = foundIssues.stream().map(GitHub::toTicket)
-				.filter(it -> it.isReleaseTicketFor(moduleIteration) || !it.isReleaseTicket())
-				.collect(Tickets.toTicketsCollector());
+		List<GitHubIssue> gitHubIssues = foundIssues.stream().filter(it -> {
+			Ticket ticket = toTicket(it);
+			return !ticket.isReleaseTicketFor(moduleIteration) && !ticket.isReleaseTicket();
+		}).collect(Collectors.toList());
 
-		logger.log(moduleIteration, "Resolved %s tickets.", tickets.getOverallTotal());
+		logger.log(moduleIteration, "Resolved %s tickets.", gitHubIssues.size());
 
-		return tickets;
+		return gitHubIssues;
 	}
 
 	private GitHubIssue getTicket(Map<String, GitHubIssue> cache, String repositoryName, TicketReference reference) {
@@ -486,10 +501,8 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		try {
 
-			GitHubIssue gitHubIssue = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.GET,
+			return operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.GET,
 					new HttpEntity<>(new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
-
-			return gitHubIssue;
 
 		} catch (HttpStatusCodeException e) {
 
@@ -499,6 +512,100 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 			throw e;
 		}
+	}
+
+	/**
+	 * @param module
+	 * @param ticketReferences
+	 */
+	public void createOrUpdateRelease(ModuleIteration module, List<TicketReference> ticketReferences) {
+
+		logger.log(module, "Preparing GitHub Release …");
+
+		List<GitHubIssue> gitHubIssues = findGitHubIssues(module, ticketReferences);
+
+		ArtifactVersion version = ArtifactVersion.of(module);
+		DocumentationMetadata documentation = DocumentationMetadata.of(module.getProject(), version);
+
+		ChangelogGenerator generator = new ChangelogGenerator();
+		String releaseBody = generator.generate(gitHubIssues, (changelogSection, s) -> s);
+		String documentationLinks = getDocumentationLinks(module, documentation);
+
+		createOrUpdateRelease(module, String.format("## :green_book: Links%n%s%n%s%n", documentationLinks, releaseBody));
+		logger.log(module, "GitHub Release up to date");
+	}
+
+	private String getDocumentationLinks(ModuleIteration module, DocumentationMetadata documentation) {
+
+		String referenceDocUrl = documentation.getReferenceDocUrl(module.getTrain());
+		String apiDocUrl = documentation.getApiDocUrl(module.getTrain());
+
+		String reference = String.format("* [%s %s Reference documentation](%s)", module.getProject().getFullName(),
+				documentation.getVersion(module.getTrain()), referenceDocUrl);
+
+		String apidoc = String.format("* [%s %s Javadoc](%s)", module.getProject().getFullName(),
+				documentation.getVersion(module.getTrain()), apiDocUrl);
+
+		return String.format("%s%n%s%n", reference, apidoc);
+	}
+
+	private void createOrUpdateRelease(ModuleIteration module, String body) {
+
+		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
+		Tag tag = VersionTags.empty(module.getProject()).createTag(module);
+		logger.log(module, "Looking up GitHub Release …");
+
+		Iteration iteration = module.getTrainIteration().getIteration();
+		boolean prerelase = iteration.isPreview();
+		GitHubRelease release = findRelease(repositoryName, tag.getName());
+
+		if (release == null) {
+			release = new GitHubRelease(null, tag.getName(), tag.getName(), body, false, prerelase);
+			logger.log(module, "Creating new Release …");
+			createRelease(repositoryName, release);
+		} else {
+			release = release.withPrerelease(prerelase).withBody(body);
+			logger.log(module, "Updating new Release …");
+			updateRelease(repositoryName, release);
+		}
+	}
+
+	private GitHubRelease findRelease(String repositoryName, String tagName) {
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+		parameters.put("tag", tagName);
+
+		try {
+			return operations.exchange(RELEASE_BY_TAG_URI_TEMPLATE, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()),
+					GitHubRelease.class, parameters).getBody();
+		} catch (HttpStatusCodeException e) {
+
+			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				return null;
+			}
+
+			throw e;
+		}
+	}
+
+	private void createRelease(String repositoryName, GitHubRelease release) {
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+
+		operations.exchange(RELEASE_URI_TEMPLATE, HttpMethod.POST, new HttpEntity<>(release), GitHubRelease.class,
+				parameters);
+	}
+
+	private void updateRelease(String repositoryName, GitHubRelease release) {
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+		parameters.put("id", release.getId());
+
+		operations.exchange(RELEASE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH, new HttpEntity<>(release), GitHubRelease.class,
+				parameters);
 	}
 
 	private Stream<GitHubIssue> getIssuesFor(ModuleIteration moduleIteration, boolean forCurrentUser,
@@ -556,4 +663,5 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	private static Ticket toTicket(GitHubIssue issue) {
 		return new Ticket(issue.getId(), issue.getTitle(), issue.getHtmlUrl(), new GithubTicketStatus(issue.getState()));
 	}
+
 }

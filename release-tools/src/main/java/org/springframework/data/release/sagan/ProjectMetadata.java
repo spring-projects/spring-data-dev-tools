@@ -15,11 +15,7 @@
  */
 package org.springframework.data.release.sagan;
 
-import java.util.Locale;
-
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.model.Train;
+import org.springframework.data.release.model.DocumentationMetadata;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -35,12 +31,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(Include.NON_NULL)
 class ProjectMetadata {
 
-	private static String DOCS_BASE = "https://docs.spring.io/spring-data/%s/docs/{version}";
-	private static String DOCS = DOCS_BASE.concat("/reference/html/");
-	private static String JAVADOC = DOCS_BASE.concat("/api");
-
 	private final MaintainedVersion version;
 	private final MaintainedVersions versions;
+	private final DocumentationMetadata documentation;
 
 	/**
 	 * Creates a new {@link ProjectMetadata} instance from the given {@link MaintainedVersion}.
@@ -54,6 +47,7 @@ class ProjectMetadata {
 
 		this.version = version;
 		this.versions = versions;
+		this.documentation = DocumentationMetadata.of(version.getProject(), version.getVersion());
 	}
 
 	/**
@@ -62,10 +56,7 @@ class ProjectMetadata {
 	 * @return
 	 */
 	public String getReferenceDocUrl() {
-
-		return version.getVersion().isSnapshotVersion() || Projects.BUILD.equals(version.getProject()) //
-				? "" //
-				: String.format(DOCS, version.getProject().getName().toLowerCase(Locale.US));
+		return documentation.getReferenceDocUrl(version.getTrain());
 	}
 
 	/**
@@ -84,10 +75,7 @@ class ProjectMetadata {
 	 * @return
 	 */
 	public String getApiDocUrl() {
-
-		return version.getVersion().isSnapshotVersion() || Projects.BUILD.equals(version.getProject()) //
-				? "" //
-				: String.format(JAVADOC, version.getProject().getName().toLowerCase(Locale.US));
+		return documentation.getApiDocUrl(version.getTrain());
 	}
 
 	/**
@@ -97,26 +85,6 @@ class ProjectMetadata {
 	 * @return
 	 */
 	public String getVersion() {
-
-		ArtifactVersion version = this.version.getVersion();
-
-		if (Projects.BUILD.equals(this.version.getProject())) {
-
-			Train train = this.version.getTrain();
-
-			if (train.usesCalver()) {
-
-				if (version.isBugFixVersion() || version.isReleaseVersion()) {
-					return train.getCalver().toMajorMinorBugfix();
-				}
-
-				return String.format("%s-%s", train.getCalver().toMajorMinorBugfix(), version.getReleaseTrainSuffix());
-			}
-
-			return String.format("%s-%s", train.getName(),
-					version.isReleaseVersion() && !version.isBugFixVersion() ? "RELEASE" : version.getReleaseTrainSuffix());
-		}
-
-		return version.toString();
+		return documentation.getVersion(version.getTrain());
 	}
 }

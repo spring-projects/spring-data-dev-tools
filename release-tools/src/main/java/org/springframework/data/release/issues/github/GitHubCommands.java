@@ -20,17 +20,25 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
+import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.issues.IssueTracker;
+import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Tracker;
+import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 
 /**
+ * Component to execute GitHub related operations.
+ *
  * @author Mark Paluch
  */
 @CliComponent
@@ -39,12 +47,39 @@ import org.springframework.shell.core.annotation.CliOption;
 class GitHubCommands extends TimedCommand {
 
 	@NonNull PluginRegistry<IssueTracker, Project> tracker;
+	@NonNull GitHub gitHub;
+	@NonNull GitOperations git;
 	@NonNull GitHubLabels gitHubLabels;
 	@NonNull Executor executor;
 
 	@CliCommand(value = "github update labels")
 	public void createOrUpdateLabels(@CliOption(key = "", mandatory = true) Project project) {
 		gitHubLabels.createOrUpdateLabels(project);
+	}
+
+	@CliCommand(value = "github push")
+	public void push(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		git.push(iteration);
+		git.pushTags(iteration.getTrain());
+
+		createOrUpdateLabels(iteration);
+	}
+
+	@CliCommand(value = "github create release")
+	public void createOrUpdateLabels(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		TrainIteration previousIteration = git.getPreviousIteration(iteration);
+
+		ExecutionUtils.run(executor, iteration, it -> {
+
+			if (it.getProject().getTracker() == Tracker.GITHUB) {
+
+				List<TicketReference> ticketReferences = git.getTicketReferencesBetween(it.getProject(), previousIteration,
+						iteration);
+				gitHub.createOrUpdateRelease(it, ticketReferences);
+			}
+		});
 	}
 
 }

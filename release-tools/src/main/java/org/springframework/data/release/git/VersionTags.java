@@ -18,6 +18,7 @@ package org.springframework.data.release.git;
 import lombok.EqualsAndHashCode;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -70,12 +71,22 @@ public class VersionTags implements Streamable<Tag> {
 	}
 
 	/**
+	 * Creates an empty {@link VersionTags} object for {@link Project}.
+	 *
+	 * @param project must not be {@literal null}.
+	 * @return
+	 */
+	public static VersionTags empty(Project project) {
+		return new VersionTags(project, Collections.emptyList());
+	}
+
+	/**
 	 * Returns the latest {@link Tag}.
 	 *
 	 * @return
 	 */
 	public Tag getLatest() {
-		return tags.get(tags.size() - 1);
+		return tags.isEmpty() ? null : tags.get(tags.size() - 1);
 	}
 
 	public Tag createTag(ModuleIteration iteration) {
