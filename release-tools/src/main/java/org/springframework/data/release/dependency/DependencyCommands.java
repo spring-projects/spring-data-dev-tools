@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.git.GitOperations;
+import org.springframework.data.release.issues.Tickets;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.TrainIteration;
@@ -84,7 +86,7 @@ public class DependencyCommands extends TimedCommand {
 		Map<Dependency, DependencyVersion> dependencies = new TreeMap<>();
 
 		for (Project project : projects) {
-			dependencies.putAll(operations.getCurrentDependencies(project));
+			operations.getCurrentDependencies(project).forEach(dependencies::put);
 		}
 
 		StringBuilder report = new StringBuilder();
@@ -103,22 +105,28 @@ public class DependencyCommands extends TimedCommand {
 	}
 
 	@CliCommand(value = "dependency upgrade")
-	public void check(@CliOption(key = "", mandatory = true) TrainIteration iteration)
+	public void upgrade(@CliOption(key = "", mandatory = true) TrainIteration iteration)
 			throws IOException, InterruptedException {
 
-		git.checkout(iteration.getTrain());
+		git.checkout(iteration.getTrain(), false);
 		logger.log(iteration, "Applying dependency upgrades to Spring Data Build");
 
-		Properties properties = loadDependencyUpgrades(iteration);
+		ModuleIteration module = iteration.getModule(Projects.BUILD);
 
-		Map<Dependency, DependencyVersion> dependencyUpgrades = DependencyUpgradeProposals.fromProperties(iteration,
-				properties);
+		DependencyVersions dependencyVersions = loadDependencyUpgrades(module);
 
-		operations.createUpgradeTickets(iteration, Projects.BUILD, dependencyUpgrades);
-		operations.upgradeDependencies(iteration, Projects.BUILD, dependencyUpgrades);
+		operations.createUpgradeTickets(module, dependencyVersions);
+		Tickets tickets = operations.upgradeDependencies(module, dependencyVersions);
+
+		git.push(module);
+
+		// Allow GitHub to catch up with ticket notifications.
+		Thread.sleep(1500);
+
+		operations.closeUpgradeTickets(module, tickets);
 	}
 
-	protected Properties loadDependencyUpgrades(@CliOption(key = "", mandatory = true) TrainIteration iteration)
+	private DependencyVersions loadDependencyUpgrades(ModuleIteration iteration)
 			throws IOException {
 
 		if (!Files.exists(Paths.get(BUILD_PROPERTIES))) {
@@ -129,7 +137,8 @@ public class DependencyCommands extends TimedCommand {
 		try (FileInputStream fis = new FileInputStream(BUILD_PROPERTIES)) {
 			properties.load(fis);
 		}
-		return properties;
+
+		return DependencyUpgradeProposals.fromProperties(iteration.getTrainIteration(), properties);
 	}
 
 	private void checkModuleDependencies(TrainIteration iteration, boolean reportAll) throws IOException {

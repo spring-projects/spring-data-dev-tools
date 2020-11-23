@@ -17,7 +17,6 @@ package org.springframework.data.release.dependency;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Map;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
@@ -40,9 +39,10 @@ class DependencyUpgradeProposalsUnitTests {
 		properties.put("dependency.iteration", "M1");
 		properties.put("dependency[org.assertj:assertj-core]", "3.18.1");
 
-		Map<Dependency, DependencyVersion> dependencies = DependencyUpgradeProposals
+		DependencyVersions dependencies = DependencyUpgradeProposals
 				.fromProperties(ReleaseTrains.PASCAL.getIteration(Iteration.M1), properties);
 
-		assertThat(dependencies).hasSize(1).containsEntry(Dependencies.ASSERTJ, DependencyVersion.of("3.18.1"));
+		assertThat(dependencies.getVersions()).hasSize(1).containsEntry(Dependencies.ASSERTJ,
+				DependencyVersion.of("3.18.1"));
 	}
 }

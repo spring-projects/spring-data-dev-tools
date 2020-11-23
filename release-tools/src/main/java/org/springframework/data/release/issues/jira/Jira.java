@@ -351,8 +351,9 @@ class Jira implements JiraConnector {
 	 * @see org.springframework.data.release.jira.JiraConnector#assignTicketToMe(org.springframework.data.release.jira.Ticket)
 	 */
 	@Override
-	public void assignTicketToMe(Ticket ticket) {
+	public Ticket assignTicketToMe(Project project, Ticket ticket) {
 
+		Assert.notNull(project, "Project must not be null.");
 		Assert.notNull(ticket, "Ticket must not be null.");
 
 		HttpHeaders httpHeaders = new HttpHeaders();
@@ -365,7 +366,7 @@ class Jira implements JiraConnector {
 
 		if (currentIssue.isAssignedTo(jiraProperties.getUsername())) {
 			logger.log("Ticket", "Skipping self-assignment of %s", ticket);
-			return;
+			return ticket;
 		}
 
 		JiraIssueUpdate editMeta = JiraIssueUpdate.create().assignTo(jiraProperties.getUsername());
@@ -379,6 +380,8 @@ class Jira implements JiraConnector {
 			logger.warn("Ticket", "Self-assignment of %s failed with status %s (%s)", ticket, e.getStatusCode(),
 					e.getResponseBodyAsString());
 		}
+
+		return ticket;
 	}
 
 	/*
@@ -389,7 +392,7 @@ class Jira implements JiraConnector {
 	public Ticket assignReleaseTicketToMe(ModuleIteration module) {
 
 		Ticket ticket = getReleaseTicketFor(module);
-		assignTicketToMe(ticket);
+		assignTicketToMe(module.getProject(), ticket);
 		return ticket;
 	}
 

@@ -27,6 +27,11 @@ import java.util.regex.Pattern;
 import org.springframework.data.release.model.Version;
 
 /**
+ * Value object representing a dependency version. The primary identifier is {@link #identifier} that corresponds with
+ * the actual version identifier. Version identifiers are attempted to be parsed into either a version following Spring
+ * Version or SemVer rules ({@code 1.2.3.RELEASE}, {@code 1.2.3-rc1}) or train name with counter rules
+ * ({@code Foo-RELEASE}, {@code Foo-SR1}).
+ *
  * @author Mark Paluch
  */
 @Value

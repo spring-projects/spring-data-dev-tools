@@ -39,12 +39,20 @@ public interface IssueTracker extends Plugin<Project> {
 	void reset();
 
 	/**
-	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
+	 * Returns all {@link Tickets} for the given {@link TrainIteration}.
 	 *
 	 * @param iteration must not be {@literal null}.
 	 * @return
 	 */
 	Tickets getTicketsFor(TrainIteration iteration);
+
+	/**
+	 * Returns all {@link Tickets} for the given {@link ModuleIteration}.
+	 *
+	 * @param iteration must not be {@literal null}.
+	 * @return
+	 */
+	Tickets getTicketsFor(ModuleIteration iteration);
 
 	/**
 	 * Returns all {@link Tickets} for the given {@link Train} and {@link Iteration}.
@@ -109,9 +117,10 @@ public interface IssueTracker extends Plugin<Project> {
 	/**
 	 * Assigns the ticket to the current user.
 	 *
+	 * @param project must not be {@literal null}.
 	 * @param ticket must not be {@literal null}.
 	 */
-	void assignTicketToMe(Ticket ticket);
+	Ticket assignTicketToMe(Project project, Ticket ticket);
 
 	/**
 	 * Assigns the release ticket for the given {@link ModuleIteration} to the current user.

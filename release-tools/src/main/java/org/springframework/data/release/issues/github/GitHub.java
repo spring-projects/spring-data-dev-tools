@@ -290,8 +290,22 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	 * @see org.springframework.data.release.jira.IssueTracker#assignTicketToMe(org.springframework.data.release.jira.Ticket)
 	 */
 	@Override
-	public void assignTicketToMe(Ticket ticket) {
-		logger.log("Ticket", "Skipping ticket assignment for %s", ticket);
+	public Ticket assignTicketToMe(Project project, Ticket ticket) {
+
+		Assert.notNull(ticket, "Ticket must not be null.");
+
+		String repositoryName = GitProject.of(project).getRepositoryName();
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+		parameters.put("id", stripHash(ticket));
+
+		GitHubWriteIssue edit = GitHubWriteIssue.assignedTo(properties.getUsername());
+
+		GitHubReadIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
+				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
+
+		return toTicket(response);
 	}
 
 	/*
@@ -303,19 +317,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		Assert.notNull(module, "ModuleIteration must not be null.");
 
-		Ticket releaseTicketFor = getReleaseTicketFor(module);
-		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
-
-		Map<String, Object> parameters = newUrlTemplateVariables();
-		parameters.put("repoName", repositoryName);
-		parameters.put("id", stripHash(releaseTicketFor));
-
-		GitHubWriteIssue edit = GitHubWriteIssue.assignedTo(properties.getUsername());
-
-		GitHubReadIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
-				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
-
-		return toTicket(response);
+		return assignTicketToMe(module.getProject(), getReleaseTicketFor(module));
 	}
 
 	/*

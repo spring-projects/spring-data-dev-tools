@@ -46,7 +46,6 @@ import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Streamable;
@@ -92,10 +91,10 @@ public class DependencyOperations {
 	 */
 	public DependencyUpgradeProposals getDependencyUpgradeProposals(Project project, Iteration iteration) {
 
-		Map<Dependency, DependencyVersion> currentDependencies = getCurrentDependencies(project);
+		DependencyVersions currentDependencies = getCurrentDependencies(project);
 		Map<Dependency, DependencyUpgradeProposal> proposals = Collections.synchronizedMap(new LinkedHashMap<>());
 
-		ExecutionUtils.run(executor, Streamable.of(currentDependencies.keySet()), dependency -> {
+		ExecutionUtils.run(executor, Streamable.of(currentDependencies.getDependencies()), dependency -> {
 
 			DependencyVersion currentVersion = currentDependencies.get(dependency);
 			List<DependencyVersion> versions = getAvailableVersions(dependency);
@@ -110,17 +109,16 @@ public class DependencyOperations {
 	/**
 	 * Ensures there's a upgrade ticket for each dependency to upgrade.
 	 *
-	 * @param iteration
-	 * @param project
+	 * @param module
 	 * @param dependencyVersions
 	 */
-	public void createUpgradeTickets(TrainIteration iteration, Project project,
-			Map<Dependency, DependencyVersion> dependencyVersions) {
+	public void createUpgradeTickets(ModuleIteration module, DependencyVersions dependencyVersions) {
 
-		Map<Dependency, DependencyVersion> upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
+		Project project = module.getProject();
+		DependencyVersions upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
 
 		IssueTracker tracker = this.tracker.getRequiredPluginFor(project);
-		Tickets tickets = tracker.getTicketsFor(iteration);
+		Tickets tickets = tracker.getTicketsFor(module);
 
 		upgrades.forEach((dependency, dependencyVersion) -> {
 
@@ -131,42 +129,40 @@ public class DependencyOperations {
 				logger.log(project, "Found upgrade ticket %s", upgradeTicket.get());
 			} else {
 
-				ModuleIteration module = iteration.getModule(project);
-
 				logger.log(module, "Creating upgrade ticket for %s", upgradeTicketSummary);
 				tracker.createTicket(module, upgradeTicketSummary, IssueTracker.TicketType.DependencyUpgrade);
 			}
 		});
+
+		// flush cache
+		tracker.reset();
 	}
 
 	/**
-	 * Verifies dependencies to upgrade, applies the upgrade, creates a commit, pushes the repository and resolves the
-	 * upgrade ticket.
+	 * Verifies dependencies to upgrade, applies the upgrade, creates a commit.
 	 *
-	 * @param iteration
-	 * @param project
+	 * @param module
 	 * @param dependencyVersions
-	 * @throws InterruptedException
 	 */
-	public void upgradeDependencies(TrainIteration iteration, Project project,
-			Map<Dependency, DependencyVersion> dependencyVersions) throws InterruptedException {
+	public Tickets upgradeDependencies(ModuleIteration module, DependencyVersions dependencyVersions) {
 
-		Map<Dependency, DependencyVersion> upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
+		Project project = module.getProject();
+		DependencyVersions upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
 		ProjectDependencies dependencies = ProjectDependencies.get(project);
-		ModuleIteration module = iteration.getModule(project);
 
 		if (upgrades.isEmpty()) {
 			logger.log(module, "No dependency upgrades to apply");
 		}
 
 		IssueTracker tracker = this.tracker.getRequiredPluginFor(project);
-		Tickets tickets = tracker.getTicketsFor(iteration);
+		Tickets tickets = tracker.getTicketsFor(module);
 		List<Ticket> ticketsToClose = new ArrayList<>();
 
 		upgrades.forEach((dependency, dependencyVersion) -> {
 
 			String upgradeTicketSummary = getUpgradeTicketSummary(dependency, dependencyVersion);
 			Ticket upgradeTicket = getDependencyUpgradeTicket(tickets, upgradeTicketSummary).get();
+			tracker.assignTicketToMe(project, upgradeTicket);
 			String versionProperty = dependencies.getVersionPropertyFor(dependency);
 
 			File pom = getPomFile(project);
@@ -174,34 +170,35 @@ public class DependencyOperations {
 				it.setProperty(versionProperty, dependencyVersion.getIdentifier());
 			});
 
-			gitOperations.commit(module, upgradeTicket, upgradeTicketSummary, Optional.empty(), pom);
+			gitOperations.commit(module, upgradeTicket, upgradeTicketSummary, Optional.empty());
 
 			ticketsToClose.add(upgradeTicket);
 		});
 
-		gitOperations.push(module);
+		return new Tickets(ticketsToClose);
+	}
 
-		// Allow GitHub to catch up with ticket notifications.
-		Thread.sleep(1500);
+	public void closeUpgradeTickets(ModuleIteration module, Tickets tickets) {
 
-		for (Ticket ticket : ticketsToClose) {
+		IssueTracker tracker = this.tracker.getRequiredPluginFor(module.getProject());
+
+		for (Ticket ticket : tickets) {
 			tracker.closeTicket(module, ticket);
 		}
 	}
 
-	private Map<Dependency, DependencyVersion> getDependencyUpgradesToApply(Project project,
-			Map<Dependency, DependencyVersion> dependencyVersions) {
+	private DependencyVersions getDependencyUpgradesToApply(Project project, DependencyVersions dependencyVersions) {
 
-		Map<Dependency, DependencyVersion> currentDependencies = getCurrentDependencies(project);
+		DependencyVersions currentDependencies = getCurrentDependencies(project);
 		Map<Dependency, DependencyVersion> upgrades = new LinkedHashMap<>();
 
 		currentDependencies.forEach((dependency, dependencyVersion) -> {
 
-			DependencyVersion upgradeVersion = dependencyVersions.get(dependency);
-
-			if (upgradeVersion == null) {
+			if (!dependencyVersions.hasDependency(dependency)) {
 				return;
 			}
+
+			DependencyVersion upgradeVersion = dependencyVersions.get(dependency);
 
 			if (upgradeVersion.equals(dependencyVersion)) {
 				logger.log(project, "Skipping upgrade of %s (%s)", dependency.getName(), dependencyVersion.getIdentifier());
@@ -211,7 +208,7 @@ public class DependencyOperations {
 			upgrades.put(dependency, upgradeVersion);
 		});
 
-		return upgrades;
+		return new DependencyVersions(upgrades);
 	}
 
 	private Optional<Ticket> getDependencyUpgradeTicket(Tickets tickets, String upgradeTicketSummary) {
@@ -281,10 +278,10 @@ public class DependencyOperations {
 						() -> new IllegalArgumentException("Cannot determine new minor version from " + availableVersions));
 	}
 
-	Map<Dependency, DependencyVersion> getCurrentDependencies(Project project) {
+	DependencyVersions getCurrentDependencies(Project project) {
 
 		if (!ProjectDependencies.containsProject(project)) {
-			return Collections.emptyMap();
+			return DependencyVersions.empty();
 		}
 
 		File pom = getPomFile(project);
@@ -314,7 +311,7 @@ public class DependencyOperations {
 				}
 			}
 
-			return versions;
+			return new DependencyVersions(versions);
 		});
 	}
 

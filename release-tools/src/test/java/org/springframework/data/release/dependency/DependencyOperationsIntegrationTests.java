@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,7 @@ import org.springframework.data.release.AbstractIntegrationTests;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.ReleaseTrains;
 
 /**
  * Integration tests for {@link DependencyOperations}.
@@ -55,6 +57,11 @@ class DependencyOperationsIntegrationTests extends AbstractIntegrationTests {
 		}
 	}
 
+	@BeforeEach
+	void setUp() {
+		git.checkout(ReleaseTrains.MOORE);
+	}
+
 	@Test
 	void shouldDiscoverDependencyVersions() {
 		assertThat(operations.getAvailableVersions(Dependencies.PROJECT_REACTOR)).isNotEmpty();
@@ -62,17 +69,15 @@ class DependencyOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Test
 	void shouldReportExistingDependencyVersions() {
-		assertThat(operations.getCurrentDependencies(Projects.BUILD)).isNotEmpty();
+		assertThat(operations.getCurrentDependencies(Projects.BUILD).isEmpty()).isFalse();
 	}
 
 	@Test
 	void shouldReportExistingOptionalDependencies() {
 
-		// git.checkout(ReleaseTrains.MOORE);
-
-		assertThat(operations.getCurrentDependencies(Projects.CASSANDRA)).hasSize(1);
-		assertThat(operations.getCurrentDependencies(Projects.MONGO_DB)).hasSize(1);
-		assertThat(operations.getCurrentDependencies(Projects.NEO4J)).hasSize(1);
+		assertThat(operations.getCurrentDependencies(Projects.CASSANDRA).getVersions()).hasSize(1);
+		assertThat(operations.getCurrentDependencies(Projects.MONGO_DB).getVersions()).hasSize(2);
+		assertThat(operations.getCurrentDependencies(Projects.NEO4J).getVersions()).hasSize(1);
 	}
 
 	@Test

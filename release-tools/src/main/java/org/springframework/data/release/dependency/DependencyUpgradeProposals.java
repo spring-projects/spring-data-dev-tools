@@ -134,7 +134,7 @@ public class DependencyUpgradeProposals {
 	 * @param properties
 	 * @return
 	 */
-	public static Map<Dependency, DependencyVersion> fromProperties(TrainIteration iteration, Properties properties) {
+	public static DependencyVersions fromProperties(TrainIteration iteration, Properties properties) {
 
 		Pattern keyPattern = Pattern.compile("dependency\\[([a-zA-Z0-9\\-\\.]+):([a-zA-Z0-9\\-\\.]+)\\]");
 
@@ -169,7 +169,7 @@ public class DependencyUpgradeProposals {
 
 		});
 
-		return result;
+		return new DependencyVersions(result);
 	}
 
 }
