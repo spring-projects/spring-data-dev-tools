@@ -17,7 +17,6 @@ package org.springframework.data.release.issues.github;
 
 import lombok.Value;
 
-import org.springframework.data.release.issues.github.GitHubIssue.Milestone;
 import org.springframework.data.release.model.ModuleIteration;
 
 /**

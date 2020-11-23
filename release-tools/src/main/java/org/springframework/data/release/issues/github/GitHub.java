@@ -41,7 +41,6 @@ import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.Tickets;
-import org.springframework.data.release.issues.github.GitHubIssue.Milestone;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.DocumentationMetadata;
 import org.springframework.data.release.model.Iteration;
@@ -79,12 +78,21 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	private static final String RELEASE_BY_ID_URI_TEMPLATE = "/repos/spring-projects/{repoName}/releases/{id}";
 
 	private static final ParameterizedTypeReference<List<Milestone>> MILESTONES_TYPE = new ParameterizedTypeReference<List<Milestone>>() {};
-	private static final ParameterizedTypeReference<List<GitHubIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubIssue>>() {};
-	private static final ParameterizedTypeReference<GitHubIssue> ISSUE_TYPE = new ParameterizedTypeReference<GitHubIssue>() {};
+	private static final ParameterizedTypeReference<List<GitHubReadIssue>> ISSUES_TYPE = new ParameterizedTypeReference<List<GitHubReadIssue>>() {};
+	private static final ParameterizedTypeReference<GitHubReadIssue> ISSUE_TYPE = new ParameterizedTypeReference<GitHubReadIssue>() {};
+
+	private static final Map<TicketType, Label> TICKET_LABELS = new HashMap<>();
+
+	static {
+
+		TICKET_LABELS.put(TicketType.Task, LabelConfiguration.TYPE_TASK);
+		TICKET_LABELS.put(TicketType.DependencyUpgrade, LabelConfiguration.TYPE_DEPENDENCY_UPGRADE);
+	}
 
 	private final Logger logger;
 	private final GitHubProperties properties;
 	private final ExecutorService executorService;
+
 
 	public GitHub(@Qualifier("tracker") RestTemplateBuilder templateBuilder, Logger logger, GitHubProperties properties,
 			ExecutorService executorService) {
@@ -129,7 +137,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		ticketIds.forEach(ticketId -> {
 
-			GitHubIssue ticket = findTicket(repositoryName, ticketId);
+			GitHubReadIssue ticket = findTicket(repositoryName, ticketId);
 			if (ticket != null) {
 				tickets.add(toTicket(ticket));
 			}
@@ -214,7 +222,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		parameters.put("repoName", repositoryName);
 
 		operations.exchange(MILESTONES_URI_TEMPLATE, HttpMethod.POST,
-				new HttpEntity<Object>(githubMilestone.toMilestone(), httpHeaders), GitHubIssue.Milestone.class, parameters);
+				new HttpEntity<Object>(githubMilestone.toMilestone(), httpHeaders), Milestone.class, parameters);
 	}
 
 	/*
@@ -243,29 +251,31 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		logger.log(moduleIteration, "Creating release ticket…");
 
-		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration));
+		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration), TicketType.Task);
 	}
 
 	@Override
-	public Ticket createTicket(ModuleIteration moduleIteration, String text) {
+	public Ticket createTicket(ModuleIteration moduleIteration, String text, TicketType ticketType) {
 
 		logger.log(moduleIteration, "Creating ticket…");
 
-		return doCreateTicket(moduleIteration, text);
+		return doCreateTicket(moduleIteration, text, ticketType);
 	}
 
-	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text) {
-		HttpHeaders httpHeaders = new HttpHeaders();
+	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text, TicketType ticketType) {
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 		Milestone milestone = getMilestone(moduleIteration, repositoryName);
-		GitHubIssue gitHubIssue = GitHubIssue.of(text, milestone);
+
+		Label label = TICKET_LABELS.get(ticketType);
+
+		GitHubWriteIssue gitHubIssue = GitHubWriteIssue.of(text, milestone).withLabel(label.getName());
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 
-		GitHubIssue body = operations.exchange(ISSUES_URI_TEMPLATE, HttpMethod.POST,
-				new HttpEntity<Object>(gitHubIssue, httpHeaders), GitHubIssue.class, parameters).getBody();
+		GitHubReadIssue body = operations.exchange(ISSUES_URI_TEMPLATE, HttpMethod.POST,
+				new HttpEntity<Object>(gitHubIssue), GitHubReadIssue.class, parameters).getBody();
 
 		return toTicket(body);
 	}
@@ -300,9 +310,9 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		parameters.put("repoName", repositoryName);
 		parameters.put("id", stripHash(releaseTicketFor));
 
-		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername());
+		GitHubWriteIssue edit = GitHubWriteIssue.assignedTo(properties.getUsername());
 
-		GitHubIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
+		GitHubReadIssue response = operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
 				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
 
 		return toTicket(response);
@@ -328,12 +338,12 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		Assert.notNull(module, "ModuleIteration must not be null.");
 
 		Ticket releaseTicketFor = getReleaseTicketFor(module);
-		GitHubIssue response = close(module, releaseTicketFor);
+		GitHubReadIssue response = close(module, releaseTicketFor);
 
 		return toTicket(response);
 	}
 
-	private GitHubIssue close(ModuleIteration module, Ticket ticket) {
+	private GitHubReadIssue close(ModuleIteration module, Ticket ticket) {
 
 		String repositoryName = GitProject.of(module.getProject()).getRepositoryName();
 
@@ -341,7 +351,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		parameters.put("repoName", repositoryName);
 		parameters.put("id", stripHash(ticket));
 
-		GitHubIssue edit = GitHubIssue.assignedTo(properties.getUsername()).close();
+		GitHubWriteIssue edit = GitHubWriteIssue.assignedTo(properties.getUsername()).close();
 
 		return operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.PATCH,
 				new HttpEntity<>(edit, new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
@@ -372,7 +382,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 			doWithPaging(MILESTONE_URI, HttpMethod.GET, parameters, new HttpEntity<>(new HttpHeaders()),
 					MILESTONES_TYPE, milestones -> {
 
-						Optional<GitHubIssue.Milestone> milestone = milestones.stream(). //
+						Optional<Milestone> milestone = milestones.stream(). //
 						filter(m -> m.matches(moduleIteration)). //
 						findFirst(). //
 						map(m -> {
@@ -448,21 +458,21 @@ class GitHub extends GitHubSupport implements IssueTracker {
 				.collect(Tickets.toTicketsCollector());
 	}
 
-	List<GitHubIssue> findGitHubIssues(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
+	List<GitHubReadIssue> findGitHubIssues(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
 
 		logger.log(moduleIteration, "Looking up GitHub issues from milestone …");
 
-		Map<String, GitHubIssue> issues = getIssuesFor(moduleIteration, false, true)
+		Map<String, GitHubReadIssue> issues = getIssuesFor(moduleIteration, false, true)
 				.collect(Collectors.toMap(GitHubIssue::getId, Function.identity()));
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 
 		logger.log(moduleIteration, "Resolving GitHub issues …");
-		Collection<GitHubIssue> foundIssues = ExecutionUtils.runAndReturn(executorService,
+		Collection<GitHubReadIssue> foundIssues = ExecutionUtils.runAndReturn(executorService,
 				Streamable.of(() -> ticketReferences.stream().filter(it -> it.getId().startsWith("#"))),
 				ticketReference -> getTicket(issues, repositoryName, ticketReference));
 
-		List<GitHubIssue> gitHubIssues = foundIssues.stream().filter(it -> {
+		List<GitHubReadIssue> gitHubIssues = foundIssues.stream().filter(it -> {
 			Ticket ticket = toTicket(it);
 			return !ticket.isReleaseTicketFor(moduleIteration) && !ticket.isReleaseTicket();
 		}).collect(Collectors.toList());
@@ -472,7 +482,8 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		return gitHubIssues;
 	}
 
-	private GitHubIssue getTicket(Map<String, GitHubIssue> cache, String repositoryName, TicketReference reference) {
+	private GitHubReadIssue getTicket(Map<String, GitHubReadIssue> cache, String repositoryName,
+			TicketReference reference) {
 
 		if (cache.containsKey(reference.getId())) {
 			return cache.get(reference.getId());
@@ -493,7 +504,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	 * @param ticketId
 	 * @return
 	 */
-	private GitHubIssue findTicket(String repositoryName, String ticketId) {
+	private GitHubReadIssue findTicket(String repositoryName, String ticketId) {
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
@@ -503,7 +514,6 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 			return operations.exchange(ISSUE_BY_ID_URI_TEMPLATE, HttpMethod.GET,
 					new HttpEntity<>(new HttpHeaders()), ISSUE_TYPE, parameters).getBody();
-
 		} catch (HttpStatusCodeException e) {
 
 			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -522,7 +532,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		logger.log(module, "Preparing GitHub Release …");
 
-		List<GitHubIssue> gitHubIssues = findGitHubIssues(module, ticketReferences);
+		List<GitHubReadIssue> gitHubIssues = findGitHubIssues(module, ticketReferences);
 
 		ArtifactVersion version = ArtifactVersion.of(module);
 		DocumentationMetadata documentation = DocumentationMetadata.of(module.getProject(), version);
@@ -608,7 +618,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 				parameters);
 	}
 
-	private Stream<GitHubIssue> getIssuesFor(ModuleIteration moduleIteration, boolean forCurrentUser,
+	private Stream<GitHubReadIssue> getIssuesFor(ModuleIteration moduleIteration, boolean forCurrentUser,
 			boolean ignoreMissingMilestone) {
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
@@ -619,7 +629,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 			return Stream.empty();
 		}
 
-		GitHubIssue.Milestone milestone = optionalMilestone.orElseThrow(() -> noSuchMilestone(moduleIteration));
+		Milestone milestone = optionalMilestone.orElseThrow(() -> noSuchMilestone(moduleIteration));
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
@@ -634,9 +644,9 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		return getForIssues(ISSUES_BY_MILESTONE_URI_TEMPLATE, parameters);
 	}
 
-	private Stream<GitHubIssue> getForIssues(String template, Map<String, Object> parameters) {
+	private Stream<GitHubReadIssue> getForIssues(String template, Map<String, Object> parameters) {
 
-		List<GitHubIssue> issues = new ArrayList<>();
+		List<GitHubReadIssue> issues = new ArrayList<>();
 		doWithPaging(template, HttpMethod.GET, parameters, new HttpEntity<>(new HttpHeaders()), ISSUES_TYPE,
 				tickets -> {
 					issues.addAll(tickets);
@@ -661,7 +671,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	}
 
 	private static Ticket toTicket(GitHubIssue issue) {
-		return new Ticket(issue.getId(), issue.getTitle(), issue.getHtmlUrl(), new GithubTicketStatus(issue.getState()));
+		return new Ticket(issue.getId(), issue.getTitle(), issue.getUrl(), new GithubTicketStatus(issue.getState()));
 	}
 
 }

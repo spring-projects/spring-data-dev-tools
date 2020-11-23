@@ -52,12 +52,12 @@ class ChangelogSections {
 		this.sections = DEFAULT_SECTIONS;
 	}
 
-	Map<ChangelogSection, List<GitHubIssue>> collate(List<GitHubIssue> issues) {
+	Map<ChangelogSection, List<GitHubReadIssue>> collate(List<GitHubReadIssue> issues) {
 
-		SortedMap<ChangelogSection, List<GitHubIssue>> collated = new TreeMap<>(
+		SortedMap<ChangelogSection, List<GitHubReadIssue>> collated = new TreeMap<>(
 				Comparator.comparing(this.sections::indexOf));
 
-		for (GitHubIssue issue : issues) {
+		for (GitHubReadIssue issue : issues) {
 			List<ChangelogSection> sections = getSections(issue);
 			for (ChangelogSection section : sections) {
 				collated.computeIfAbsent(section, (key) -> new ArrayList<>());
@@ -67,7 +67,7 @@ class ChangelogSections {
 		return collated;
 	}
 
-	private List<ChangelogSection> getSections(GitHubIssue issue) {
+	private List<ChangelogSection> getSections(GitHubReadIssue issue) {
 		List<ChangelogSection> result = new ArrayList<>();
 		Set<String> groupClaimes = new HashSet<>();
 		for (ChangelogSection section : this.sections) {

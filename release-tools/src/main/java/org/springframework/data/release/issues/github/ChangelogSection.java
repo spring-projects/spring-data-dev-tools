@@ -52,7 +52,7 @@ class ChangelogSection {
 		return this.group;
 	}
 
-	boolean isMatchFor(GitHubIssue issue) {
+	boolean isMatchFor(GitHubReadIssue issue) {
 		for (String candidate : this.labels) {
 			for (Label label : issue.getLabels()) {
 				if (label.getName().contains(candidate)) {

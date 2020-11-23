@@ -134,7 +134,7 @@ public class DependencyOperations {
 				ModuleIteration module = iteration.getModule(project);
 
 				logger.log(module, "Creating upgrade ticket for %s", upgradeTicketSummary);
-				tracker.createTicket(module, upgradeTicketSummary);
+				tracker.createTicket(module, upgradeTicketSummary, IssueTracker.TicketType.DependencyUpgrade);
 			}
 		});
 	}

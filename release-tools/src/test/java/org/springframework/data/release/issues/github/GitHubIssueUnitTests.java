@@ -25,11 +25,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.data.release.issues.github.GitHubIssue.Milestone;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Unit tests for {@link GitHubIssue}.
+ * Unit tests for {@link GitHubWriteIssue}.
  *
  * @author Mark Paluch
  */

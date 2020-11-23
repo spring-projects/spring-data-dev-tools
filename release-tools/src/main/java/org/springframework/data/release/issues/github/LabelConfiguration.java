@@ -33,7 +33,12 @@ import org.springframework.data.util.Streamable;
  *
  * @author Mark Paluch
  */
-public class LabelConfiguration implements Streamable<Label> {
+class LabelConfiguration implements Streamable<Label> {
+
+	public static final Label TYPE_DEPENDENCY_UPGRADE = LabelFactories.TYPE_LABEL.apply("dependency-upgrade",
+			"A dependency upgrade");
+
+	public static final Label TYPE_TASK = LabelFactories.TYPE_LABEL.apply("task", "A general task");
 
 	private final Set<Label> labels;
 
@@ -131,11 +136,11 @@ public class LabelConfiguration implements Streamable<Label> {
 
 			configurer.register(LabelFactories.TYPE_LABEL, "blocker", "An issue that is blocking us from releasing");
 			configurer.register(LabelFactories.TYPE_LABEL, "bug", "A general bug");
-			configurer.register(LabelFactories.TYPE_LABEL, "dependency-upgrade", "A dependency upgrade");
+			configurer.register(TYPE_DEPENDENCY_UPGRADE);
 			configurer.register(LabelFactories.TYPE_LABEL, "documentation", "A documentation update");
 			configurer.register(LabelFactories.TYPE_LABEL, "enhancement", "A general enhancement");
 			configurer.register(LabelFactories.TYPE_LABEL, "regression", "A regression from a previous release");
-			configurer.register(LabelFactories.TYPE_LABEL, "task", "A general task");
+			configurer.register(TYPE_TASK);
 		});
 
 		return configuration;

@@ -51,6 +51,7 @@ import org.springframework.shell.support.table.Table;
 public class DependencyCommands extends TimedCommand {
 
 	public static final String BUILD_PROPERTIES = "dependency-upgrade-build.properties";
+
 	DependencyOperations operations;
 	GitOperations git;
 	Logger logger;

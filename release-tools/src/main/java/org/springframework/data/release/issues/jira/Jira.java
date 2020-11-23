@@ -317,7 +317,7 @@ class Jira implements JiraConnector {
 	}
 
 	@Override
-	public Ticket createTicket(ModuleIteration moduleIteration, String text) {
+	public Ticket createTicket(ModuleIteration moduleIteration, String text, TicketType ticketType) {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
 

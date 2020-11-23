@@ -131,7 +131,8 @@ class IssueTrackerCommands extends TimedCommand {
 			@CliOption(key = "text", mandatory = true) String text) {
 
 		return iteration.stream().//
-				map(module -> getTrackerFor(module).createTicket(module, text)).collect(Tickets.toTicketsCollector())
+				map(module -> getTrackerFor(module).createTicket(module, text, IssueTracker.TicketType.Task))
+				.collect(Tickets.toTicketsCollector())
 				.toString();
 	}
 

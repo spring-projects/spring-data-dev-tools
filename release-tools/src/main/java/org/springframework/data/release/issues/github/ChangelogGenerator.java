@@ -61,12 +61,12 @@ public class ChangelogGenerator {
 	 * @param issues the issues to generate the changelog for
 	 * @param sectionContentPostProcessor the postprocessor for a changelog section
 	 */
-	public String generate(List<GitHubIssue> issues,
+	public String generate(List<GitHubReadIssue> issues,
 			BiFunction<ChangelogSection, String, String> sectionContentPostProcessor) {
 		return generateContent(issues, sectionContentPostProcessor);
 	}
 
-	private boolean isExcluded(GitHubIssue issue) {
+	private boolean isExcluded(GitHubReadIssue issue) {
 		return issue.getLabels().stream().anyMatch(this::isExcluded);
 	}
 
@@ -74,7 +74,7 @@ public class ChangelogGenerator {
 		return this.excludeLabels.contains(label.getName());
 	}
 
-	private String generateContent(List<GitHubIssue> issues,
+	private String generateContent(List<GitHubReadIssue> issues,
 			BiFunction<ChangelogSection, String, String> sectionContentPostProcessor) {
 		StringBuilder content = new StringBuilder();
 		addSectionContent(content, this.sections.collate(issues), sectionContentPostProcessor);
@@ -85,7 +85,7 @@ public class ChangelogGenerator {
 		return content.toString();
 	}
 
-	private void addSectionContent(StringBuilder result, Map<ChangelogSection, List<GitHubIssue>> sectionIssues,
+	private void addSectionContent(StringBuilder result, Map<ChangelogSection, List<GitHubReadIssue>> sectionIssues,
 			BiFunction<ChangelogSection, String, String> sectionContentPostProcessor) {
 
 		sectionIssues.forEach((section, issues) -> {
@@ -102,7 +102,7 @@ public class ChangelogGenerator {
 		});
 	}
 
-	private String getFormattedIssue(GitHubIssue issue) {
+	private String getFormattedIssue(GitHubReadIssue issue) {
 		String title = issue.getTitle();
 		title = ghUserMentionPattern.matcher(title).replaceAll("$1`$2`");
 		return String.format("- %s %s%n", title, getLinkToIssue(issue));
@@ -112,11 +112,11 @@ public class ChangelogGenerator {
 		return "[" + issue.getId() + "]" + "(" + issue.getUrl() + ")";
 	}
 
-	private Set<GitHubUser> getContributors(List<GitHubIssue> issues) {
+	private Set<GitHubUser> getContributors(List<GitHubReadIssue> issues) {
 		if (this.excludeContributors.contains("*")) {
 			return Collections.emptySet();
 		}
-		return issues.stream().filter((issue) -> issue.getPullRequest() != null).map(GitHubIssue::getUser)
+		return issues.stream().filter((issue) -> issue.getPullRequest() != null).map(GitHubReadIssue::getUser)
 				.filter(this::isIncludedContributor).collect(Collectors.toSet());
 	}
 

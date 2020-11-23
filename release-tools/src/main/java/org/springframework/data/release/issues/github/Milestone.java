@@ -15,24 +15,36 @@
  */
 package org.springframework.data.release.issues.github;
 
+import lombok.Value;
+
+import org.springframework.data.release.model.ModuleIteration;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
+ * @author Oliver Gierke
  * @author Mark Paluch
  */
-public interface GitHubIssue {
+@Value
+class Milestone {
 
-	String getNumber();
+	Long number;
+	String title, description, state;
 
-	default String getId() {
-		return getNumber() == null ? null : "#".concat(getNumber());
+	public static Milestone of(String title, String description) {
+		return new Milestone(null, title, description, null);
 	}
 
-	String getTitle();
+	public boolean matches(ModuleIteration moduleIteration) {
+		return title.contains(moduleIteration.getShortVersionString());
+	}
 
-	String getState();
+	@JsonIgnore
+	public boolean isOpen() {
+		return "open".equals(state);
+	}
 
-	/**
-	 * @return HTML URL.
-	 */
-	String getUrl();
-
+	public Milestone markReleased() {
+		return new Milestone(number, null, null, "closed");
+	}
 }

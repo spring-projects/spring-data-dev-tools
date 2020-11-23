@@ -156,7 +156,8 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 		github.createReleaseTicket(BUILD_HOPPER_RC1);
 
 		verify(postRequestedFor(urlPathMatching(ISSUES_URI))
-				.withRequestBody(equalToJson("{\"title\":\"Release 1.8 RC1 (Hopper)\",\"milestone\":45}")));
+				.withRequestBody(
+						equalToJson("{\"title\":\"Release 1.8 RC1 (Hopper)\",\"milestone\":45,\"labels\":[ \"type: task\" ]}")));
 	}
 
 	@Test // #5

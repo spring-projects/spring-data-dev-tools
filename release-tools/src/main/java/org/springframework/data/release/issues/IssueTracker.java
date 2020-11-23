@@ -101,9 +101,10 @@ public interface IssueTracker extends Plugin<Project> {
 	 *
 	 * @param module must not be {@literal null}.
 	 * @param text the text to use.
+	 * @param ticketType the ticket type.
 	 * @return the created ticket.
 	 */
-	Ticket createTicket(ModuleIteration module, String text);
+	Ticket createTicket(ModuleIteration module, String text, TicketType ticketType);
 
 	/**
 	 * Assigns the ticket to the current user.
@@ -173,4 +174,8 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @return
 	 */
 	Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences);
+
+	enum TicketType {
+		Task, DependencyUpgrade;
+	}
 }
