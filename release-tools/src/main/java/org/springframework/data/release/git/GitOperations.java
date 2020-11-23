@@ -19,7 +19,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -122,16 +121,23 @@ public class GitOperations {
 		});
 	}
 
+	public void checkout(Train train) {
+		checkout(train, true);
+	}
+
 	/**
 	 * Checks out all projects of the given {@link Train}.
 	 *
 	 * @param train
+	 * @param update whether to fetch an update from origin.
 	 */
-	public void checkout(Train train) {
+	public void checkout(Train train, boolean update) {
 
 		Assert.notNull(train, "Train must not be null!");
 
-		update(train);
+		if (update) {
+			update(train);
+		}
 
 		AtomicBoolean masterSwitch = new AtomicBoolean();
 		ExecutionUtils.run(executor, train, module -> {
@@ -596,10 +602,9 @@ public class GitOperations {
 	 *
 	 * @param module must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
-	 * @param files can be empty.
 	 */
-	public void commit(ModuleIteration module, String summary, File... files) {
-		commit(module, summary, Optional.empty(), files);
+	public void commit(ModuleIteration module, String summary) {
+		commit(module, summary, Optional.empty());
 	}
 
 	/**
@@ -609,10 +614,8 @@ public class GitOperations {
 	 * @param module must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
-	 * @param files can be empty.
-	 * @throws Exception
 	 */
-	public void commit(ModuleIteration module, String summary, Optional<String> details, File... files) {
+	public void commit(ModuleIteration module, String summary, Optional<String> details) {
 
 		Assert.notNull(module, "Module iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
@@ -622,7 +625,7 @@ public class GitOperations {
 				() -> String.format("No issue tracker found for project %s!", project));
 		Ticket ticket = tracker.getReleaseTicketFor(module);
 
-		commit(module, ticket, summary, details, files);
+		commit(module, ticket, summary, details);
 	}
 
 	/**
@@ -632,10 +635,8 @@ public class GitOperations {
 	 * @param module must not be {@literal null}.
 	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
-	 * @param files can be empty.
-	 * @throws Exception
 	 */
-	public void commit(ModuleIteration module, Ticket ticket, String summary, Optional<String> details, File... files) {
+	public void commit(ModuleIteration module, Ticket ticket, String summary, Optional<String> details) {
 
 		Assert.notNull(module, "Module iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");

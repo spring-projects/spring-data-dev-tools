@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import org.springframework.data.release.GitHubMigration;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.Changelog;
@@ -50,8 +51,6 @@ import org.springframework.util.Assert;
 @Component
 @RequiredArgsConstructor
 public class ReleaseOperations {
-
-	public static boolean COMMIT_BASED_CHANGELOG = true;
 
 	private static final Set<String> CHANGELOG_LOCATIONS;
 
@@ -122,12 +121,12 @@ public class ReleaseOperations {
 
 		Changelog changelog;
 
-		if (COMMIT_BASED_CHANGELOG) {
+		if (GitHubMigration.isDone) {
 
 			List<TicketReference> ticketReferences = git.getTicketReferencesBetween(module.getProject(), previousIteration,
 					iteration);
 
-			// TODO: Remove once all tickets are migrated to GitHub
+			// TODO: Use only associated tracker
 			List<Ticket> tickets = new ArrayList<>();
 
 			for (IssueTracker tracker : trackers) {
@@ -141,7 +140,7 @@ public class ReleaseOperations {
 		return changelog;
 	}
 
-	public void updateResources(TrainIteration iteration) throws Exception {
+	public void updateResources(TrainIteration iteration) {
 
 		iteration.stream().forEach(module -> {
 

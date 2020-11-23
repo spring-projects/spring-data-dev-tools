@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
+import org.springframework.data.release.GitHubMigration;
 import org.springframework.data.release.issues.Ticket;
 
 /**
@@ -33,7 +34,7 @@ public class Commit {
 	private final String summary;
 	private final Optional<String> details;
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -41,6 +42,26 @@ public class Commit {
 	public String toString() {
 
 		StringBuilder builder = new StringBuilder();
+
+		if (GitHubMigration.isDone) {
+
+			builder.append(summary);
+
+			if (!summary.endsWith(".")) {
+				builder.append(".");
+			}
+
+			details.ifPresent(it -> {
+				builder.append("\n");
+				builder.append("\n");
+				builder.append(it);
+			});
+
+			builder.append("\nSee ").append(ticket.getId());
+
+			return builder.toString();
+
+		}
 
 		builder.append(ticket.getId()).append(" - ").append(summary);
 

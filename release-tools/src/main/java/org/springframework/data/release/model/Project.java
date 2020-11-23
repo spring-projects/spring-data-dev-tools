@@ -15,10 +15,8 @@
  */
 package org.springframework.data.release.model;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.With;
 
@@ -30,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.data.release.GitHubMigration;
 import org.springframework.util.Assert;
 
 /**
@@ -37,7 +36,6 @@ import org.springframework.util.Assert;
  */
 @ToString
 @EqualsAndHashCode
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Project implements Comparable<Project> {
 
 	private final @Getter ProjectKey key;
@@ -58,6 +56,25 @@ public class Project implements Comparable<Project> {
 
 	private Project(String key, String name, String fullName, Tracker tracker) {
 		this(new ProjectKey(key), name, fullName, Collections.emptySet(), tracker, ArtifactCoordinates.SPRING_DATA, false);
+	}
+
+	@java.beans.ConstructorProperties({ "key", "name", "fullName", "dependencies", "tracker", "additionalArtifacts",
+			"skipTests" })
+	private Project(ProjectKey key, String name, String fullName, Collection<Project> dependencies, Tracker tracker,
+			ArtifactCoordinates additionalArtifacts, boolean skipTests) {
+
+		if (GitHubMigration.isDone) {
+			if (tracker != Tracker.GITHUB) {
+				throw new IllegalStateException(String.format("Cannot have other trackers than GitHub (Project: %s)", name));
+			}
+		}
+		this.key = key;
+		this.name = name;
+		this.fullName = fullName;
+		this.dependencies = dependencies;
+		this.tracker = tracker;
+		this.additionalArtifacts = additionalArtifacts;
+		this.skipTests = skipTests;
 	}
 
 	public boolean uses(Tracker tracker) {
