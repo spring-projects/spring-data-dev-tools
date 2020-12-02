@@ -38,7 +38,7 @@ import org.springframework.data.release.model.Version;
 class DependencyVersion implements Comparable<DependencyVersion> {
 
 	private static Pattern VERSION = Pattern.compile("((?>(?>\\d+)[\\.]?)+)(-[a-zA-Z]+)?(\\d+)?");
-	private static Pattern NAME_VERSION = Pattern.compile("([A-Za-z]+)-(RELEASE|SR(\\d+))");
+	private static Pattern NAME_VERSION = Pattern.compile("([A-Za-z]+)-(RELEASE|SR(\\d+)|SNAPSHOT|BUILD-SNAPSHOT)");
 
 	private static Comparator<DependencyVersion> VERSION_COMPARATOR = Comparator.comparing(DependencyVersion::getVersion)
 			.thenComparing((o1, o2) -> {
@@ -72,11 +72,16 @@ class DependencyVersion implements Comparable<DependencyVersion> {
 		if (bomMatcher.find()) {
 
 			Version version = Version.of(0);
+			String modifier = "";
 			if (identifier.contains("-SR")) {
 				version = Version.of(Integer.parseInt(bomMatcher.group(3)));
 			}
 
-			return new DependencyVersion(identifier, bomMatcher.group(1), version, "", 0, null);
+			if (identifier.endsWith("-SNAPSHOT")) {
+				modifier = "SNAPSHOT";
+			}
+
+			return new DependencyVersion(identifier, bomMatcher.group(1), version, modifier, 0, null);
 		}
 
 		Matcher versionMatcher = VERSION.matcher(identifier);
@@ -98,7 +103,7 @@ class DependencyVersion implements Comparable<DependencyVersion> {
 					counter != null ? Integer.parseInt(counter) : 0, null);
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot parse version identifier%s", identifier));
+		throw new IllegalArgumentException(String.format("Cannot parse version identifier %s", identifier));
 	}
 
 	@Override
