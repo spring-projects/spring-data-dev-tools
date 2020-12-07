@@ -64,7 +64,7 @@ class DependencyOperationsIntegrationTests extends AbstractIntegrationTests {
 
 	@Test
 	void shouldDiscoverDependencyVersions() {
-		assertThat(operations.getAvailableVersions(Dependencies.PROJECT_REACTOR)).isNotEmpty();
+		assertThat(operations.getAvailableVersions(Dependencies.SPRING_HATEOAS)).isNotEmpty();
 	}
 
 	@Test

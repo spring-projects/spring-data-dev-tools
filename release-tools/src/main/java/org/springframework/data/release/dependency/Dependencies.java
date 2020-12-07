@@ -54,8 +54,6 @@ public class Dependencies {
 
 	public static final Dependency QUERYDSL = Dependency.of("Querydsl", "com.querydsl:querydsl-jpa");
 
-	public static final Dependency PROJECT_REACTOR = Dependency.of("Project Reactor", "io.projectreactor:reactor-bom");
-
 	public static final Dependency RXJAVA1 = Dependency.of("RxJava", "io.reactivex:rxjava");
 
 	public static final Dependency RXJAVA2 = Dependency.of("RxJava", "io.reactivex.rxjava2:rxjava");
@@ -64,9 +62,6 @@ public class Dependencies {
 
 	public static final Dependency RXJAVA_RS = Dependency.of("RxJava Reactive Streams",
 			"io.reactivex:rxjava-reactive-streams");
-
-	public static final Dependency SPRING_FRAMEWORK = Dependency.of("Spring Framework",
-			"org.springframework:spring-core");
 
 	public static final Dependency SPRING_HATEOAS = Dependency.of("Spring Hateoas",
 			"org.springframework.hateoas:spring-hateoas");
@@ -136,9 +131,10 @@ public class Dependencies {
 				.orElseThrow(() -> new IllegalArgumentException(String.format("No such dependency: %s", name)));
 	}
 
-	public static Dependency getRequiredByArtifactId(String artifactId) {
+	public static Dependency getRequiredDepependency(String groupId, String artifactId) {
 
-		return dependencies.stream().filter(it -> it.getArtifactId().equals(artifactId)).findFirst()
+		return dependencies.stream().filter(it -> it.getGroupId().equals(groupId) && it.getArtifactId().equals(artifactId))
+				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException(String.format("No such dependency: %s", artifactId)));
 	}
 

@@ -162,8 +162,9 @@ public class DependencyUpgradeProposals {
 				throw new IllegalArgumentException(String.format("Unexpected key: %s", k));
 			}
 
+			String groupId = matcher.group(1);
 			String artifactId = matcher.group(2);
-			Dependency dependency = Dependencies.getRequiredByArtifactId(artifactId);
+			Dependency dependency = Dependencies.getRequiredDepependency(groupId, artifactId);
 
 			result.put(dependency, DependencyVersion.of(v.toString()));
 

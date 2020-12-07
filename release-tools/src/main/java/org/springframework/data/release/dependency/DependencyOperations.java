@@ -98,7 +98,8 @@ public class DependencyOperations {
 
 			DependencyVersion currentVersion = currentDependencies.get(dependency);
 			List<DependencyVersion> versions = getAvailableVersions(dependency);
-			DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(iteration, currentVersion, versions);
+			DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(iteration, dependency, currentVersion,
+					versions);
 
 			proposals.put(dependency, proposal);
 		});
@@ -223,9 +224,9 @@ public class DependencyOperations {
 	}
 
 	protected static DependencyUpgradeProposal getDependencyUpgradeProposal(Iteration iteration,
-			DependencyVersion currentVersion, List<DependencyVersion> allVersions) {
+			Dependency dependency, DependencyVersion currentVersion, List<DependencyVersion> allVersions) {
 
-		DependencyVersion latestMinor = findLatestMinor(iteration, currentVersion, allVersions);
+		DependencyVersion latestMinor = findLatestMinor(iteration, dependency, currentVersion, allVersions);
 		DependencyVersion latest = findLatest(iteration, allVersions);
 		List<DependencyVersion> newerVersions = allVersions.stream() //
 				.sorted() //
@@ -249,7 +250,8 @@ public class DependencyOperations {
 				() -> new IllegalArgumentException("Cannot determine new latest version from " + availableVersions));
 	}
 
-	private static DependencyVersion findLatestMinor(Iteration iteration, DependencyVersion currentVersion,
+	private static DependencyVersion findLatestMinor(Iteration iteration, Dependency dependency,
+			DependencyVersion currentVersion,
 			List<DependencyVersion> availableVersions) {
 
 		return availableVersions.stream().filter(it -> {
@@ -275,7 +277,9 @@ public class DependencyOperations {
 		}) //
 				.max(DependencyVersion::compareTo) //
 				.orElseThrow(
-						() -> new IllegalArgumentException("Cannot determine new minor version from " + availableVersions));
+						() -> new IllegalArgumentException(String.format(
+								"Cannot determine new minor version from %s for %s (%s). Current version: %s", availableVersions,
+								dependency.getName(), dependency.getArtifactId(), currentVersion.getIdentifier())));
 	}
 
 	DependencyVersions getCurrentDependencies(Project project) {
@@ -296,7 +300,7 @@ public class DependencyOperations {
 				Dependency dependency = projectDependency.getDependency();
 
 				if (!((project == Projects.MONGO_DB && projectDependency.getProperty().equals("mongo.reactivestreams"))
-						|| project == Projects.NEO4J)) {
+						|| project == Projects.NEO4J || project == Projects.BUILD)) {
 
 					if (it.getDependencyVersion(dependency.getArtifactId()) == null
 							&& it.getManagedDependency(dependency.getArtifactId()) == null) {

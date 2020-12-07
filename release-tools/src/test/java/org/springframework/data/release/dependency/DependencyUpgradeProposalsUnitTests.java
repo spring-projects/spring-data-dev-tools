@@ -38,11 +38,13 @@ class DependencyUpgradeProposalsUnitTests {
 		properties.put("dependency.train", "Pascal");
 		properties.put("dependency.iteration", "M1");
 		properties.put("dependency[org.assertj:assertj-core]", "3.18.1");
+		properties.put("dependency[io.reactivex.rxjava3:rxjava]", "1.2.3");
 
 		DependencyVersions dependencies = DependencyUpgradeProposals
 				.fromProperties(ReleaseTrains.PASCAL.getIteration(Iteration.M1), properties);
 
-		assertThat(dependencies.getVersions()).hasSize(1).containsEntry(Dependencies.ASSERTJ,
-				DependencyVersion.of("3.18.1"));
+		assertThat(dependencies.getVersions()).hasSize(2)
+				.containsEntry(Dependencies.ASSERTJ, DependencyVersion.of("3.18.1"))
+				.containsEntry(Dependencies.RXJAVA3, DependencyVersion.of("1.2.3"));
 	}
 }

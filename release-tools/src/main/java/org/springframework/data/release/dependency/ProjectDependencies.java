@@ -48,13 +48,12 @@ public class ProjectDependencies implements Streamable<ProjectDependencies.Proje
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("kotlin", Dependencies.KOTLIN));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("kotlin-coroutines", Dependencies.KOTLIN_COROUTINES));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("mockito", Dependencies.MOCKITO));
+		config.add(Projects.BUILD, ProjectDependency.ofProperty("mockk", Dependencies.MOCKK));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("querydsl", Dependencies.QUERYDSL));
-		config.add(Projects.BUILD, ProjectDependency.ofProperty("reactor", Dependencies.PROJECT_REACTOR));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava", Dependencies.RXJAVA1));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava2", Dependencies.RXJAVA2));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava3", Dependencies.RXJAVA3));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava-reactive-streams", Dependencies.RXJAVA_RS));
-		config.add(Projects.BUILD, ProjectDependency.ofProperty("spring", Dependencies.SPRING_FRAMEWORK));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("spring-hateoas", Dependencies.SPRING_HATEOAS));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("spring-plugin", Dependencies.SPRING_PLUGIN));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("testcontainers", Dependencies.TESTCONTAINERS));
