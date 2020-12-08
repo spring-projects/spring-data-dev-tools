@@ -54,4 +54,9 @@ public class Dependency implements Comparable<Dependency> {
 	public int compareTo(Dependency o) {
 		return name.compareTo(o.name);
 	}
+
+	@Override
+	public String toString() {
+		return getGroupId() + ":" + getArtifactId();
+	}
 }

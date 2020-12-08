@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import org.apache.maven.shared.utils.StringUtils;
+
 /**
  * Value upgrade capturing {@link DependencyVersion} for a {@link Dependency}.
  *
@@ -90,4 +92,21 @@ class DependencyVersions {
 		return versions.keySet();
 	}
 
+	@Override
+	public String toString() {
+		return toString(0);
+	}
+
+	public String toString(int indentation) {
+
+		StringBuilder result = new StringBuilder();
+
+		for (Map.Entry<Dependency, DependencyVersion> entry : versions.entrySet()) {
+
+			result.append(StringUtils.repeat("\t", indentation)).append(StringUtils.rightPad(entry.getKey().toString(), 40))
+					.append(" = ").append(entry.getValue()).append(System.lineSeparator());
+		}
+
+		return result.toString();
+	}
 }

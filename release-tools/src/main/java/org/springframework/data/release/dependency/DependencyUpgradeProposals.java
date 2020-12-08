@@ -108,6 +108,11 @@ public class DependencyUpgradeProposals {
 
 		builder.append("dependency.train=").append(iteration.getTrain().getName()).append(System.lineSeparator());
 		builder.append("dependency.iteration=").append(iteration.getIteration().getName()).append(System.lineSeparator());
+		builder.append(System.lineSeparator());
+
+		builder.append("# Specify the number of desired dependency upgrades as sanity check")
+				.append(System.lineSeparator());
+		builder.append("dependency.upgrade.count=").append(System.lineSeparator());
 
 		proposals.forEach((dependency, proposal) -> {
 
@@ -140,6 +145,12 @@ public class DependencyUpgradeProposals {
 
 		String verificationTrain = properties.getProperty("dependency.train", "");
 		String verificationIteration = properties.getProperty("dependency.iteration", "");
+		int expectedUpgradeCount;
+		try {
+			expectedUpgradeCount = Integer.parseInt(properties.getProperty("dependency.upgrade.count", "0"));
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Please specify a valid dependency.upgrade.count");
+		}
 
 		if (!verificationTrain.equals(iteration.getTrain().getName())
 				|| !verificationIteration.equals(iteration.getIteration().getName())) {
@@ -152,7 +163,7 @@ public class DependencyUpgradeProposals {
 
 		properties.forEach((k, v) -> {
 
-			if ("dependency.train".equals(k) || "dependency.iteration".equals(k)) {
+			if ("dependency.train".equals(k) || "dependency.iteration".equals(k) || "dependency.upgrade.count".equals(k)) {
 				return;
 			}
 
@@ -167,10 +178,17 @@ public class DependencyUpgradeProposals {
 			Dependency dependency = Dependencies.getRequiredDepependency(groupId, artifactId);
 
 			result.put(dependency, DependencyVersion.of(v.toString()));
-
 		});
 
-		return new DependencyVersions(result);
+		DependencyVersions dependencyVersions = new DependencyVersions(result);
+
+		if (expectedUpgradeCount != result.size()) {
+			throw new IllegalStateException(String.format(
+					"The number of expected upgrades (%s) does not match the number of actual upgrades (%s): %n%n%s",
+					expectedUpgradeCount, result.size(), dependencyVersions.toString(1)));
+		}
+
+		return dependencyVersions;
 	}
 
 }
