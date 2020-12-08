@@ -65,10 +65,12 @@ public class DocumentationMetadata {
 			if (train.usesCalver()) {
 
 				if (version.isBugFixVersion() || version.isReleaseVersion()) {
-					return train.getCalver().toMajorMinorBugfix();
+					return train.getCalver().withBugfix(version.getVersion().getBugfix()).toMajorMinorBugfix();
 				}
 
-				return String.format("%s-%s", train.getCalver().toMajorMinorBugfix(), version.getReleaseTrainSuffix());
+				return String.format("%s-%s",
+						train.getCalver().withBugfix(version.getVersion().getBugfix()).toMajorMinorBugfix(),
+						version.getReleaseTrainSuffix());
 			}
 
 			return String.format("%s-%s", train.getName(),
