@@ -76,14 +76,42 @@ public class ProjectLabelConfiguration {
 
 		labelConfigurations.put(Projects.GEODE, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
+			config.register(LabelFactories.IN_LABEL, "api", "Issues with API");
+			config.register(LabelFactories.IN_LABEL, "aeq", "AsyncEventQueue");
+			config.register(LabelFactories.IN_LABEL, "build", "Build issues");
+			config.register(LabelFactories.IN_LABEL, "configuration", "Issues with configuration");
 			config.register(LabelFactories.IN_LABEL, "core", "Issues in core support");
+			config.register(LabelFactories.IN_LABEL, "documentation", "Issues in documentation");
+			config.register(LabelFactories.IN_LABEL, "cq", "Continuous Queries");
+			config.register(LabelFactories.IN_LABEL, "functions", "Functions");
+			config.register(LabelFactories.IN_LABEL, "infrastructure", "Environment issues");
+			config.register(LabelFactories.IN_LABEL, "query", "OQL Query & Indexing");
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
+			config.register(LabelFactories.IN_LABEL, "search", "Apache Lucene Integration");
+			config.register(LabelFactories.IN_LABEL, "security", "Security issues");
+			config.register(LabelFactories.IN_LABEL, "serialization", "Serialization issues");
+			config.register(LabelFactories.IN_LABEL, "transactions", "Transaction issues");
+			config.register(LabelFactories.IN_LABEL, "wan", "WAN");
 		}));
 
 		labelConfigurations.put(Projects.GEMFIRE, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
 
+			config.register(LabelFactories.IN_LABEL, "api", "Issues with API");
+			config.register(LabelFactories.IN_LABEL, "aeq", "AsyncEventQueue");
+			config.register(LabelFactories.IN_LABEL, "build", "Build issues");
+			config.register(LabelFactories.IN_LABEL, "configuration", "Issues with configuration");
 			config.register(LabelFactories.IN_LABEL, "core", "Issues in core support");
+			config.register(LabelFactories.IN_LABEL, "documentation", "Issues in documentation");
+			config.register(LabelFactories.IN_LABEL, "cq", "Continuous Queries");
+			config.register(LabelFactories.IN_LABEL, "functions", "Functions");
+			config.register(LabelFactories.IN_LABEL, "infrastructure", "Environment issues");
+			config.register(LabelFactories.IN_LABEL, "query", "OQL Query & Indexing");
 			config.register(LabelFactories.IN_LABEL, "repository", "Repositories abstraction");
+			config.register(LabelFactories.IN_LABEL, "search", "Apache Lucene Integration");
+			config.register(LabelFactories.IN_LABEL, "security", "Security issues");
+			config.register(LabelFactories.IN_LABEL, "serialization", "Serialization issues");
+			config.register(LabelFactories.IN_LABEL, "transactions", "Transaction issues");
+			config.register(LabelFactories.IN_LABEL, "wan", "WAN");
 		}));
 
 		labelConfigurations.put(Projects.JDBC, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
