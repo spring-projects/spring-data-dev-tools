@@ -108,15 +108,15 @@ public class DependencyCommands extends TimedCommand {
 	public void upgrade(@CliOption(key = "", mandatory = true) TrainIteration iteration)
 			throws IOException, InterruptedException {
 
-		git.checkout(iteration.getTrain(), false);
 		logger.log(iteration, "Applying dependency upgrades to Spring Data Build");
 
 		ModuleIteration module = iteration.getModule(Projects.BUILD);
-
 		DependencyVersions dependencyVersions = loadDependencyUpgrades(module);
 
-		operations.createUpgradeTickets(module, dependencyVersions);
-		Tickets tickets = operations.upgradeDependencies(module, dependencyVersions);
+		git.checkout(iteration.getTrain(), false);
+
+		Tickets tickets = operations.createUpgradeTickets(module, dependencyVersions);
+		operations.upgradeDependencies(tickets, module, dependencyVersions);
 
 		git.push(module);
 

@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.build.Pom;
@@ -112,14 +113,17 @@ public class DependencyOperations {
 	 *
 	 * @param module
 	 * @param dependencyVersions
+	 * @return
 	 */
-	public void createUpgradeTickets(ModuleIteration module, DependencyVersions dependencyVersions) {
+	public Tickets createUpgradeTickets(ModuleIteration module, DependencyVersions dependencyVersions) {
 
 		Project project = module.getProject();
 		DependencyVersions upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
 
 		IssueTracker tracker = this.tracker.getRequiredPluginFor(project);
 		Tickets tickets = tracker.getTicketsFor(module);
+
+		List<Ticket> upgradeTickets = new ArrayList<>();
 
 		upgrades.forEach((dependency, dependencyVersion) -> {
 
@@ -128,24 +132,33 @@ public class DependencyOperations {
 
 			if (upgradeTicket.isPresent()) {
 				logger.log(project, "Found upgrade ticket %s", upgradeTicket.get());
+				upgradeTicket.ifPresent(it -> {
+					tracker.assignTicketToMe(project, it);
+					upgradeTickets.add(it);
+				});
 			} else {
 
 				logger.log(module, "Creating upgrade ticket for %s", upgradeTicketSummary);
-				tracker.createTicket(module, upgradeTicketSummary, IssueTracker.TicketType.DependencyUpgrade);
+				Ticket ticket = tracker.createTicket(module, upgradeTicketSummary, IssueTracker.TicketType.DependencyUpgrade,
+						true);
+				upgradeTickets.add(ticket);
 			}
 		});
 
 		// flush cache
 		tracker.reset();
+
+		return new Tickets(upgradeTickets);
 	}
 
 	/**
 	 * Verifies dependencies to upgrade, applies the upgrade, creates a commit.
 	 *
+	 * @param tickets
 	 * @param module
 	 * @param dependencyVersions
 	 */
-	public Tickets upgradeDependencies(ModuleIteration module, DependencyVersions dependencyVersions) {
+	public Tickets upgradeDependencies(Tickets tickets, ModuleIteration module, DependencyVersions dependencyVersions) {
 
 		Project project = module.getProject();
 		DependencyVersions upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
@@ -155,15 +168,12 @@ public class DependencyOperations {
 			logger.log(module, "No dependency upgrades to apply");
 		}
 
-		IssueTracker tracker = this.tracker.getRequiredPluginFor(project);
-		Tickets tickets = tracker.getTicketsFor(module);
 		List<Ticket> ticketsToClose = new ArrayList<>();
 
 		upgrades.forEach((dependency, dependencyVersion) -> {
 
 			String upgradeTicketSummary = getUpgradeTicketSummary(dependency, dependencyVersion);
 			Ticket upgradeTicket = getDependencyUpgradeTicket(tickets, upgradeTicketSummary).get();
-			tracker.assignTicketToMe(project, upgradeTicket);
 			String versionProperty = dependencies.getVersionPropertyFor(dependency);
 
 			File pom = getPomFile(project);
@@ -340,7 +350,15 @@ public class DependencyOperations {
 
 			MavenMetadata metadata = io.read(MavenMetadata.class);
 
-			return metadata.getVersions().stream().filter(dependency::shouldInclude).map(DependencyVersion::of).map(it -> {
+			return metadata.getVersions().stream().filter(dependency::shouldInclude).flatMap(s -> {
+
+				try {
+					return Stream.of(DependencyVersion.of(s));
+				} catch (Exception e) {
+					logger.log(dependency.toString(), "Cannot parse dependency version " + s);
+					return Stream.empty();
+				}
+			}).map(it -> {
 
 				if (creationDates.containsKey(it.getIdentifier())) {
 					return it.withCreatedAt(creationDates.get(it.getIdentifier()));
@@ -351,7 +369,7 @@ public class DependencyOperations {
 			}).collect(Collectors.toList());
 
 		} catch (Exception o_O) {
-			throw new RuntimeException(o_O);
+			throw new RuntimeException(String.format("Cannot determine available versions for %s", dependency), o_O);
 		}
 	}
 

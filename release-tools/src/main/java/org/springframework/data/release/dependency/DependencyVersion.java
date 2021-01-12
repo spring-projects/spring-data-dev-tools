@@ -90,10 +90,11 @@ class DependencyVersion implements Comparable<DependencyVersion> {
 			Version version = null;
 			String modifier;
 			String counter;
+			String versionString = versionMatcher.group(1);
 			try {
-				version = Version.parse(versionMatcher.group(1));
-			} catch (NumberFormatException e) {
-
+				version = Version.parse(versionString);
+			} catch (RuntimeException e) {
+				throw new IllegalArgumentException(String.format("Cannot parse version number %s", versionString), e);
 			}
 
 			modifier = versionMatcher.group(2);
