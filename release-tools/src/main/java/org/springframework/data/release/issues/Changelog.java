@@ -16,6 +16,7 @@
 package org.springframework.data.release.issues;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Date;
@@ -34,7 +35,7 @@ import org.springframework.format.datetime.DateFormatter;
 @EqualsAndHashCode
 public class Changelog {
 
-	private final ModuleIteration module;
+	@Getter private final ModuleIteration module;
 	private final Tickets tickets;
 
 	/*
@@ -43,25 +44,35 @@ public class Changelog {
 	 */
 	@Override
 	public String toString() {
+		return toString(true, "");
 
+	}
+
+	public String toString(boolean header, String indentation) {
 		ArtifactVersion version = ArtifactVersion.of(module);
 
 		String headline = String.format("Changes in version %s (%s)", version,
 				new DateFormatter("YYYY-MM-dd").print(new Date(), Locale.US));
 
-		StringBuilder builder = new StringBuilder(headline).append(IOUtils.LINE_SEPARATOR);
+		StringBuilder builder = new StringBuilder();
 
-		for (int i = 0; i < headline.length(); i++) {
-			builder.append("-");
+		if (header) {
+
+			builder.append(indentation).append(headline).append(IOUtils.LINE_SEPARATOR).append(indentation);
+
+			for (int i = 0; i < headline.length(); i++) {
+				builder.append("-");
+			}
+
+			builder.append(IOUtils.LINE_SEPARATOR);
 		}
-
-		builder.append(IOUtils.LINE_SEPARATOR);
 
 		for (Ticket ticket : tickets) {
 
 			String summary = ticket.getSummary();
 
-			builder.append("* ").append(ticket.getId()).append(" - ").append(summary != null ? summary.trim() : "");
+			builder.append(indentation).append("* ").append(ticket.getId()).append(" - ")
+					.append(summary != null ? summary.trim() : "");
 
 			if (!summary.endsWith(".")) {
 				builder.append(".");

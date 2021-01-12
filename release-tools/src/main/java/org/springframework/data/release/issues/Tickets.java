@@ -98,11 +98,17 @@ public class Tickets implements Streamable<Ticket> {
 	 */
 	@Override
 	public String toString() {
+		return toString(true);
+	}
+
+	public String toString(boolean header) {
 
 		StringBuilder builder = new StringBuilder();
 
-		builder.append(String.format("Train only tickets: %s of %s", tickets.size(), overallTotal));
-		builder.append(IOUtils.LINE_SEPARATOR);
+		if (header) {
+			builder.append(String.format("Train only tickets: %s of %s", tickets.size(), overallTotal));
+			builder.append(IOUtils.LINE_SEPARATOR);
+		}
 		builder.append(tickets.stream().map(it -> "\t" + it).collect(Collectors.joining(IOUtils.LINE_SEPARATOR)));
 
 		return builder.toString();

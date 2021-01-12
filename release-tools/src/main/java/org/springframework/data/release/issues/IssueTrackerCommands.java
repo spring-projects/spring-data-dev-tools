@@ -136,8 +136,8 @@ class IssueTrackerCommands extends TimedCommand {
 				.toString();
 	}
 
-	@CliCommand("tracker changelog")
-	public String changelog(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+	@CliCommand("tracker open-tickets")
+	public String openTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
 			@CliOption(key = "module") String moduleName) {
 
 		if (StringUtils.hasText(moduleName)) {
@@ -145,11 +145,15 @@ class IssueTrackerCommands extends TimedCommand {
 			Project project = Projects.requiredByName(moduleName);
 
 			ModuleIteration module = iteration.getModule(project);
-			return getTrackerFor(module).getChangelogFor(module).toString();
+			String tickets = getTrackerFor(module).getTicketsFor(module).stream().filter(it -> !it.isResolved())
+					.collect(Tickets.toTicketsCollector()).toString(false);
+
+			return String.format("%s - %s%n%s%n", project.getFullName(), module.getFullVersionString(), tickets);
 		}
 
-		return ExecutionUtils.runAndReturn(executor, iteration, this::getChangelog).//
-				stream().map(it -> it.toString()).collect(Collectors.joining("\n"));
+		return ExecutionUtils.runAndReturn(executor, iteration,
+				moduleIteration -> openTickets(iteration, moduleIteration.getModule().getProject().getName())).//
+				stream().collect(Collectors.joining("\n"));
 	}
 
 	@CliCommand("tracker close")

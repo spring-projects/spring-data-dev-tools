@@ -54,10 +54,10 @@ class ParsedCommitMessage {
 			.compile(String.format("(%s|%s)", JIRA_TICKET.pattern(), GITHUB_TICKET.pattern()));
 
 	private static final Pattern ORIGINAL_PULL_REQUEST = Pattern
-			.compile("Original (?>pull request|PR|pullrequest):(?>\\s+)?" + A_TICKET.pattern(), Pattern.CASE_INSENSITIVE);
+			.compile("Original (?>pull request|PR|pullrequest)[:]*(?>\\s+)?" + A_TICKET.pattern(), Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern RELATED_TICKET = Pattern.compile(
-			"Related (?>tickets|ticket):(?>\\s+)?((" + A_TICKET.pattern() + "(?>[\\s,]*))+)", Pattern.CASE_INSENSITIVE);
+			"Related (?>tickets|ticket)[:]*(?>\\s+)?((" + A_TICKET.pattern() + "(?>[\\s,]*))+)", Pattern.CASE_INSENSITIVE);
 
 	private final String summary;
 	private final @Nullable String body;

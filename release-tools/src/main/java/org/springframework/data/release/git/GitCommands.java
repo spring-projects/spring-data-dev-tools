@@ -18,6 +18,7 @@ package org.springframework.data.release.git;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -28,14 +29,18 @@ import java.util.stream.Stream;
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.issues.Changelog;
+import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.Tickets;
+import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.table.Table;
@@ -50,6 +55,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 class GitCommands extends TimedCommand {
 
+	private final PluginRegistry<IssueTracker, Project> trackers;
 	private final @NonNull GitOperations git;
 	private final @NonNull Executor executor;
 
@@ -87,23 +93,33 @@ class GitCommands extends TimedCommand {
 
 		TrainIteration previousIteration = git.getPreviousIteration(iteration);
 
-		return ExecutionUtils.runAndReturn(executor, iteration, moduleIteration -> {
+		return ExecutionUtils.runAndReturn(executor, iteration, module -> {
 
-			List<TicketReference> ticketRefs = git.getTicketReferencesBetween(moduleIteration.getProject(), previousIteration,
+			List<TicketReference> ticketRefs = git.getTicketReferencesBetween(module.getProject(), previousIteration,
 					iteration);
 
-			return Changelog.of(moduleIteration, toTickets(ticketRefs));
+			return Changelog.of(module, toTickets(module, ticketRefs));
 
 		}).stream() //
-				.map(Changelog::toString) //
+				.map(changelog -> {
+
+					ModuleIteration module = changelog.getModule();
+					return String.format("%s %s%n%s", module.getModule().getProject().getFullName(), ArtifactVersion.of(module),
+							changelog.toString(false, " "));
+				}) //
 				.collect(Collectors.joining("\n"));
 	}
 
-	private Tickets toTickets(List<TicketReference> ticketRefs) {
+	private Tickets toTickets(ModuleIteration module, List<TicketReference> ticketReferences) {
 
-		return new Tickets(
-				ticketRefs.stream().map(it -> new Ticket(it.getId(), it.getMessage(), "", null, null))
-						.collect(Collectors.toList()));
+		// TODO: Use only associated tracker
+		List<Ticket> tickets = new ArrayList<>();
+
+		for (IssueTracker tracker : trackers) {
+			tickets.addAll(tracker.findTickets(module, ticketReferences).getTickets());
+		}
+
+		return new Tickets(tickets);
 	}
 
 	/**

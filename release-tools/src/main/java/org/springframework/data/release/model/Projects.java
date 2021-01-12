@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -131,9 +132,9 @@ public class Projects {
 
 	public static Optional<Project> byName(String name) {
 
-		return PROJECTS.stream().//
-				filter(project -> project.getName().equalsIgnoreCase(name) || project.getKey().toString().equals(name)).//
-				findFirst();
+		return Stream.concat(Stream.of(BOM), PROJECTS.stream()) //
+				.filter(project -> project.getName().equalsIgnoreCase(name) || project.getKey().toString().equals(name))//
+				.findFirst();
 	}
 
 	public static Project requiredByName(String name) {

@@ -593,6 +593,10 @@ class Jira implements JiraConnector {
 				.filter(it -> it.getId().startsWith(moduleIteration.getProjectKey().getKey())).map(TicketReference::getId)
 				.collect(Collectors.toList());
 
+		if (ids.isEmpty()) {
+			return new Tickets(Collections.emptyList());
+		}
+
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("jql", JqlQuery.from(ids));
 		parameters.put("fields", "summary,status,resolution,fixVersions");
