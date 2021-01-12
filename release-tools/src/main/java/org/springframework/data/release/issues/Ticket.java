@@ -74,7 +74,7 @@ public class Ticket {
 	public boolean isReleaseTicketFor(ModuleIteration module) {
 
 		Assert.notNull(module, "Module must not be null!");
-		return summary.equals(Tracker.releaseTicketSummary(module));
+		return summary.startsWith(Tracker.releaseTicketSummary(module));
 	}
 
 	/**

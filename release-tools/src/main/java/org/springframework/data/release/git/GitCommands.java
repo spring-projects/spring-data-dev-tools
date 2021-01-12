@@ -102,7 +102,8 @@ class GitCommands extends TimedCommand {
 	private Tickets toTickets(List<TicketReference> ticketRefs) {
 
 		return new Tickets(
-				ticketRefs.stream().map(it -> new Ticket(it.getId(), it.getMessage(), "", null)).collect(Collectors.toList()));
+				ticketRefs.stream().map(it -> new Ticket(it.getId(), it.getMessage(), "", null, null))
+						.collect(Collectors.toList()));
 	}
 
 	/**

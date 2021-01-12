@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import org.springframework.data.release.GitHubMigration;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.Changelog;
@@ -119,25 +118,17 @@ public class ReleaseOperations {
 	protected Changelog getChangelog(TrainIteration iteration, TrainIteration previousIteration, ModuleIteration module,
 			IssueTracker issueTracker) {
 
-		Changelog changelog;
+		List<TicketReference> ticketReferences = git.getTicketReferencesBetween(module.getProject(), previousIteration,
+				iteration);
 
-		if (GitHubMigration.isDone) {
+		// TODO: Use only associated tracker
+		List<Ticket> tickets = new ArrayList<>();
 
-			List<TicketReference> ticketReferences = git.getTicketReferencesBetween(module.getProject(), previousIteration,
-					iteration);
-
-			// TODO: Use only associated tracker
-			List<Ticket> tickets = new ArrayList<>();
-
-			for (IssueTracker tracker : trackers) {
-				tickets.addAll(tracker.findTickets(module, ticketReferences).getTickets());
-			}
-
-			changelog = Changelog.of(module, new Tickets(tickets));
-		} else {
-			changelog = issueTracker.getChangelogFor(module);
+		for (IssueTracker tracker : trackers) {
+			tickets.addAll(tracker.findTickets(module, ticketReferences).getTickets());
 		}
-		return changelog;
+
+		return Changelog.of(module, new Tickets(tickets));
 	}
 
 	public void updateResources(TrainIteration iteration) {

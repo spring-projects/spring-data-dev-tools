@@ -51,59 +51,59 @@ public class Projects {
 						.artifacts("spring-data-build-parent", "spring-data-build-resources")
 						.and(ArtifactCoordinate.of("org.springframework.data", "spring-data-releasetrain")));
 
-		COMMONS = new Project("DATACMNS", "Commons").withDependencies(BUILD);
+		COMMONS = new Project("DATACMNS", "Commons", Tracker.GITHUB).withDependencies(BUILD);
 
-		JPA = new Project("DATAJPA", "JPA").withDependencies(COMMONS);
+		JPA = new Project("DATAJPA", "JPA", Tracker.GITHUB).withDependencies(COMMONS);
 
-		MONGO_DB = new Project("DATAMONGO", "MongoDB") //
+		MONGO_DB = new Project("DATAMONGO", "MongoDB", Tracker.GITHUB) //
 				.withDependencies(COMMONS) //
 				.withAdditionalArtifacts(
 						ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-mongodb-cross-store", "spring-data-mongodb-log4j"));
 
-		NEO4J = new Project("DATAGRAPH", "Neo4j").withDependencies(COMMONS);
+		NEO4J = new Project("DATAGRAPH", "Neo4j", Tracker.GITHUB).withDependencies(COMMONS);
 
-		SOLR = new Project("DATASOLR", "Solr") //
+		SOLR = new Project("DATASOLR", "Solr", Tracker.GITHUB) //
 				.withDependencies(COMMONS) //
 				.withFullName("Spring Data for Apache Solr");
 
-		COUCHBASE = new Project("DATACOUCH", "Couchbase").withDependencies(COMMONS);
+		COUCHBASE = new Project("DATACOUCH", "Couchbase", Tracker.GITHUB).withDependencies(COMMONS);
 
-		CASSANDRA = new Project("DATACASS", "Cassandra") //
+		CASSANDRA = new Project("DATACASS", "Cassandra", Tracker.GITHUB) //
 				.withDependencies(COMMONS) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-cql"))
 				.withFullName("Spring Data for Apache Cassandra");
 
-		ELASTICSEARCH = new Project("DATAES", "Elasticsearch").withDependencies(COMMONS);
+		ELASTICSEARCH = new Project("DATAES", "Elasticsearch", Tracker.GITHUB).withDependencies(COMMONS);
 
-		KEY_VALUE = new Project("DATAKV", "KeyValue").withDependencies(COMMONS);
+		KEY_VALUE = new Project("DATAKV", "KeyValue", Tracker.GITHUB).withDependencies(COMMONS);
 
-		REDIS = new Project("DATAREDIS", "Redis").withDependencies(KEY_VALUE);
+		REDIS = new Project("DATAREDIS", "Redis", Tracker.GITHUB).withDependencies(KEY_VALUE);
 
-		JDBC = new Project("DATAJDBC", "JDBC")
+		JDBC = new Project("DATAJDBC", "JDBC", Tracker.GITHUB)
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational"))
 				.withDependencies(COMMONS);
 
 		R2DBC = new Project("DATAR2DBC", "R2DBC", Tracker.GITHUB).withDependencies(COMMONS, JDBC);
 
-		GEMFIRE = new Project("DATAGEODE", "Gemfire") //
+		GEMFIRE = new Project("DATAGEODE", "Gemfire", Tracker.JIRA) //
 				.withDependencies(COMMONS)//
 				.withSkipTests(true);
 
-		GEODE = new Project("DATAGEODE", "Geode") //
+		GEODE = new Project("DATAGEODE", "Geode", Tracker.GITHUB) //
 				.withDependencies(COMMONS) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-gemfire"))
 				.withFullName("Spring Data for Apache Geode") //
 				.withSkipTests(true);
 
-		REST = new Project("DATAREST", "REST") //
-				.withDependencies(JPA, MONGO_DB, NEO4J, GEODE, SOLR, CASSANDRA, KEY_VALUE) //
+		REST = new Project("DATAREST", "REST", Tracker.GITHUB) //
+				.withDependencies(JPA, MONGO_DB, NEO4J, GEODE, CASSANDRA, KEY_VALUE) //
 				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA //
 						.artifacts("spring-data-rest-core", "spring-data-rest-core", "spring-data-rest-hal-browser",
 								"spring-data-rest-hal-explorer"));
 
 		ENVERS = new Project("DATAENV", "Envers", Tracker.GITHUB).withDependencies(JPA);
 
-		LDAP = new Project("DATALDAP", "LDAP").withDependencies(COMMONS);
+		LDAP = new Project("DATALDAP", "LDAP", Tracker.GITHUB).withDependencies(COMMONS);
 
 		// Specify build order to avoid maven dependency errors during build.
 		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, JDBC, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,

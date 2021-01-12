@@ -40,7 +40,6 @@ import org.springframework.data.release.issues.jira.JiraIssue.StatusCategory;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectKey;
-import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
@@ -232,7 +231,7 @@ class Jira implements JiraConnector {
 
 		Optional<JiraReleaseVersion> versionsForModuleIteration = findJiraReleaseVersion(moduleIteration);
 
-		if (versionsForModuleIteration.isPresent() || moduleIteration.getProject() == Projects.GEMFIRE) {
+		if (versionsForModuleIteration.isPresent()) {
 			return;
 		}
 
@@ -307,7 +306,7 @@ class Jira implements JiraConnector {
 
 		Tickets tickets = getTicketsFor(moduleIteration);
 
-		if (tickets.hasReleaseTicket(moduleIteration) || moduleIteration.getProject() == Projects.GEMFIRE) {
+		if (tickets.hasReleaseTicket(moduleIteration)) {
 			return;
 		}
 

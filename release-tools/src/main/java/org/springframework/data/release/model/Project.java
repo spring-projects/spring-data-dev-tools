@@ -28,7 +28,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.data.release.GitHubMigration;
 import org.springframework.util.Assert;
 
 /**
@@ -46,10 +45,6 @@ public class Project implements Comparable<Project> {
 	private final @With ArtifactCoordinates additionalArtifacts;
 	private final @With boolean skipTests;
 
-	Project(String key, String name) {
-		this(key, name, null, Tracker.JIRA);
-	}
-
 	Project(String key, String name, Tracker tracker) {
 		this(key, name, null, tracker);
 	}
@@ -63,11 +58,6 @@ public class Project implements Comparable<Project> {
 	private Project(ProjectKey key, String name, String fullName, Collection<Project> dependencies, Tracker tracker,
 			ArtifactCoordinates additionalArtifacts, boolean skipTests) {
 
-		if (GitHubMigration.isDone) {
-			if (tracker != Tracker.GITHUB) {
-				throw new IllegalStateException(String.format("Cannot have other trackers than GitHub (Project: %s)", name));
-			}
-		}
 		this.key = key;
 		this.name = name;
 		this.fullName = fullName;
