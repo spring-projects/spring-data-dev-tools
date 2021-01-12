@@ -139,6 +139,10 @@ class JiraIssue {
 				isPresent();
 	}
 
+	public void assignTo(String username) {
+		getFields().setAssignee(new JiraUser(username, null));
+	}
+
 	@Data
 	static class Fields {
 

@@ -33,7 +33,24 @@ public class Ticket {
 
 	String id, summary;
 	String url;
+	String assignee;
 	TicketStatus ticketStatus;
+
+	public Ticket(String id, String summary, String url, String assignee, TicketStatus ticketStatus) {
+		this.id = id;
+		this.summary = summary;
+		this.url = url;
+		this.assignee = assignee;
+		this.ticketStatus = ticketStatus;
+	}
+
+	public Ticket(String id, String summary, TicketStatus ticketStatus) {
+		this.id = id;
+		this.summary = summary;
+		this.assignee = null;
+		this.url = null;
+		this.ticketStatus = ticketStatus;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -77,5 +94,9 @@ public class Ticket {
 	 */
 	public boolean isReleaseTicketFor(TrainIteration train) {
 		return train.stream().anyMatch(this::isReleaseTicketFor);
+	}
+
+	public boolean isAssignedTo(String username) {
+		return username.equals(assignee);
 	}
 }

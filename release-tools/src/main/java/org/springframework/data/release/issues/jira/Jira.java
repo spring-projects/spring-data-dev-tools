@@ -313,20 +313,21 @@ class Jira implements JiraConnector {
 
 		logger.log(moduleIteration, "Creating release ticket…");
 
-		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration));
+		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration), false);
 	}
 
 	@Override
-	public Ticket createTicket(ModuleIteration moduleIteration, String text, TicketType ticketType) {
+	public Ticket createTicket(ModuleIteration moduleIteration, String text, TicketType ticketType,
+			boolean assignToCurrentUser) {
 
 		Assert.notNull(moduleIteration, "ModuleIteration must not be null.");
 
 		logger.log(moduleIteration, "Creating ticket…");
 
-		return doCreateTicket(moduleIteration, text);
+		return doCreateTicket(moduleIteration, text, assignToCurrentUser);
 	}
 
-	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text) {
+	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text, boolean assignToCurrentUser) {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		Map<String, Object> parameters = newUrlTemplateVariables();
@@ -336,6 +337,10 @@ class Jira implements JiraConnector {
 
 		JiraComponents jiraComponents = getJiraComponents(moduleIteration.getProjectKey());
 		JiraIssue jiraIssue = prepareJiraIssueToCreate(text, moduleIteration, jiraComponents);
+
+		if (assignToCurrentUser) {
+			jiraIssue.assignTo(jiraProperties.getUsername());
+		}
 
 		CreatedJiraIssue created = operations.exchange(CREATE_ISSUES_TEMPLATE, HttpMethod.POST,
 				new HttpEntity<Object>(jiraIssue, httpHeaders), CreatedJiraIssue.class, parameters).getBody();
@@ -739,7 +744,8 @@ class Jira implements JiraConnector {
 		}
 
 		return new Ticket(issue.getKey(), fields.getSummary(),
-				String.format("%s/browse/%s", jiraProperties.getApiUrl(), issue.getKey()), jiraTicketStatus);
+				String.format("%s/browse/%s", jiraProperties.getApiUrl(), issue.getKey()),
+				fields.getAssignee() != null ? fields.getAssignee().getName() : null, jiraTicketStatus);
 	}
 
 	private Map<String, Object> newUrlTemplateVariables() {

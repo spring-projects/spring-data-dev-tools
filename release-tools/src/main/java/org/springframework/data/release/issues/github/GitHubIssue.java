@@ -15,6 +15,8 @@
  */
 package org.springframework.data.release.issues.github;
 
+import java.util.List;
+
 /**
  * @author Mark Paluch
  */
@@ -29,6 +31,8 @@ public interface GitHubIssue {
 	String getTitle();
 
 	String getState();
+
+	List<String> getAssignees();
 
 	/**
 	 * @return HTML URL.

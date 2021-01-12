@@ -110,9 +110,10 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @param module must not be {@literal null}.
 	 * @param text the text to use.
 	 * @param ticketType the ticket type.
+	 * @param assignToCurrentUser
 	 * @return the created ticket.
 	 */
-	Ticket createTicket(ModuleIteration module, String text, TicketType ticketType);
+	Ticket createTicket(ModuleIteration module, String text, TicketType ticketType, boolean assignToCurrentUser);
 
 	/**
 	 * Assigns the ticket to the current user.

@@ -23,6 +23,8 @@ import lombok.With;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
@@ -66,4 +68,10 @@ class GitHubWriteIssue implements GitHubIssue {
 
 		return withLabels(labels);
 	}
+
+	public List<String> getAssignees() {
+		return assignees == null ? Collections.emptyList()
+				: assignees.stream().map(Objects::toString).collect(Collectors.toList());
+	}
+
 }

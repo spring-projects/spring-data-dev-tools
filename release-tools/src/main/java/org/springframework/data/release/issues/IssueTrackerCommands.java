@@ -127,11 +127,11 @@ class IssueTrackerCommands extends TimedCommand {
 	}
 
 	@CliCommand(value = "tracker create tickets")
-	public String createTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration,
+	public String createTickets(@CliOption(key = "iteration", mandatory = true) TrainIteration iteration,
 			@CliOption(key = "text", mandatory = true) String text) {
 
 		return iteration.stream().//
-				map(module -> getTrackerFor(module).createTicket(module, text, IssueTracker.TicketType.Task))
+				map(module -> getTrackerFor(module).createTicket(module, text, IssueTracker.TicketType.Task, false))
 				.collect(Tickets.toTicketsCollector())
 				.toString();
 	}

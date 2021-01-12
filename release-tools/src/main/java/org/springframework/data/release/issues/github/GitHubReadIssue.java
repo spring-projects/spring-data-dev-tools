@@ -18,6 +18,7 @@ package org.springframework.data.release.issues.github;
 import lombok.Value;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -49,6 +50,11 @@ class GitHubReadIssue implements Comparable<GitHubReadIssue>, GitHubIssue {
 		this.milestone = milestone;
 		this.pullRequest = pullRequest;
 		this.labels = labels;
+	}
+
+	@Override
+	public List<String> getAssignees() {
+		return assignees.stream().map(GitHubUser::getName).collect(Collectors.toList());
 	}
 
 	@Override

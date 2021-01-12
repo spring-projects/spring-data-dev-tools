@@ -18,6 +18,7 @@ package org.springframework.data.release.issues.github;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,18 +252,20 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		logger.log(moduleIteration, "Creating release ticket…");
 
-		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration), TicketType.Task);
+		doCreateTicket(moduleIteration, Tracker.releaseTicketSummary(moduleIteration), TicketType.Task, false);
 	}
 
 	@Override
-	public Ticket createTicket(ModuleIteration moduleIteration, String text, TicketType ticketType) {
+	public Ticket createTicket(ModuleIteration moduleIteration, String text, TicketType ticketType,
+			boolean assignToCurrentUser) {
 
 		logger.log(moduleIteration, "Creating ticket…");
 
-		return doCreateTicket(moduleIteration, text, ticketType);
+		return doCreateTicket(moduleIteration, text, ticketType, assignToCurrentUser);
 	}
 
-	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text, TicketType ticketType) {
+	private Ticket doCreateTicket(ModuleIteration moduleIteration, String text, TicketType ticketType,
+			boolean assignToCurrentUser) {
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 		Milestone milestone = getMilestone(moduleIteration, repositoryName);
@@ -270,6 +273,10 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		Label label = TICKET_LABELS.get(ticketType);
 
 		GitHubWriteIssue gitHubIssue = GitHubWriteIssue.of(text, milestone).withLabel(label.getName());
+
+		if (assignToCurrentUser) {
+			gitHubIssue = gitHubIssue.withAssignees(Collections.singletonList(properties.getUsername()));
+		}
 
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
@@ -294,8 +301,12 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		Assert.notNull(ticket, "Ticket must not be null.");
 
-		String repositoryName = GitProject.of(project).getRepositoryName();
+		if (ticket.isAssignedTo(properties.getUsername())) {
+			logger.log("Ticket", "Skipping self-assignment of %s", ticket);
+			return ticket;
+		}
 
+		String repositoryName = GitProject.of(project).getRepositoryName();
 		Map<String, Object> parameters = newUrlTemplateVariables();
 		parameters.put("repoName", repositoryName);
 		parameters.put("id", stripHash(ticket));
@@ -673,7 +684,8 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	}
 
 	private static Ticket toTicket(GitHubIssue issue) {
-		return new Ticket(issue.getId(), issue.getTitle(), issue.getUrl(), new GithubTicketStatus(issue.getState()));
+		return new Ticket(issue.getId(), issue.getTitle(), issue.getUrl(),
+				issue.getAssignees().isEmpty() ? null : issue.getAssignees().get(0), new GithubTicketStatus(issue.getState()));
 	}
 
 }

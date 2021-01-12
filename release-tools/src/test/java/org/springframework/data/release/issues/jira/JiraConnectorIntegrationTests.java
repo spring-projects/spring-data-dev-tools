@@ -251,7 +251,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(put(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).//
 				willReturn(aResponse().withStatus(204)));
 
-		jira.assignTicketToMe(Projects.REDIS, new Ticket("DATAREDIS-302", "", null, null));
+		jira.assignTicketToMe(Projects.REDIS, new Ticket("DATAREDIS-302", "", null));
 
 		verify(putRequestedFor(urlPathMatching("/rest/api/2/issue/DATAREDIS-302")).withRequestBody(equalToJson(
 				"{\"update\":{\"assignee\":[ {\"set\":{\"name\":\"dummy\"}} ] }, \"transition\":{}, \"fields\":{}}")));
@@ -271,7 +271,7 @@ class JiraConnectorIntegrationTests extends AbstractIntegrationTests {
 		mockService.stubFor(post(urlPathMatching("/rest/api/2/issue/DATACASS-302")).//
 				willReturn(aResponse().withStatus(204)));
 
-		jira.assignTicketToMe(Projects.CASSANDRA, new Ticket("DATACASS-302", "", null, null));
+		jira.assignTicketToMe(Projects.CASSANDRA, new Ticket("DATACASS-302", "", null));
 
 		verify(0, postRequestedFor(urlPathMatching("/rest/api/2/issue/DATACASS-302")));
 	}
