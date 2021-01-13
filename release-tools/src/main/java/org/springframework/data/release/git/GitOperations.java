@@ -883,23 +883,23 @@ public class GitOperations {
 
 	private ObjectId findRequiredCommit(ModuleIteration module, String summary) {
 
-		Predicate<RevCommit> trigger = calculateTrigger(module, summary);
+		Predicate<RevCommit> trigger = calculateFilter(module, summary);
 
 		return findCommit(module, summary).orElseThrow(() -> new IllegalStateException(String
 				.format("Did not find a commit with summary starting with '%s' for project %s", module.getProject(), trigger)));
 	}
 
 	private Optional<ObjectId> findCommit(ModuleIteration module, String summary) {
-		return findCommitWithTrigger(module.getProject(), calculateTrigger(module, summary));
+		return findCommit(module.getProject(), calculateFilter(module, summary));
 	}
 
-	private Optional<ObjectId> findCommitWithTrigger(Project project, Predicate<RevCommit> trigger) {
+	private Optional<ObjectId> findCommit(Project project, Predicate<RevCommit> filter) {
 
 		return doWithGit(project, git -> {
 
 			for (RevCommit commit : git.log().setMaxCount(50).call()) {
 
-				if (trigger.test(commit)) {
+				if (filter.test(commit)) {
 					return Optional.of(commit.getId());
 				}
 			}
@@ -908,7 +908,7 @@ public class GitOperations {
 		});
 	}
 
-	private Predicate<RevCommit> calculateTrigger(ModuleIteration module, String summary) {
+	private Predicate<RevCommit> calculateFilter(ModuleIteration module, String summary) {
 
 		Project project = module.getProject();
 		Ticket releaseTicket = issueTracker
