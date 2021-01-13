@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.web.client.RestOperations;
 
@@ -82,10 +81,6 @@ class DefaultSaganClient implements SaganClient {
 	 */
 	@Override
 	public void updateProjectMetadata(Project project, MaintainedVersions versions) {
-
-		if (project != Projects.BUILD) {
-			return;
-		}
 
 		URI resource = properties.getProjectReleasesResource(project);
 
