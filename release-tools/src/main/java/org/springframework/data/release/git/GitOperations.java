@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -882,7 +883,7 @@ public class GitOperations {
 
 	private ObjectId findRequiredCommit(ModuleIteration module, String summary) {
 
-		String trigger = calculateTrigger(module, summary);
+		Predicate<RevCommit> trigger = calculateTrigger(module, summary);
 
 		return findCommit(module, summary).orElseThrow(() -> new IllegalStateException(String
 				.format("Did not find a commit with summary starting with '%s' for project %s", module.getProject(), trigger)));
@@ -892,13 +893,13 @@ public class GitOperations {
 		return findCommitWithTrigger(module.getProject(), calculateTrigger(module, summary));
 	}
 
-	private Optional<ObjectId> findCommitWithTrigger(Project project, String trigger) {
+	private Optional<ObjectId> findCommitWithTrigger(Project project, Predicate<RevCommit> trigger) {
 
 		return doWithGit(project, git -> {
 
 			for (RevCommit commit : git.log().setMaxCount(50).call()) {
 
-				if (commit.getShortMessage().startsWith(trigger)) {
+				if (trigger.test(commit)) {
 					return Optional.of(commit.getId());
 				}
 			}
@@ -907,14 +908,21 @@ public class GitOperations {
 		});
 	}
 
-	private String calculateTrigger(ModuleIteration module, String summary) {
+	private Predicate<RevCommit> calculateTrigger(ModuleIteration module, String summary) {
 
 		Project project = module.getProject();
 		Ticket releaseTicket = issueTracker
 				.getRequiredPluginFor(project, () -> String.format("No issue tracker found for project %s!", project))//
 				.getReleaseTicketFor(module);
 
-		return String.format("%s - %s", releaseTicket.getId(), summary);
+		return revCommit -> {
+
+			if (revCommit.getShortMessage().contains(summary) && revCommit.getFullMessage().contains(releaseTicket.getId())) {
+				return true;
+			}
+
+			return false;
+		};
 	}
 
 	/**
