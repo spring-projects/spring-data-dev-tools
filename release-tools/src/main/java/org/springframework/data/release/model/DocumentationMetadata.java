@@ -29,7 +29,7 @@ public class DocumentationMetadata {
 
 	private static String DOCS_BASE = "https://docs.spring.io/spring-data/%s/docs/%s";
 	private static String DOCS = DOCS_BASE.concat("/reference/html/");
-	private static String JAVADOC = DOCS_BASE.concat("/api");
+	private static String JAVADOC = DOCS_BASE.concat("/api/");
 
 	Project project;
 	ArtifactVersion version;
@@ -41,9 +41,15 @@ public class DocumentationMetadata {
 	 */
 	public String getApiDocUrl(Train train) {
 
-		return version.isSnapshotVersion() || Projects.BUILD.equals(project) //
-				? "" //
-				: String.format(JAVADOC, project.getName().toLowerCase(Locale.US), getVersion(train));
+		if (version.isSnapshotVersion()) {
+			return "";
+		}
+
+		if (Projects.BUILD.equals(project)) { // Report Commons Docs for Spring Data Build
+			return String.format(JAVADOC, Projects.COMMONS.getName().toLowerCase(Locale.US), version.toString());
+		}
+
+		return String.format(JAVADOC, project.getName().toLowerCase(Locale.US), getVersion(train));
 	}
 
 	/**
@@ -53,9 +59,15 @@ public class DocumentationMetadata {
 	 */
 	public String getReferenceDocUrl(Train train) {
 
-		return version.isSnapshotVersion() || Projects.BUILD.equals(project) //
-				? "" //
-				: String.format(DOCS, project.getName().toLowerCase(Locale.US), getVersion(train));
+		if (version.isSnapshotVersion()) {
+			return "";
+		}
+
+		if (Projects.BUILD.equals(project)) { // Report Commons Docs for Spring Data Build
+			return String.format(DOCS, Projects.COMMONS.getName().toLowerCase(Locale.US), version.toString());
+		}
+
+		return String.format(DOCS, project.getName().toLowerCase(Locale.US), getVersion(train));
 	}
 
 	public String getVersion(Train train) {
