@@ -36,6 +36,7 @@ import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
@@ -89,24 +90,25 @@ class GitCommands extends TimedCommand {
 	}
 
 	@CliCommand("git changelog")
-	public String changelog(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+	public String changelog(@CliOption(key = "", mandatory = true) TrainIteration iteration,
+			@CliOption(key = "module") String moduleName) {
 
 		TrainIteration previousIteration = git.getPreviousIteration(iteration);
 
-		return ExecutionUtils.runAndReturn(executor, iteration, module -> {
+		if (StringUtils.hasText(moduleName)) {
 
+			ModuleIteration module = iteration.getModule(Projects.requiredByName(moduleName));
 			List<TicketReference> ticketRefs = git.getTicketReferencesBetween(module.getProject(), previousIteration,
 					iteration);
 
-			return Changelog.of(module, toTickets(module, ticketRefs));
+			Changelog changelog = Changelog.of(module, toTickets(module, ticketRefs));
+			return String.format("%s %s%n%s", module.getModule().getProject().getFullName(), ArtifactVersion.of(module),
+					changelog.toString(false, " "));
+		}
 
-		}).stream() //
-				.map(changelog -> {
-
-					ModuleIteration module = changelog.getModule();
-					return String.format("%s %s%n%s", module.getModule().getProject().getFullName(), ArtifactVersion.of(module),
-							changelog.toString(false, " "));
-				}) //
+		return ExecutionUtils
+				.runAndReturn(executor, iteration, module -> changelog(iteration, module.getModule().getProject().getName())) //
+				.stream() //
 				.collect(Collectors.joining("\n"));
 	}
 

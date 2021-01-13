@@ -138,22 +138,29 @@ class IssueTrackerCommands extends TimedCommand {
 
 	@CliCommand("tracker open-tickets")
 	public String openTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
-			@CliOption(key = "module") String moduleName) {
+			@CliOption(key = "module") String moduleName,
+			@CliOption(key = "filter-release-tickets") Boolean filterReleaseTickets) {
 
 		if (StringUtils.hasText(moduleName)) {
 
 			Project project = Projects.requiredByName(moduleName);
 
 			ModuleIteration module = iteration.getModule(project);
-			String tickets = getTrackerFor(module).getTicketsFor(module).stream().filter(it -> !it.isResolved())
-					.collect(Tickets.toTicketsCollector()).toString(false);
 
-			return String.format("%s - %s%n%s%n", project.getFullName(), module.getFullVersionString(), tickets);
+			return getTrackerFor(module).getTicketsFor(module) //
+					.stream() //
+					.filter(it -> !it.isResolved()
+							&& ((filterReleaseTickets == null || !filterReleaseTickets) || !it.isReleaseTicket())) //
+					.collect(Tickets.toTicketsCollector()) //
+					.toString(false);
 		}
 
 		return ExecutionUtils.runAndReturn(executor, iteration,
-				moduleIteration -> openTickets(iteration, moduleIteration.getModule().getProject().getName())).//
-				stream().collect(Collectors.joining("\n"));
+				moduleIteration -> openTickets(iteration, moduleIteration.getModule().getProject().getName(),
+						filterReleaseTickets))
+				.stream() //
+				.filter(StringUtils::hasText) //
+				.collect(Collectors.joining("\n"));
 	}
 
 	@CliCommand("tracker close")
