@@ -38,7 +38,7 @@ Make sure that:
 * All release tickets are present (`$ tracker releasetickets $trainIteration`)
 * Review open tickets for release
 * Self-assign release tickets (`$ tracker prepare $trainIteration`)
-* Announce release preparations to mailing list
+* Announce release preparations to mailing list (https://groups.google.com/forum/#!forum/spring-data-dev)
 
 ### Release the binaries
 
