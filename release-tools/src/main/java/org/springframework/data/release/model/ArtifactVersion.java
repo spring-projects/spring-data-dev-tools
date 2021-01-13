@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Value object to represent version of a particular artifact.
@@ -328,12 +329,13 @@ public class ArtifactVersion implements Comparable<ArtifactVersion> {
 		ArtifactVersion other = (ArtifactVersion) o;
 		return version.equals(other.version) && isReleaseVersion() == other.isReleaseVersion()
 				&& isSnapshotVersion() == other.isSnapshotVersion() && isMilestoneVersion() == other.isMilestoneVersion()
-				&& isReleaseCandidateVersion() == other.isReleaseCandidateVersion();
+				&& isReleaseCandidateVersion() == other.isReleaseCandidateVersion()
+				&& ObjectUtils.nullSafeEquals(suffix, other.suffix);
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects.hash(version, isReleaseVersion(), isSnapshotVersion(), isMilestoneVersion(),
-				isReleaseCandidateVersion());
+				isReleaseCandidateVersion(), suffix);
 	}
 }
