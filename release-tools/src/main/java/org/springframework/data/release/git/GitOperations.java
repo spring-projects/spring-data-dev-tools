@@ -647,7 +647,7 @@ public class GitOperations {
 		String author = gitProperties.getAuthor();
 		String email = gitProperties.getEmail();
 
-		logger.log(module, "git commit -m \"%s\" %s --author=\"%s <%s>\"", commit,
+		logger.log(module, "git commit -m \"%s\" %s --author=\"%s <%s>\"", commit.getSummary(),
 				gpg.isGpgAvailable() ? "-S" + gpg.getKeyname() : "", author, email);
 
 		doWithGit(project, git -> {

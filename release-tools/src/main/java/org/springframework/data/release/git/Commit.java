@@ -16,6 +16,7 @@
 package org.springframework.data.release.git;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
@@ -24,12 +25,15 @@ import org.springframework.data.release.issues.Ticket;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @EqualsAndHashCode
 @RequiredArgsConstructor
 public class Commit {
 
 	private final Ticket ticket;
+
+	@Getter
 	private final String summary;
 	private final Optional<String> details;
 
