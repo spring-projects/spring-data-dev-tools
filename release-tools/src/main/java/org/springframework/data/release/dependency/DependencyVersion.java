@@ -107,6 +107,10 @@ class DependencyVersion implements Comparable<DependencyVersion> {
 		throw new IllegalArgumentException(String.format("Cannot parse version identifier %s", identifier));
 	}
 
+	public boolean isNewer(DependencyVersion other) {
+		return this.compareTo(other) > 0;
+	}
+
 	@Override
 	public int compareTo(DependencyVersion o) {
 

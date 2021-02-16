@@ -99,8 +99,7 @@ public class DependencyOperations {
 
 			DependencyVersion currentVersion = currentDependencies.get(dependency);
 			List<DependencyVersion> versions = getAvailableVersions(dependency);
-			DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(iteration, dependency, currentVersion,
-					versions);
+			DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(iteration, currentVersion, versions);
 
 			proposals.put(dependency, proposal);
 		});
@@ -234,19 +233,23 @@ public class DependencyOperations {
 	}
 
 	protected static DependencyUpgradeProposal getDependencyUpgradeProposal(Iteration iteration,
-			Dependency dependency, DependencyVersion currentVersion, List<DependencyVersion> allVersions) {
+			DependencyVersion currentVersion, List<DependencyVersion> allVersions) {
 
-		DependencyVersion latestMinor = findLatestMinor(iteration, dependency, currentVersion, allVersions);
-		DependencyVersion latest = findLatest(iteration, allVersions);
+		Optional<DependencyVersion> latestMinor = findLatestMinor(iteration, currentVersion, allVersions);
+		Optional<DependencyVersion> latest = findLatest(iteration, allVersions);
 		List<DependencyVersion> newerVersions = allVersions.stream() //
 				.sorted() //
 				.filter(it -> it.compareTo(currentVersion) > 0) //
 				.collect(Collectors.toList());
 
-		return DependencyUpgradeProposal.of(iteration, currentVersion, latestMinor, latest, newerVersions);
+		DependencyVersion latestToUse = latest.filter(it -> it.isNewer(currentVersion)).orElse(currentVersion);
+
+		return DependencyUpgradeProposal.of(iteration, currentVersion, latestMinor.orElse(latestToUse), latestToUse,
+				newerVersions);
 	}
 
-	private static DependencyVersion findLatest(Iteration iteration, List<DependencyVersion> availableVersions) {
+	private static Optional<DependencyVersion> findLatest(Iteration iteration,
+			List<DependencyVersion> availableVersions) {
 
 		return availableVersions.stream().filter(it -> {
 
@@ -256,11 +259,10 @@ public class DependencyOperations {
 
 			return true;
 
-		}).max(DependencyVersion::compareTo).orElseThrow(
-				() -> new IllegalArgumentException("Cannot determine new latest version from " + availableVersions));
+		}).max(DependencyVersion::compareTo);
 	}
 
-	private static DependencyVersion findLatestMinor(Iteration iteration, Dependency dependency,
+	private static Optional<DependencyVersion> findLatestMinor(Iteration iteration,
 			DependencyVersion currentVersion,
 			List<DependencyVersion> availableVersions) {
 
@@ -285,11 +287,7 @@ public class DependencyOperations {
 
 			return false;
 		}) //
-				.max(DependencyVersion::compareTo) //
-				.orElseThrow(
-						() -> new IllegalArgumentException(String.format(
-								"Cannot determine new minor version from %s for %s (%s). Current version: %s", availableVersions,
-								dependency.getName(), dependency.getArtifactId(), currentVersion.getIdentifier())));
+				.max(DependencyVersion::compareTo);
 	}
 
 	DependencyVersions getCurrentDependencies(Project project) {
