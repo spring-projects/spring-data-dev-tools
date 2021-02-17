@@ -17,6 +17,7 @@ package org.springframework.data.release.issues;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
@@ -80,6 +81,17 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @return
 	 */
 	Collection<Ticket> findTickets(Project project, Collection<String> ticketIds);
+
+	/**
+	 * Query the issue tracker for multiple {@link Ticket#id ticket Ids}. Tickets that are not found are not returned. The
+	 * implementation ensures to resolve only references that match the issue tracker scheme this issue tracker is
+	 * responsible for.
+	 *
+	 * @param moduleIteration must not be {@literal null}.
+	 * @param ticketReferences must not be {@literal null}.
+	 * @return
+	 */
+	Tickets findTickets(ModuleIteration moduleIteration, Collection<String> ticketIds);
 
 	/**
 	 * Creates a release version if release version is missing.
@@ -155,7 +167,8 @@ public interface IssueTracker extends Plugin<Project> {
 	 */
 	default Changelog getChangelogFor(ModuleIteration module, List<TicketReference> ticketReferences) {
 
-		Tickets tickets = findTickets(module, ticketReferences);
+		Tickets tickets = findTickets(module,
+				ticketReferences.stream().map(TicketReference::getId).collect(Collectors.toList()));
 		return Changelog.of(module, tickets);
 	}
 
@@ -173,17 +186,6 @@ public interface IssueTracker extends Plugin<Project> {
 	 * @param ticket must not be {@literal null}.
 	 */
 	void closeTicket(ModuleIteration module, Ticket ticket);
-
-	/**
-	 * Resolve a {@link List} of {@link TicketReference}s to {@link Tickets} for a given {@link ModuleIteration}. The
-	 * implementation ensures to resolve only references that match the issue tracker scheme this issue tracker is
-	 * responsible for.
-	 *
-	 * @param moduleIteration must not be {@literal null}.
-	 * @param ticketReferences must not be {@literal null}.
-	 * @return
-	 */
-	Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences);
 
 	enum TicketType {
 		Task, DependencyUpgrade;

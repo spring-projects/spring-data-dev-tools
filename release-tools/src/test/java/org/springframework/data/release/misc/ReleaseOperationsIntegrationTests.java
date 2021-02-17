@@ -18,6 +18,7 @@ package org.springframework.data.release.misc;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,8 @@ class ReleaseOperationsIntegrationTests extends AbstractIntegrationTests {
 		List<TicketReference> ticketReferences = gitOperations.getTicketReferencesBetween(Projects.MONGO_DB, from, to);
 		IssueTracker tracker = trackers.getRequiredPluginFor(Projects.MONGO_DB);
 
-		Tickets tickets = tracker.findTickets(to.getModule(Projects.MONGO_DB), ticketReferences);
+		Tickets tickets = tracker.findTickets(to.getModule(Projects.MONGO_DB),
+				ticketReferences.stream().map(TicketReference::getId).collect(Collectors.toList()));
 
 		assertThat(tickets).hasSize(15);
 	}
@@ -70,7 +72,8 @@ class ReleaseOperationsIntegrationTests extends AbstractIntegrationTests {
 		List<TicketReference> ticketReferences = gitOperations.getTicketReferencesBetween(Projects.R2DBC, from, to);
 		IssueTracker tracker = trackers.getRequiredPluginFor(Projects.R2DBC);
 
-		Tickets tickets = tracker.findTickets(to.getModule(Projects.R2DBC), ticketReferences);
+		Tickets tickets = tracker.findTickets(to.getModule(Projects.R2DBC),
+				ticketReferences.stream().map(TicketReference::getId).collect(Collectors.toList()));
 
 		assertThat(tickets).hasSize(22);
 	}

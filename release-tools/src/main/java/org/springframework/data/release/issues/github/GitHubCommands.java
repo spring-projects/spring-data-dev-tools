@@ -22,6 +22,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
@@ -63,11 +64,11 @@ class GitHubCommands extends TimedCommand {
 		git.push(iteration);
 		git.pushTags(iteration.getTrain());
 
-		createOrUpdateLabels(iteration);
+		createOrUpdateRelease(iteration);
 	}
 
 	@CliCommand(value = "github create release")
-	public void createOrUpdateLabels(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+	public void createOrUpdateRelease(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
 		TrainIteration previousIteration = git.getPreviousIteration(iteration);
 
@@ -75,8 +76,8 @@ class GitHubCommands extends TimedCommand {
 
 			if (it.getProject().getTracker() == Tracker.GITHUB) {
 
-				List<TicketReference> ticketReferences = git.getTicketReferencesBetween(it.getProject(), previousIteration,
-						iteration);
+				List<String> ticketReferences = git.getTicketReferencesBetween(it.getProject(), previousIteration, iteration)
+						.stream().map(TicketReference::getId).collect(Collectors.toList());
 				gitHub.createOrUpdateRelease(it, ticketReferences);
 			}
 		});

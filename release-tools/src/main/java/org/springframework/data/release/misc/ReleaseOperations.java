@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
@@ -118,15 +119,10 @@ public class ReleaseOperations {
 	protected Changelog getChangelog(TrainIteration iteration, TrainIteration previousIteration, ModuleIteration module,
 			IssueTracker issueTracker) {
 
-		List<TicketReference> ticketReferences = git.getTicketReferencesBetween(module.getProject(), previousIteration,
-				iteration);
+		List<String> ticketIds = git.getTicketReferencesBetween(module.getProject(), previousIteration, iteration).stream()
+				.map(TicketReference::getId).collect(Collectors.toList());
 
-		// TODO: Use only associated tracker
-		List<Ticket> tickets = new ArrayList<>();
-
-		for (IssueTracker tracker : trackers) {
-			tickets.addAll(tracker.findTickets(module, ticketReferences).getTickets());
-		}
+		List<Ticket> tickets = new ArrayList<>(issueTracker.findTickets(module, ticketIds).getTickets());
 
 		return Changelog.of(module, new Tickets(tickets));
 	}

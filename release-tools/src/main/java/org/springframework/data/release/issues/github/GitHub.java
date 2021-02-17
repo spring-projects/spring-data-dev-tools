@@ -40,13 +40,13 @@ import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.issues.Changelog;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
-import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.DocumentationMetadata;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
@@ -145,6 +145,13 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		});
 
 		return tickets;
+	}
+
+	@Override
+	public Tickets findTickets(ModuleIteration moduleIteration, Collection<String> ticketIds) {
+
+		return findGitHubIssues(moduleIteration, ticketIds).stream().map(GitHub::toTicket)
+				.collect(Tickets.toTicketsCollector());
 	}
 
 	/*
@@ -464,14 +471,7 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		close(module, ticket);
 	}
 
-	@Override
-	public Tickets findTickets(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
-
-		return findGitHubIssues(moduleIteration, ticketReferences).stream().map(GitHub::toTicket)
-				.collect(Tickets.toTicketsCollector());
-	}
-
-	List<GitHubReadIssue> findGitHubIssues(ModuleIteration moduleIteration, List<TicketReference> ticketReferences) {
+	List<GitHubReadIssue> findGitHubIssues(ModuleIteration moduleIteration, Collection<String> ticketIds) {
 
 		logger.log(moduleIteration, "Looking up GitHub issues from milestone …");
 
@@ -480,9 +480,9 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 
-		logger.log(moduleIteration, "Resolving GitHub issues …");
+		logger.log(moduleIteration, "Looking up GitHub issues …");
 		Collection<GitHubReadIssue> foundIssues = ExecutionUtils.runAndReturn(executorService,
-				Streamable.of(() -> ticketReferences.stream().filter(it -> it.getId().startsWith("#"))),
+				Streamable.of(() -> ticketIds.stream().filter(it -> it.startsWith("#"))),
 				ticketReference -> getTicket(issues, repositoryName, ticketReference));
 
 		List<GitHubReadIssue> gitHubIssues = foundIssues.stream().filter(it -> {
@@ -490,19 +490,19 @@ class GitHub extends GitHubSupport implements IssueTracker {
 			return !ticket.isReleaseTicketFor(moduleIteration) && !ticket.isReleaseTicket();
 		}).collect(Collectors.toList());
 
-		logger.log(moduleIteration, "Resolved %s tickets.", gitHubIssues.size());
+		logger.log(moduleIteration, "Found %s tickets.", gitHubIssues.size());
 
 		return gitHubIssues;
 	}
 
 	private GitHubReadIssue getTicket(Map<String, GitHubReadIssue> cache, String repositoryName,
-			TicketReference reference) {
+			String ticketId) {
 
-		if (cache.containsKey(reference.getId())) {
-			return cache.get(reference.getId());
+		if (cache.containsKey(ticketId)) {
+			return cache.get(ticketId);
 		}
 
-		return findTicket(repositoryName, reference.getId());
+		return findTicket(repositoryName, ticketId);
 	}
 
 	private Tickets getTicketsFor(ModuleIteration moduleIteration, boolean forCurrentUser) {
@@ -541,11 +541,11 @@ class GitHub extends GitHubSupport implements IssueTracker {
 	 * @param module
 	 * @param ticketReferences
 	 */
-	public void createOrUpdateRelease(ModuleIteration module, List<TicketReference> ticketReferences) {
+	public void createOrUpdateRelease(ModuleIteration module, List<String> ticketIds) {
 
 		logger.log(module, "Preparing GitHub Release …");
 
-		List<GitHubReadIssue> gitHubIssues = findGitHubIssues(module, ticketReferences);
+		List<GitHubReadIssue> gitHubIssues = findGitHubIssues(module, ticketIds);
 
 		ArtifactVersion version = ArtifactVersion.of(module);
 		DocumentationMetadata documentation = DocumentationMetadata.of(module.getProject(), version);
@@ -554,7 +554,13 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		String releaseBody = generator.generate(gitHubIssues, (changelogSection, s) -> s);
 		String documentationLinks = getDocumentationLinks(module, documentation);
 
-		createOrUpdateRelease(module, String.format("## :green_book: Links%n%s%n%s%n", documentationLinks, releaseBody));
+		if (module.getProject() == Projects.BOM || module.getProject() == Projects.BUILD) {
+			// We don't ship Javadoc/reference doc for build and BOM
+			createOrUpdateRelease(module, String.format("%s%n", documentationLinks, releaseBody));
+		} else {
+			createOrUpdateRelease(module, String.format("## :green_book: Links%n%s%n%s%n", documentationLinks, releaseBody));
+		}
+
 		logger.log(module, "GitHub Release up to date");
 	}
 

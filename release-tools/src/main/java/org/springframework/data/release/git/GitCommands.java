@@ -114,12 +114,12 @@ class GitCommands extends TimedCommand {
 
 	private Tickets toTickets(ModuleIteration module, List<TicketReference> ticketReferences) {
 
-		// TODO: Use only associated tracker
-		List<Ticket> tickets = new ArrayList<>();
+		IssueTracker issueTracker = trackers.getRequiredPluginFor(module.getProject(),
+				() -> String.format("No issue tracker found for project %s!", module.getProject()));
 
-		for (IssueTracker tracker : trackers) {
-			tickets.addAll(tracker.findTickets(module, ticketReferences).getTickets());
-		}
+		List<String> ticketIds = ticketReferences.stream().map(TicketReference::getId).collect(Collectors.toList());
+
+		List<Ticket> tickets = new ArrayList<>(issueTracker.findTickets(module, ticketIds).getTickets());
 
 		return new Tickets(tickets);
 	}
