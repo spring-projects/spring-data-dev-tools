@@ -17,12 +17,16 @@ package org.springframework.data.release.cli;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.release.git.GitProject;
+import org.springframework.data.release.git.Tag;
+import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @RequiredArgsConstructor
 public class StaticResources {
@@ -31,12 +35,20 @@ public class StaticResources {
 
 	private final String baseUrl;
 
+	private final String releaseUrl;
+
 	public StaticResources(ModuleIteration module) {
 
 		Project project = module.getProject();
 		ArtifactVersion version = ArtifactVersion.of(module);
 
 		this.baseUrl = String.format(URL_TEMPLATE, project.getName().toLowerCase(), version);
+
+		GitProject gitProject = GitProject.of(project);
+
+		Tag tag = VersionTags.empty(module.getProject()).createTag(module);
+
+		this.releaseUrl = String.format("%s/releases/tag/%s", gitProject.getProjectUri(), tag.getName());
 	}
 
 	public String getDocumentationUrl() {
@@ -48,6 +60,6 @@ public class StaticResources {
 	}
 
 	public String getChangelogUrl() {
-		return baseUrl.concat("/changelog.txt");
+		return releaseUrl;
 	}
 }

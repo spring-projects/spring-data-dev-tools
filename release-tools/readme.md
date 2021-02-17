@@ -46,8 +46,7 @@ Make sure that:
 $ release prepare $trainIteration
 $ release build $trainIteration
 $ release conclude $trainIteration
-$ git push $trainIteration
-$ git push $trainIteration --tags
+$ github push $trainIteration
 # After GitHub issues migration:
 # github push $trainIteration
 $ git backport changelog $trainIteration --target $targets
