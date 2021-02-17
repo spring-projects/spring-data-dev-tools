@@ -86,7 +86,7 @@ public class Projects {
 
 		R2DBC = new Project("DATAR2DBC", "R2DBC", Tracker.GITHUB).withDependencies(COMMONS, JDBC);
 
-		GEMFIRE = new Project("DATAGEODE", "Gemfire", Tracker.JIRA) //
+		GEMFIRE = new Project("SGF", "Gemfire", Tracker.JIRA) //
 				.withDependencies(COMMONS)//
 				.withSkipTests(true);
 
