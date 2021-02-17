@@ -37,6 +37,7 @@ class DependencyUpgradeProposalsUnitTests {
 		Properties properties = new Properties();
 		properties.put("dependency.train", "Pascal");
 		properties.put("dependency.iteration", "M1");
+		properties.put("dependency.upgrade.count", "2");
 		properties.put("dependency[org.assertj:assertj-core]", "3.18.1");
 		properties.put("dependency[io.reactivex.rxjava3:rxjava]", "1.2.3");
 

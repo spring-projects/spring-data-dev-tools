@@ -34,8 +34,6 @@ class ProjectUnitTests {
 		// Collections.reverse(projects);
 		// Collections.sort(projects);
 
-		projects.stream().map(Project::getName).forEach(System.out::println);
-
 		assertThat(projects.get(0)).isEqualTo(Projects.BUILD);
 		assertThat(projects.get(1)).isEqualTo(Projects.COMMONS);
 	}

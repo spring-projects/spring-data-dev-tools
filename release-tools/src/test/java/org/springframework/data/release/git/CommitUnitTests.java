@@ -35,7 +35,7 @@ class CommitUnitTests {
 
 		assertThat(
 				new Commit(new Ticket("1234", "Hello", Mockito.mock(TicketStatus.class)), "Summary", Optional.empty()))
-				.hasToString("1234 - Summary.");
+						.hasToString("Summary.\n" + "\n" + "See 1234");
 	}
 
 	@Test
@@ -44,6 +44,6 @@ class CommitUnitTests {
 		assertThat(
 				new Commit(new Ticket("1234", "Hello", Mockito.mock(TicketStatus.class)), "Summary",
 						Optional.of("detail")))
-						.hasToString("1234 - Summary.\n" + "\n" + "detail");
+								.hasToString("Summary.\n" + "\n" + "detail\n" + "\n" + "See 1234");
 	}
 }

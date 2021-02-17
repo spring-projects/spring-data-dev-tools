@@ -157,7 +157,8 @@ class GitHubIssueTrackerIntegrationTests extends AbstractIntegrationTests {
 
 		verify(postRequestedFor(urlPathMatching(ISSUES_URI))
 				.withRequestBody(
-						equalToJson("{\"title\":\"Release 1.8 RC1 (Hopper)\",\"milestone\":45,\"labels\":[ \"type: task\" ]}")));
+						equalToJson(
+								"{\"title\":\"Release 1.8 RC1 (Hopper)\",\"milestone\":45,\"labels\":[ \"type: task\" ], \"assignees\" : [ ]}")));
 	}
 
 	@Test // #5

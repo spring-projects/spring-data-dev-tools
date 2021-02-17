@@ -184,7 +184,7 @@ public class DependencyUpgradeProposals {
 
 		if (expectedUpgradeCount != result.size()) {
 			throw new IllegalStateException(String.format(
-					"The number of expected upgrades (%s) does not match the number of actual upgrades (%s): %n%n%s",
+					"The number of expected upgrades (dependency.upgrade.count=%s) does not match the number of actual upgrades (%s): %n%n%s",
 					expectedUpgradeCount, result.size(), dependencyVersions.toString(1)));
 		}
 
