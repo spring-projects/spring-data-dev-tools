@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,9 +48,7 @@ import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
-import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
-import org.springframework.data.util.Streamable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -92,16 +89,13 @@ class GitHub extends GitHubSupport implements IssueTracker {
 
 	private final Logger logger;
 	private final GitHubProperties properties;
-	private final ExecutorService executorService;
 
 
-	public GitHub(@Qualifier("tracker") RestTemplateBuilder templateBuilder, Logger logger, GitHubProperties properties,
-			ExecutorService executorService) {
+	public GitHub(@Qualifier("tracker") RestTemplateBuilder templateBuilder, Logger logger, GitHubProperties properties) {
 
 		super(createOperations(templateBuilder, properties));
 		this.logger = logger;
 		this.properties = properties;
-		this.executorService = executorService;
 	}
 
 	/*
@@ -481,9 +475,16 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		String repositoryName = GitProject.of(moduleIteration.getProject()).getRepositoryName();
 
 		logger.log(moduleIteration, "Looking up GitHub issues …");
-		Collection<GitHubReadIssue> foundIssues = ExecutionUtils.runAndReturn(executorService,
-				Streamable.of(() -> ticketIds.stream().filter(it -> it.startsWith("#"))),
-				ticketReference -> getTicket(issues, repositoryName, ticketReference));
+		Collection<GitHubReadIssue> foundIssues = ticketIds.stream().filter(it -> it.startsWith("#")).flatMap(it -> {
+
+			GitHubReadIssue ticket = getTicket(issues, repositoryName, it);
+
+			if (ticket != null) {
+				return Stream.of(ticket);
+			}
+
+			return Stream.empty();
+		}).collect(Collectors.toList());
 
 		List<GitHubReadIssue> gitHubIssues = foundIssues.stream().filter(it -> {
 			Ticket ticket = toTicket(it);
