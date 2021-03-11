@@ -73,7 +73,7 @@ public class ReleaseTrains {
 		PASCAL = OCKHAM.next("Pascal", Transition.MINOR) //
 				.filterModules(module -> !module.getProject().equals(SOLR))
 				.withCalver("2021.0") //
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
 		// Trains
 
