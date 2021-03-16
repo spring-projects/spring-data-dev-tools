@@ -200,6 +200,10 @@ class Jira implements JiraConnector {
 	@Cacheable("tickets")
 	public Tickets getTicketsFor(TrainIteration trainIteration, boolean forCurrentUser) {
 
+		if (!trainIteration.stream().anyMatch(it -> supports(it.getProject()))) {
+			return new Tickets(Collections.emptyList());
+		}
+
 		JqlQuery query = JqlQuery
 				.from(trainIteration.stream().filter(moduleIteration -> supports(moduleIteration.getProject())));
 

@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.concurrent.Executor;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -141,26 +142,44 @@ class IssueTrackerCommands extends TimedCommand {
 			@CliOption(key = "module") String moduleName,
 			@CliOption(key = "filter-release-tickets") Boolean filterReleaseTickets) {
 
+		return getTickets(iteration, moduleName,
+				it -> !it.isResolved() && ((filterReleaseTickets == null && !it.isReleaseTicket())
+						|| (filterReleaseTickets != null && filterReleaseTickets && !it.isReleaseTicket())));
+	}
+
+	@CliCommand("tracker all-tickets")
+	public String allTickets(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
+			@CliOption(key = "module") String moduleName,
+			@CliOption(key = "filter-release-tickets") Boolean filterReleaseTickets) {
+
+		return getTickets(iteration, moduleName, it -> (filterReleaseTickets == null && !it.isReleaseTicket())
+				|| (filterReleaseTickets != null && filterReleaseTickets && !it.isReleaseTicket()));
+	}
+
+	private String getTickets(TrainIteration iteration, String moduleName, Predicate<Ticket> ticketPredicate) {
+
 		if (StringUtils.hasText(moduleName)) {
-
-			Project project = Projects.requiredByName(moduleName);
-
-			ModuleIteration module = iteration.getModule(project);
-
-			return getTrackerFor(module).getTicketsFor(module) //
-					.stream() //
-					.filter(it -> !it.isResolved()
-							&& ((filterReleaseTickets == null || !filterReleaseTickets) || !it.isReleaseTicket())) //
-					.collect(Tickets.toTicketsCollector()) //
-					.toString(false);
+			return getTicketsForProject(iteration, Projects.requiredByName(moduleName), ticketPredicate);
 		}
 
 		return ExecutionUtils.runAndReturn(executor, iteration,
-				moduleIteration -> openTickets(iteration, moduleIteration.getModule().getProject().getName(),
-						filterReleaseTickets))
+				moduleIteration -> {
+					return getTicketsForProject(iteration, moduleIteration.getModule().getProject(), ticketPredicate);
+				})
 				.stream() //
 				.filter(StringUtils::hasText) //
 				.collect(Collectors.joining("\n"));
+	}
+
+	private String getTicketsForProject(TrainIteration iteration, Project project, Predicate<Ticket> ticketPredicate) {
+
+		ModuleIteration module = iteration.getModule(project);
+
+		return getTrackerFor(module).getTicketsFor(module) //
+				.stream() //
+				.filter(ticketPredicate) //
+				.collect(Tickets.toTicketsCollector()) //
+				.toString(false);
 	}
 
 	@CliCommand("tracker close")
@@ -171,14 +190,6 @@ class IssueTrackerCommands extends TimedCommand {
 	@CliCommand("tracker archive")
 	public void archiveIteration(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 		run(executor, iteration, module -> getTrackerFor(module).archiveReleaseVersion(module));
-	}
-
-	private Changelog getChangelog(ModuleIteration module) {
-		return getTrackerFor(module).getChangelogFor(module);
-	}
-
-	private void createReleaseVersion(ModuleIteration moduleIteration) {
-		getTrackerFor(moduleIteration).createReleaseVersion(moduleIteration);
 	}
 
 	private IssueTracker getTrackerFor(ModuleIteration moduleIteration) {
