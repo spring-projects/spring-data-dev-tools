@@ -142,9 +142,10 @@ class IssueTrackerCommands extends TimedCommand {
 			@CliOption(key = "module") String moduleName,
 			@CliOption(key = "filter-release-tickets") Boolean filterReleaseTickets) {
 
+		Predicate<Ticket> notResolved = it -> !it.isResolved();
+
 		return getTickets(iteration, moduleName,
-				it -> !it.isResolved() && ((filterReleaseTickets == null && !it.isReleaseTicket())
-						|| (filterReleaseTickets != null && filterReleaseTickets && !it.isReleaseTicket())));
+				notResolved.and(getFilterPredicate(filterReleaseTickets == null || filterReleaseTickets)));
 	}
 
 	@CliCommand("tracker all-tickets")
@@ -152,8 +153,11 @@ class IssueTrackerCommands extends TimedCommand {
 			@CliOption(key = "module") String moduleName,
 			@CliOption(key = "filter-release-tickets") Boolean filterReleaseTickets) {
 
-		return getTickets(iteration, moduleName, it -> (filterReleaseTickets == null && !it.isReleaseTicket())
-				|| (filterReleaseTickets != null && filterReleaseTickets && !it.isReleaseTicket()));
+		return getTickets(iteration, moduleName, getFilterPredicate(filterReleaseTickets == null || filterReleaseTickets));
+	}
+
+	private static Predicate<Ticket> getFilterPredicate(boolean filterReleaseTickets) {
+		return it -> filterReleaseTickets == !it.isReleaseTicket();
 	}
 
 	private String getTickets(TrainIteration iteration, String moduleName, Predicate<Ticket> ticketPredicate) {
