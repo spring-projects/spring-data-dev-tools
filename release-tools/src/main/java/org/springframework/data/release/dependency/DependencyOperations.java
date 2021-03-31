@@ -253,7 +253,7 @@ public class DependencyOperations {
 
 		return availableVersions.stream().filter(it -> {
 
-			if (!iteration.isMilestone() && StringUtils.hasText(it.getModifier())) {
+			if (iteration.isPublic() && StringUtils.hasText(it.getModifier())) {
 				return false;
 			}
 
@@ -268,7 +268,7 @@ public class DependencyOperations {
 
 		return availableVersions.stream().filter(it -> {
 
-			if (!iteration.isMilestone() && StringUtils.hasText(it.getModifier())) {
+			if (iteration.isPublic() && StringUtils.hasText(it.getModifier())) {
 				return false;
 			}
 

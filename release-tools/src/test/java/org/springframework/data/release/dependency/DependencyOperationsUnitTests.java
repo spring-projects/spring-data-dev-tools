@@ -115,7 +115,7 @@ class DependencyOperationsUnitTests {
 	}
 
 	@Test
-	void shouldSkipMilestoneVersionForNonMilestoneIteration() {
+	void shouldReportMilestoneVersionForRCIteration() {
 
 		List<DependencyVersion> availableVersions = Stream.of("5.7.0", "5.7.1", "5.7.2-M2") //
 				.map(DependencyVersion::of) //
@@ -123,6 +123,22 @@ class DependencyOperationsUnitTests {
 				.collect(Collectors.toList());
 
 		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.RC1,
+				DependencyVersion.of("5.7.1"), availableVersions);
+
+		assertThat(proposal.getLatest()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.2-M2");
+		assertThat(proposal.getProposal()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.2-M2");
+		assertThat(proposal.getNewerVersions()).extracting(DependencyVersion::getIdentifier).containsExactly("5.7.2-M2");
+	}
+
+	@Test
+	void shouldSkipMilestoneVersionForNonMilestoneIteration() {
+
+		List<DependencyVersion> availableVersions = Stream.of("5.7.0", "5.7.1", "5.7.2-M2") //
+				.map(DependencyVersion::of) //
+				.sorted() //
+				.collect(Collectors.toList());
+
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.GA,
 				DependencyVersion.of("5.7.1"), availableVersions);
 
 		assertThat(proposal.getLatest()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.1");
