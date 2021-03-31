@@ -10,16 +10,17 @@
 Add an `application-local.properties` to the project root and add the following properties:
 
 - `git.username` - Your GitHub username.
-- `git.password` - Your GitHub password or API key.
+- `git.password` - Your GitHub Password (or API key with scopes: `public_repo, read:org, repo:status, repo_deployment, user` when using 2FA).
 - `git.author` - Your full name (used for preparing commits).
 - `git.email` - Your email (used for preparing commits).
 - `maven.mavenHome` - Pointing to the location of your Maven installation.
-- `deployment.api-key` - The API key to use for artifact promotion.
-- `deployment.password` - The password of the deployment user (buildmaster).
+- `deployment.username` - Your Artifactory user.
+- `deployment.api-key` - The Artifactory API key to use for artifact promotion.
+- `deployment.password` - The encrypted Artifactory password..
 - `gpg.keyname` - The GPG key name.
 - `gpg.password` - The password of your GPG key.
 - `gpg.executable` - Path to your GPG executable, typically `/usr/local/MacGPG2/bin/gpg2` or `/usr/local/bin/gpg`.
-
+- `sagan.key` - Sagan authentication token. Must be a valid GitHub token. Can be the same as `git.password` when using a GitHub token as password.
 
 See `application-local.template` for details.
 

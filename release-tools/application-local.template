@@ -13,11 +13,12 @@ github.api.url=https://api.github.com
 
 # Maven
 maven.mavenHome=
+maven.console-logger=false
 maven.parallelize=true
 
 # Deployment
-deployment.repository-prefix=
 # Must be always the encrypted password taken from the Artifactory GUI/Profile view
+deployment.username=
 deployment.password=
 deployment.api-key=
 
@@ -27,9 +28,9 @@ jira.password=
 jira.url=https://jira.spring.io
 
 # GPG
-gpg.keyname=
-gpg.password=
-# gpg.executable=/usr/local/bin/gpg2
+deployment.gpg.keyname=
+deployment.gpg.password=
+# deployment.gpg.executable=/usr/local/bin/gpg2
 
 # A GitHub token with user:email, read:user and read:org scopes.
 # User needs to be part of the Spring team on GitHub as well.
