@@ -98,7 +98,7 @@ public class Dependencies {
 			"com.datastax.cassandra:cassandra-driver-core");
 
 	public static final Dependency CASSANDRA_DRIVER4 = Dependency.of("Cassandra Driver",
-			"com.datastax.oss:java-driver-core");
+			"com.datastax.oss:java-driver-bom");
 
 	public static final Dependency NEO4J_OGM = Dependency.of("Neo4j OGM", "org.neo4j:neo4j-ogm-api");
 
