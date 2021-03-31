@@ -29,7 +29,9 @@ import org.springframework.util.StringUtils;
 @Component
 @ConfigurationProperties(prefix = "gpg")
 public class Gpg {
+
 	private String keyname, executable;
+
 	private Password password;
 
 	public boolean isGpgAvailable() {

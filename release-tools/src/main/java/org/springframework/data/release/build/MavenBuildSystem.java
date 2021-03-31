@@ -355,8 +355,6 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(module, "Deploying artifacts to Sonatype OSS Nexus…");
 
-		Gpg gpg = this.gpg.isGpgAvailable() ? this.gpg : properties.getGpg();
-
 		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
 				profile("ci,release,central"), //
 				SKIP_TESTS, //
