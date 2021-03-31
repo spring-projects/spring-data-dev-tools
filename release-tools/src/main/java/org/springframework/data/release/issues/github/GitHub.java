@@ -553,6 +553,8 @@ public class GitHub extends GitHubSupport implements IssueTracker {
 		DocumentationMetadata documentation = DocumentationMetadata.of(module.getProject(), version);
 
 		ChangelogGenerator generator = new ChangelogGenerator();
+		generator.getExcludeContributors().addAll(properties.getTeam());
+
 		String releaseBody = generator.generate(gitHubIssues, (changelogSection, s) -> s);
 		String documentationLinks = getDocumentationLinks(module, documentation);
 

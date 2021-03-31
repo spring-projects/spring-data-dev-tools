@@ -20,6 +20,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -30,6 +32,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @Data
 @Component
@@ -40,6 +43,11 @@ public class GitHubProperties {
 	private final @Getter(AccessLevel.NONE) GitProperties gitProperties;
 
 	private String apiUrl;
+
+	/**
+	 * Usernames of project team members.
+	 */
+	private List<String> team;
 
 	public String getUsername() {
 		return gitProperties.getUsername();

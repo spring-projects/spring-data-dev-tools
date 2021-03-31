@@ -16,10 +16,13 @@
 
 package org.springframework.data.release.issues.github;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,17 +43,20 @@ public class ChangelogGenerator {
 
 	private static final Pattern ghUserMentionPattern = Pattern.compile("(^|[^\\w`])(@[\\w-]+)");
 
+	@Getter
 	private final Set<String> excludeLabels;
 
+	@Getter
 	private final Set<String> excludeContributors;
 
+	@Getter
 	private final String contributorsTitle;
 
 	private final ChangelogSections sections;
 
 	public ChangelogGenerator() {
 		this.excludeLabels = new HashSet<>(Arrays.asList("type: task"));
-		this.excludeContributors = Collections.emptySet();
+		this.excludeContributors = new LinkedHashSet<>();
 		this.contributorsTitle = null;
 		this.sections = new ChangelogSections();
 	}
