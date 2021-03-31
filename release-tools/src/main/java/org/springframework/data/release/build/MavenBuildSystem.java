@@ -306,6 +306,28 @@ class MavenBuildSystem implements BuildSystem {
 		return isMavenProject(project);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.build.BuildSystem#verify()
+	 */
+	@Override
+	public void verify() {
+
+		logger.log(BUILD, "Verifying Maven Build System…");
+
+		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.VERIFY, //
+				profile("central"), //
+				SKIP_TESTS, //
+				arg("gpg.executable").withValue(gpg.getExecutable()), //
+				arg("gpg.keyname").withValue(gpg.getKeyname()), //
+				arg("gpg.password").withValue(gpg.getPassword()));
+
+		mvn.execute(BUILD, arguments);
+
+		mvn.execute(BUILD, CommandLine.of(Goal.goal("nexus-staging:rc-list-profiles"), //
+				profile("central")));
+	}
+
 	/**
 	 * Triggers Maven commands to deploy module artifacts to Spring Artifactory.
 	 *

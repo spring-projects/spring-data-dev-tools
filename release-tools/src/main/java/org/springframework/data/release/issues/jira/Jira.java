@@ -59,7 +59,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Mark Paluch
  */
 @Component
-class Jira implements JiraConnector {
+public class Jira implements JiraConnector {
 
 	private static final String CREATE_ISSUES_TEMPLATE = "/issue";
 	private static final String ISSUE_TEMPLATE = "/issue/{ticketId}";
@@ -618,6 +618,22 @@ class Jira implements JiraConnector {
 	@Override
 	public boolean supports(Project project) {
 		return project.uses(Tracker.JIRA);
+	}
+
+	/**
+	 * Verify Jira Authentication.
+	 */
+	public void verifyAuthentication() {
+
+		logger.log("Jira", "Verifying Jira Authentication…");
+
+		ResponseEntity<Object> entity = operations.getForEntity("/myself", Object.class);
+
+		if (!entity.getStatusCode().is2xxSuccessful()) {
+			throw new IllegalStateException("Cannot access Jira user profile");
+		}
+
+		logger.log("Jira", "Authentication verified!");
 	}
 
 	protected JiraComponents getJiraComponents(ProjectKey projectKey) {

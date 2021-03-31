@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.utils.Logger;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestOperations;
 
 import com.jayway.jsonpath.JsonPath;
@@ -102,6 +104,26 @@ class DefaultSaganClient implements SaganClient {
 
 		// Write new ones
 		createVersions(versions, resource, versionsInSagan);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.sagan.SaganClient#verifyAuthentication()
+	 */
+	@Override
+	public void verifyAuthentication() {
+
+		URI resource = properties.getProjectReleasesResource(Projects.BUILD);
+
+		logger.log("Sagan", "Verifying Sagan Authentication…");
+
+		ResponseEntity<String> entity = operations.getForEntity(resource, String.class);
+
+		if (!entity.getStatusCode().is2xxSuccessful()) {
+			throw new IllegalStateException("Cannot access Jira user profile");
+		}
+
+		logger.log("Sagan", "Authentication verified!");
 	}
 
 	private void createVersions(MaintainedVersions versions, URI resource, List<String> versionsInSagan) {

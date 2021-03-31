@@ -72,4 +72,9 @@ interface BuildSystem extends Plugin<Project> {
 	 * @return
 	 */
 	<M extends ProjectAware> M triggerPreReleaseCheck(M module);
+
+	/**
+	 * Verify general functionality and correctness of the build setup.
+	 */
+	void verify();
 }

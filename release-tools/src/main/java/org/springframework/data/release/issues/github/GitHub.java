@@ -53,6 +53,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -62,7 +63,7 @@ import org.springframework.web.client.HttpStatusCodeException;
  * @author Mark Paluch
  */
 @Component
-class GitHub extends GitHubSupport implements IssueTracker {
+public class GitHub extends GitHubSupport implements IssueTracker {
 
 	private static final String MILESTONE_URI = "/repos/spring-projects/{repoName}/milestones?state={state}";
 	private static final String ISSUES_BY_MILESTONE_AND_ASSIGNEE_URI_TEMPLATE = "/repos/spring-projects/{repoName}/issues?milestone={id}&state=all&assignee={assignee}";
@@ -563,6 +564,28 @@ class GitHub extends GitHubSupport implements IssueTracker {
 		}
 
 		logger.log(module, "GitHub Release up to date");
+	}
+
+	/**
+	 * Verify GitHub authentication.
+	 */
+	public void verifyAuthentication() {
+
+		logger.log("GitHub", "Verifying GitHub Authentication…");
+
+		String repositoryName = GitProject.of(Projects.BUILD).getRepositoryName();
+
+		Map<String, Object> parameters = newUrlTemplateVariables();
+		parameters.put("repoName", repositoryName);
+
+		// /user requires authentication
+		ResponseEntity<Object> entity = operations.getForEntity("/user", Object.class);
+
+		if (!entity.getStatusCode().is2xxSuccessful()) {
+			throw new IllegalStateException(String.format("Cannot obtain /user. Status: %s", entity.getStatusCode()));
+		}
+
+		logger.log("GitHub", "Authentication verified!");
 	}
 
 	private String getDocumentationLinks(ModuleIteration module, DocumentationMetadata documentation) {

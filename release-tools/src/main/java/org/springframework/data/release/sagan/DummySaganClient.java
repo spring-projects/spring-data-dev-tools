@@ -85,4 +85,13 @@ class DummySaganClient implements SaganClient {
 	public String getProjectMetadata(Project project) {
 		return null;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.release.sagan.SaganClient#verifyAuthentication()
+	 */
+	@Override
+	public void verifyAuthentication() {
+
+	}
 }

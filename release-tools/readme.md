@@ -19,8 +19,13 @@ Add an `application-local.properties` to the project root and add the following 
 - `deployment.password` - The encrypted Artifactory password..
 - `gpg.keyname` - The GPG key name.
 - `gpg.password` - The password of your GPG key.
-- `gpg.executable` - Path to your GPG executable, typically `/usr/local/MacGPG2/bin/gpg2` or `/usr/local/bin/gpg`.
-- `sagan.key` - Sagan authentication token. Must be a valid GitHub token. Can be the same as `git.password` when using a GitHub token as password.
+- `gpg.executable` - Path to your GPG executable, typically `/usr/local/MacGPG2/bin/gpg2`
+  or `/usr/local/bin/gpg`.
+- `sagan.key` - Sagan authentication token. Must be a valid GitHub token. Can be the same
+  as `git.password` when using a GitHub token as password.
+
+After that, run the `verify` command (`$ verify`) to verify your settings (authentication,
+correct Maven, Java, and GPG setup).
 
 See `application-local.template` for details.
 

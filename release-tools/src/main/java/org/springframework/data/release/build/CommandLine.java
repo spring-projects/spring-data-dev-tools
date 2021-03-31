@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 
 /**
  * Value object to represent a Maven command line.
- * 
+ *
  * @author Oliver Gierke
  */
 @Value
@@ -46,7 +46,7 @@ class CommandLine {
 
 	/**
 	 * Creates a new {@link CommandLine} for the given {@link Goal} and {@link Argument}s.
-	 * 
+	 *
 	 * @param goal must not be {@literal null}.
 	 * @param argument must not be {@literal null}.
 	 * @return
@@ -57,7 +57,7 @@ class CommandLine {
 
 	/**
 	 * Creates a new {@link CommandLine} for the given {@link Goal}s and {@link Argument}s.
-	 * 
+	 *
 	 * @param goal must not be {@literal null}.
 	 * @param argument must not be {@literal null}.
 	 * @return
@@ -69,7 +69,7 @@ class CommandLine {
 	/**
 	 * Returns a new {@link CommandLine} with the given {@link Argument} added in case the given {@link BooleanSupplier}
 	 * evaluates to {@literal true}.
-	 * 
+	 *
 	 * @param argument must not be {@literal null}.
 	 * @param condition must not be {@literal null}.
 	 * @return
@@ -80,7 +80,7 @@ class CommandLine {
 
 	/**
 	 * Returns a new {@link CommandLine} with the given {@link Argument} added.
-	 * 
+	 *
 	 * @param argument must not be {@literal null}.
 	 * @return
 	 */
@@ -98,7 +98,7 @@ class CommandLine {
 	/**
 	 * Renders the current {@link CommandLine} as a plain {@link List} of {@link String}s using the given {@link Function}
 	 * to expand the {@link Goal}s.
-	 * 
+	 *
 	 * @param goalExpansion must not be {@literal null}.
 	 * @return
 	 */
@@ -110,7 +110,7 @@ class CommandLine {
 		return Stream.concat(goalStream, argumentStream).collect(Collectors.toList());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -135,6 +135,7 @@ class CommandLine {
 		public static final Goal INSTALL = Goal.goal("install");
 		public static final Goal DEPLOY = Goal.goal("deploy");
 		public static final Goal VALIDATE = Goal.goal("validate");
+		public static final Goal VERIFY = Goal.goal("verify");
 
 		String goal;
 	}
@@ -158,7 +159,7 @@ class CommandLine {
 
 		/**
 		 * Enables the given comma-separated profiles for the {@link CommandLine}.
-		 * 
+		 *
 		 * @param name must not be {@literal null} or empty.
 		 * @return
 		 */
@@ -196,7 +197,7 @@ class CommandLine {
 			return toNameValuePair(value.map(ArgumentValue::toCommandLine));
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
@@ -229,7 +230,7 @@ class CommandLine {
 
 			/**
 			 * Returns an {@link ArgumentValue} for the given {@link Masked} value.
-			 * 
+			 *
 			 * @param masked must not be {@literal null}.
 			 * @return
 			 */
@@ -239,7 +240,7 @@ class CommandLine {
 
 			/**
 			 * Returns the {@link String} variant of the argument value.
-			 * 
+			 *
 			 * @return
 			 */
 			public String toCommandLine() {

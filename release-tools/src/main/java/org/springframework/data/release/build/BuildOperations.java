@@ -31,6 +31,7 @@ import org.springframework.data.release.model.Module;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Train;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
@@ -198,6 +199,12 @@ public class BuildOperations {
 		executor.doWithBuildSystemAnyOrder(iteration, BuildSystem::triggerPreReleaseCheck);
 	}
 
+	public void verify() {
+
+		BuildSystem buildSystem = buildSystems.getRequiredPluginFor(Projects.BUILD);
+		buildSystem.verify();
+	}
+
 	/**
 	 * Selects the build system for the module contained in the given {@link ModuleIteration} and executes the given
 	 * function with it.
@@ -215,4 +222,5 @@ public class BuildOperations {
 
 		return function.apply(buildSystems.getPluginFor(module.getProject(), exception), module);
 	}
+
 }

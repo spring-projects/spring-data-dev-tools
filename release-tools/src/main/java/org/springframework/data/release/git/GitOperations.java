@@ -812,6 +812,13 @@ public class GitOperations {
 		});
 	}
 
+	/**
+	 * Verify general Git operations.
+	 */
+	public void verify() {
+		checkout(Projects.BUILD, Branch.MASTER);
+	}
+
 	private void cherryPickCommitToBranch(ObjectId id, Project project, Branch branch) {
 
 		doWithGit(project, git -> {

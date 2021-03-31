@@ -19,14 +19,15 @@ import org.springframework.data.release.model.Project;
 
 /**
  * Interface to abstract the actual interaction with the Sagan server.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
-interface SaganClient {
+public interface SaganClient {
 
 	/**
 	 * Returns the project metadata for the given {@link MaintainedVersion}.
-	 * 
+	 *
 	 * @param version must not be {@literal null}.
 	 * @return
 	 */
@@ -34,7 +35,7 @@ interface SaganClient {
 
 	/**
 	 * Returns all project release metadata for the given {@link Project}.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @return
 	 */
@@ -42,9 +43,14 @@ interface SaganClient {
 
 	/**
 	 * Updates the project metadata for the given {@link Project} to the given {@link MaintainedVersions}.
-	 * 
+	 *
 	 * @param project must not be {@literal null}.
 	 * @param versions must not be {@literal null}.
 	 */
 	void updateProjectMetadata(Project project, MaintainedVersions versions);
+
+	/**
+	 * Verify correct authentication setup.
+	 */
+	void verifyAuthentication();
 }
