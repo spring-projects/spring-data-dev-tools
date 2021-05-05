@@ -29,7 +29,7 @@ public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
 	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN,
-			OCKHAM, PASCAL;
+			OCKHAM, PASCAL, Q;
 
 	static {
 
@@ -75,10 +75,14 @@ public class ReleaseTrains {
 				.withCalver("2021.0") //
 				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
+		Q = PASCAL.next("R", Transition.MINOR) //
+				.withCalver("2021.1") //
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+
 		// Trains
 
 		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN,
-				OCKHAM, PASCAL);
+				OCKHAM, PASCAL, Q);
 	}
 
 	private static Train codd() {

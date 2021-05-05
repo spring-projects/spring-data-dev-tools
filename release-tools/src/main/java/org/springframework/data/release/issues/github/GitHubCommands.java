@@ -30,6 +30,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.Tracker;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
