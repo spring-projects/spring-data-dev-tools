@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.bouncycastle.util.Iterable;
+
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Train;
 import org.springframework.util.Assert;
@@ -34,7 +36,7 @@ class BackportTargets implements Iterable<Branch> {
 
 	/**
 	 * Creates a new {@link BackportTargets} instance for the given {@link ModuleIteration} and
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 * @param targets must not be {@literal null}.
 	 */
@@ -49,11 +51,11 @@ class BackportTargets implements Iterable<Branch> {
 				.flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))//
 				.map(Branch::from);
 
-		this.targets = Stream.concat(branches, source.isMasterBranch() ? Stream.empty() : Stream.of(Branch.MASTER))
+		this.targets = Stream.concat(branches, source.isMainBranch() ? Stream.empty() : Stream.of(Branch.MAIN))
 				.collect(Collectors.toSet());
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */

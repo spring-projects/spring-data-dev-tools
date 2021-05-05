@@ -23,10 +23,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -100,31 +96,6 @@ class GitOperationsIntegrationTests extends AbstractIntegrationTests {
 
 		assertThat(hopperSR9.getTrain()).isEqualTo(ReleaseTrains.HOPPER);
 		assertThat(hopperSR9.getIteration()).isEqualTo(Iteration.SR9);
-	}
-
-	@Test
-	void verify() throws Exception {
-
-		// gitOperations.update(ReleaseTrains.HOPPER);
-
-		try (Git git = new Git(new FileRepository("/Users/mpaluch/git/data/spring-data-elasticsearch/.git"))) {
-
-			ObjectId resolve = git.getRepository().parseCommit(git.getRepository().resolve("3.0.0.RELEASE"));
-			Iterable<RevCommit> master = git.log().addRange(resolve, git.getRepository().resolve("master")).call();
-
-			for (RevCommit revCommit : master) {
-
-				ParsedCommitMessage message = ParsedCommitMessage.parse(revCommit.getFullMessage());
-
-				if (message.getTicketReference() == null || message.getSummary() == null) {
-					System.out.println(revCommit.getFullMessage());
-					System.out.println();
-				}
-			}
-
-		} catch (Exception o_O) {
-			throw new RuntimeException(o_O);
-		}
 	}
 
 }

@@ -120,7 +120,7 @@ class ReleaseCommands extends TimedCommand {
 		build.prepareVersions(iteration, Phase.CLEANUP);
 		git.commit(iteration, "Prepare next development iteration.");
 
-		// Prepare master branch
+		// Prepare main branch
 		build.updateProjectDescriptors(iteration, Phase.CLEANUP);
 		git.commit(iteration, "After release cleanups.");
 
@@ -141,7 +141,7 @@ class ReleaseCommands extends TimedCommand {
 			build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
 			git.commit(iteration, "After release cleanups.");
 
-			// Back to master branch
+			// Back to main branch
 			git.checkout(iteration);
 		}
 	}

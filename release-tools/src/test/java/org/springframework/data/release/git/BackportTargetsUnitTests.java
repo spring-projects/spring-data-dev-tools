@@ -30,7 +30,7 @@ import org.springframework.data.release.model.TrainIteration;
 
 /**
  * Unit tests for {@link BackportTargets}.
- * 
+ *
  * @author Oliver Gierke
  */
 class BackportTargetsUnitTests {
@@ -51,7 +51,7 @@ class BackportTargetsUnitTests {
 	}
 
 	@Test // #11
-	void includesMasterBranchForServiceReleaseSource() {
+	void includesMainBranchForServiceReleaseSource() {
 
 		TrainIteration iteration = new TrainIteration(ReleaseTrains.GOSLING, Iteration.SR2);
 		ModuleIteration module = iteration.getModule(Projects.COMMONS);
@@ -59,7 +59,7 @@ class BackportTargetsUnitTests {
 		BackportTargets targets = new BackportTargets(module, Arrays.asList(ReleaseTrains.FOWLER));
 
 		assertThat(targets).hasSize(2);
-		assertThat(targets).contains(Branch.MASTER, fowlerBranch);
+		assertThat(targets).contains(Branch.MAIN, fowlerBranch);
 	}
 
 	private static Branch getBranch(Train train) {

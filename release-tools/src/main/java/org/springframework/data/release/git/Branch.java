@@ -27,20 +27,21 @@ import org.springframework.util.Assert;
 
 /**
  * Value type to represent an SCM branch.
- * 
+ *
  * @author Oliver Gierke
+ * @author Mark Paluch
  */
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Branch implements Comparable<Branch> {
 
-	public static final Branch MASTER = new Branch("master");
+	public static final Branch MAIN = new Branch("main");
 
 	private final String name;
 
 	/**
 	 * Creates a new {@link Branch} from the given {@link IterationVersion}.
-	 * 
+	 *
 	 * @param iterationVersion must not be {@literal null}.
 	 * @return
 	 */
@@ -52,7 +53,7 @@ public class Branch implements Comparable<Branch> {
 			return from((VersionAware) iterationVersion);
 		}
 
-		return MASTER;
+		return MAIN;
 	}
 
 	public static Branch from(VersionAware versioned) {
@@ -65,7 +66,7 @@ public class Branch implements Comparable<Branch> {
 
 	/**
 	 * Creates a new {@link Branch} from the given name. Uses the local part of it only.
-	 * 
+	 *
 	 * @param name must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -76,13 +77,13 @@ public class Branch implements Comparable<Branch> {
 		return new Branch(slashIndex != -1 ? name.substring(slashIndex + 1) : name);
 	}
 
-	public boolean isMasterBranch() {
-		return MASTER.equals(this);
+	public boolean isMainBranch() {
+		return MAIN.equals(this);
 	}
 
 	/**
 	 * Returns whether the current branch is an issue branch for the given {@link Tracker}.
-	 * 
+	 *
 	 * @param tracker must not be {@literal null}.
 	 * @return
 	 */

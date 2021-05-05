@@ -34,7 +34,7 @@ class BranchUnitTests {
 	void testname() {
 
 		IterationVersion iterationVersion = new SimpleIterationVersion(Version.of(1, 4), Iteration.RC1);
-		assertThat(Branch.from(iterationVersion).toString()).isEqualTo("master");
+		assertThat(Branch.from(iterationVersion).toString()).isEqualTo("main");
 	}
 
 	@Test

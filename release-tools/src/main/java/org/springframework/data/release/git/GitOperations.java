@@ -140,7 +140,7 @@ public class GitOperations {
 			update(train);
 		}
 
-		AtomicBoolean masterSwitch = new AtomicBoolean();
+		AtomicBoolean mainSwitch = new AtomicBoolean();
 		ExecutionUtils.run(executor, train, module -> {
 
 			Project project = module.getProject();
@@ -151,10 +151,10 @@ public class GitOperations {
 				Optional<Tag> gaTag = findTagFor(project, ArtifactVersion.of(gaIteration));
 
 				if (!gaTag.isPresent()) {
-					logger.log(project, "Checking out master branch as no GA release tag could be found!");
+					logger.log(project, "Checking out main branch as no GA release tag could be found!");
 				}
 
-				Branch branch = gaTag.isPresent() ? Branch.from(module) : Branch.MASTER;
+				Branch branch = gaTag.isPresent() ? Branch.from(module) : Branch.MAIN;
 
 				CheckoutCommand command = git.checkout().setName(branch.toString());
 
@@ -174,9 +174,9 @@ public class GitOperations {
 			});
 		});
 
-		if (masterSwitch.get()) {
+		if (mainSwitch.get()) {
 			logger.warn(train,
-					"Successfully checked out projects. There were switches to master for certain projects. This happens if the train has no branches yet.");
+					"Successfully checked out projects. There were switches to main for certain projects. This happens if the train has no branches yet.");
 		} else {
 			logger.log(train, "Successfully checked out projects.");
 		}
@@ -304,7 +304,7 @@ public class GitOperations {
 
 				logger.log(project, "Found existing repository %s. Obtaining latest changes…", repositoryName);
 
-				checkout(project, Branch.MASTER);
+				checkout(project, Branch.MAIN);
 
 				logger.log(project, "git fetch --tags");
 				git.fetch().setTagOpt(TagOpt.FETCH_TAGS).call();
@@ -507,7 +507,7 @@ public class GitOperations {
 	private static String getFirstCommit(Repository repo) throws IOException {
 
 		try (RevWalk revWalk = new RevWalk(repo)) {
-			return revWalk.parseCommit(repo.resolve("master")).getName();
+			return revWalk.parseCommit(repo.resolve("main")).getName();
 		}
 	}
 
@@ -782,7 +782,8 @@ public class GitOperations {
 
 	/**
 	 * Back-ports the change log created for the given {@link TrainIteration} to the given release {@link Train}s. If the
-	 * {@link TrainIteration} is a service iteration itself, the master branch will become an additional port target.
+	 * {@link TrainIteration} is a service iteration itself, the {@code main} branch will become an additional port
+	 * target.
 	 *
 	 * @param iteration must not be {@literal null}.
 	 * @param targets must not be {@literal null}.
@@ -816,7 +817,7 @@ public class GitOperations {
 	 * Verify general Git operations.
 	 */
 	public void verify() {
-		checkout(Projects.BUILD, Branch.MASTER);
+		checkout(Projects.BUILD, Branch.MAIN);
 	}
 
 	private void cherryPickCommitToBranch(ObjectId id, Project project, Branch branch) {
@@ -963,7 +964,7 @@ public class GitOperations {
 				.call();
 
 		git.checkout()//
-				.setName(Branch.MASTER.toString())//
+				.setName(Branch.MAIN.toString())//
 				.call();
 
 		logger.log(project, "Cloning done!", project);
