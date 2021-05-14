@@ -68,14 +68,14 @@ public class ReleaseTrains {
 		OCKHAM = NEUMANN.next("Ockham", Transition.MINOR, //
 				new Module(BOM, "2020.0.0"), //
 				new Module(NEO4J, "6.0") //
-		).withCalver("2020.0");
+		).withIterations(Train.Iterations.DEFAULT).withCalver("2020.0");
 
 		PASCAL = OCKHAM.next("Pascal", Transition.MINOR) //
 				.filterModules(module -> !module.getProject().equals(SOLR))
 				.withCalver("2021.0") //
 				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
-		Q = PASCAL.next("R", Transition.MINOR) //
+		Q = PASCAL.next("Q", Transition.MINOR) //
 				.withCalver("2021.1") //
 				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 

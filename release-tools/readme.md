@@ -53,8 +53,6 @@ $ release prepare $trainIteration
 $ release build $trainIteration
 $ release conclude $trainIteration
 $ github push $trainIteration
-# After GitHub issues migration:
-# github push $trainIteration
 $ git backport changelog $trainIteration --target $targets
 $ foreach $target -> git push $target
 ```
@@ -74,7 +72,6 @@ $ release distribute $trainIteration
 $ tracker close $trainIteration
 $ tracker create releaseversions $trainIteration.next
 $ tracker create releasetickets $trainIteration.next
-$ tracker archive $trainIteration.previous
 ```
 
 * Update versions in Sagan with `$ sagan update $releasetrains`.

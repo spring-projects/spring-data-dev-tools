@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrainIterationConverter implements Converter<TrainIteration> {
 
-	private static final Pattern CALVER = Pattern.compile("(\\d{4})(\\.(\\d))+(-M(\\d)|-RC(\\d))?");
+	private static final Pattern CALVER = Pattern.compile("(\\d{4})(\\.(\\d+))+(-M(\\d)|-RC(\\d))?");
 
 	/*
 	 * (non-Javadoc)
