@@ -29,7 +29,17 @@ The benchmarks are run against the following databases:
 
 - In-memory H2
 - A locally running H2 (port 9092, database name `benchmark`, user `sa`, empty password)
-- A locally running Postgres (port 5432, database name `benchmark`, no user, no password)
+- A locally running Postgres (port 5432, database name `benchmark`, user `postgres`, password `postgres`)
 
 The settings can be adapted by tweaking corresponding `application-$database.properties` file in `src/main/resources`.
- 
+
+You can start the servers using the `docker-compose.yml` in this directory, e.g:
+
+```
+$ docker-compose up
+...
+h2_1_67fd6612bf08 | TCP server running at tcp://172.17.1.3:9092 (others can connect)
+...
+postgres_1_8849164d8017 | 2019-08-21 08:54:32.138 UTC [1] LOG:  database system is ready to accept connections
+...
+```
