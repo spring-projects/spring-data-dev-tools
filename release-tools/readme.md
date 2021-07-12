@@ -1,3 +1,8 @@
+## General Notes
+
+* Use the command `help` to get a list of all commands in the release tools.
+* After fixing a problem use `workspace cleanup` to cleanup any mess left behind by the previous step.
+
 ## Setup
 
 ### Infrastructure requirements
