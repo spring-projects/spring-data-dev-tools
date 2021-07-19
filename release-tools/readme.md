@@ -3,12 +3,14 @@
 * Use the command `help` to get a list of all commands in the release tools.
 * After fixing a problem use `workspace cleanup` to cleanup any mess left behind by the previous step.
 
-## Setup
+## One Time Setup
 
 ### Infrastructure requirements
 
-- Credentials for `buildmaster` accounts on https://repo.spring.io.
-- Credentials for https://oss.sonatype.org (to deploy and promote GA and service releases, need deployment permissions for `org.springframework.data`) in `settings.xml` for server with id `sonatype`.
+- Ensure you have the credentials for `buildmaster` accounts on https://repo.spring.io.
+- Ensure yoiu have the credentials for https://oss.sonatype.org (to deploy and promote GA and service releases, need deployment permissions for `org.springframework.data`) in `settings.xml` for server with id `sonatype`.
+
+Both are available in the Spring/Pivotal Last Pass repository.
 
 ### Prepare local configuration and credentials
 
@@ -34,53 +36,36 @@ correct Maven, Java, and GPG setup).
 
 See `application-local.template` for details.
 
-### Build and execute the release shell
-
-Run `mvn package && java -jar target/spring-data-release-cli.jar`
-
 ## The release process
 
-### Pre-release checks
 
-Make sure that:
-
-* All work on CVEs potentially contained in the release is done (incl. backports etc.)
-* Upgrade dependencies in Spring Data Build parent pom (mind minor/major version rules)
-* All release tickets are present (`$ tracker releasetickets $trainIteration`)
-* Review open tickets for release
-* Self-assign release tickets (`$ tracker prepare $trainIteration`)
-* Announce release preparations to mailing list (https://groups.google.com/forum/#!forum/spring-data-dev)
-
-### Release the binaries
-
-```
-$ release prepare $trainIteration
-$ release build $trainIteration
-$ release conclude $trainIteration
-$ github push $trainIteration
-$ git backport changelog $trainIteration --target $targets
-$ foreach $target -> git push $target
-```
-
-### Distribute documentation and static resources from tags
-
-```
-$ release distribute $trainIteration
-```
-
-### Post-release tasks
-
-* Close JIRA tickets and GitHub release tickets.
-* Create release tickets for the next train iteration, archive old release versions. Close Jira versions/GitHub milestones.
-
-```
-$ tracker close $trainIteration
-$ tracker create releaseversions $trainIteration.next
-$ tracker create releasetickets $trainIteration.next
-```
-
-* Update versions in Sagan with `$ sagan update $releasetrains`.
-* Announce release (Blog, Twitter) and notify downstream dependency projects as needed. Dev-tools can assist you with `$ announcement $trainIteration`. Make sure to remove the changelog link to Envers as this module has no changelog.
+| Action | Command |
+|--------|---------|
+| Build and execute the release shell | `mvn package && java -jar target/spring-data-release-cli.jar` |
+|  | *All following commands are run in the release shell* |
+| **Pre-release checks** | |
+| Ensure all work on CVEs potentially contained in the release is done (incl. backports etc.) | N.A. |
+| Upgrade dependencies in Spring Data Build parent pom (mind minor/major version rules) | N.A. |
+| All release tickets are present | `$ tracker releasetickets $trainIteration` |
+| Review open tickets for release | N.A. |
+| Self-assign release tickets | `$ tracker prepare $trainIteration` |
+| Announce release preparations to mailing list (https://groups.google.com/forum/#!forum/spring-data-dev) | N.A. |
+| **Release the binaries** ||
+| | `$ release prepare $trainIteration` |
+| Build the artefacts and push them to the apropriate maven repository | `$ release build $trainIteration` |
+| |`$ release conclude $trainIteration` |
+| Push the created commits to GitHub |`$ github push $trainIteration` |
+| Backport changes to the backlog to other versions. | `$ git backport changelog $trainIteration --target $targets` |
+| Push the changes of the backlog to GitHub. For each `target` from above do |`$ git push $target` |
+| **Distribute documentation and static resources from tags** ||
+||`$ release distribute $trainIteration`|
+| **Post-release tasks** ||
+|Close JIRA tickets and GitHub release tickets.|`$ tracker close $trainIteration`|
+|Create new release versions for upcoming version|`$ tracker create releaseversions $trainIteration.next`|
+|Create new release tickets in GitHub |`$ tracker create releasetickets $trainIteration.next`|
+| Update versions in Sagan. `$targets` is given as comma separated lists of code names, without spaces. E.g. `Moore,Neumann` | `$ sagan update $releasetrains`|
+|  Create list of docs for release announcements | `$ announcement $trainIteration`|
+| Announce release (Blog, Twitter) and notify downstream dependency projects as needed. | N.A. |
 
 ### Utilities
 
