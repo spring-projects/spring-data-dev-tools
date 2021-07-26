@@ -781,39 +781,6 @@ public class GitOperations {
 	}
 
 	/**
-	 * Back-ports the change log created for the given {@link TrainIteration} to the given release {@link Train}s. If the
-	 * {@link TrainIteration} is a service iteration itself, the {@code main} branch will become an additional port
-	 * target.
-	 *
-	 * @param iteration must not be {@literal null}.
-	 * @param targets must not be {@literal null}.
-	 */
-	public void backportChangelogs(TrainIteration iteration, List<Train> targets) {
-
-		Assert.notNull(iteration, "Train iteration must not be null!");
-		Assert.notNull(targets, "Target trains must not be null!");
-
-		ExecutionUtils.run(executor, iteration, module -> {
-
-			BackportTargets backportTargets = new BackportTargets(module, targets);
-			Project project = module.getProject();
-
-			doWithGit(project, git -> {
-
-				checkout(project, backportTargets.getSource());
-				Optional<ObjectId> objectId = getChangelogUpdate(module);
-
-				objectId.ifPresent(it -> backportTargets.forEach(target -> cherryPickCommitToBranch(it, project, target)));
-
-				if (!objectId.isPresent()) {
-					logger.log(project, "No changelog commit found, skipping backports!");
-				}
-
-			});
-		});
-	}
-
-	/**
 	 * Verify general Git operations.
 	 */
 	public void verify() {
@@ -883,10 +850,6 @@ public class GitOperations {
 	 */
 	private ObjectId getReleaseHash(ModuleIteration module) {
 		return findRequiredCommit(module, "Release");
-	}
-
-	private Optional<ObjectId> getChangelogUpdate(ModuleIteration module) {
-		return findCommit(module, "Updated changelog");
 	}
 
 	private ObjectId findRequiredCommit(ModuleIteration module, String summary) {

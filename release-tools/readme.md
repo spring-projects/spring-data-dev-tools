@@ -55,14 +55,11 @@ See `application-local.template` for details.
 | Build the artefacts and push them to the apropriate maven repository | `$ release build $trainIteration` |
 | |`$ release conclude $trainIteration` |
 | Push the created commits to GitHub |`$ github push $trainIteration` |
-| Backport changes to the backlog to other versions. | `$ git backport changelog $trainIteration --target $targets` |
-| Push the changes of the backlog to GitHub. For each `target` from above do |`$ git push $target` |
 | **Distribute documentation and static resources from tags** ||
 ||`$ release distribute $trainIteration`|
 | **Post-release tasks** ||
 |Close JIRA tickets and GitHub release tickets.|`$ tracker close $trainIteration`|
-|Create new release versions for upcoming version|`$ tracker create releaseversions $trainIteration.next`|
-|Create new release tickets in GitHub |`$ tracker create releasetickets $trainIteration.next`|
+|Create new release versions and tickets for upcoming version|`$ tracker setup-next $trainIteration.next`|
 | Update versions in Sagan. `$targets` is given as comma separated lists of code names, without spaces. E.g. `Moore,Neumann` | `$ sagan update $releasetrains`|
 |  Create list of docs for release announcements | `$ announcement $trainIteration`|
 | Announce release (Blog, Twitter) and notify downstream dependency projects as needed. | N.A. |

@@ -19,12 +19,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
@@ -166,17 +164,6 @@ class GitCommands extends TimedCommand {
 	@CliCommand("git remove tags")
 	public void removeTags(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 		git.removeTags(iteration);
-	}
-
-	@CliCommand("git backport changelog")
-	public void backportChangelogs(@CliOption(key = "", mandatory = true) TrainIteration iteration, //
-			@CliOption(key = "target") String trains) {
-
-		List<Train> targets = trains == null ? Collections.emptyList() : Stream.of(trains.split(",")).//
-				map(it -> ReleaseTrains.getTrainByName(it)).//
-				collect(Collectors.toList());
-
-		git.backportChangelogs(iteration, targets);
 	}
 
 	/**
