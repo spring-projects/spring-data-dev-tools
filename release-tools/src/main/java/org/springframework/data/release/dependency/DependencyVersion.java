@@ -37,7 +37,7 @@ import org.springframework.data.release.model.Version;
 @Value
 class DependencyVersion implements Comparable<DependencyVersion> {
 
-	private static Pattern VERSION = Pattern.compile("((?>(?>\\d+)[\\.]?)+)(-[a-zA-Z]+)?(\\d+)?");
+	private static Pattern VERSION = Pattern.compile("((?>(?>\\d+)[\\.]?)+)((?>-)?[a-zA-Z]+)?(\\d+)?");
 	private static Pattern NAME_VERSION = Pattern.compile("([A-Za-z]+)-(RELEASE|SR(\\d+)|SNAPSHOT|BUILD-SNAPSHOT)");
 
 	private static Comparator<DependencyVersion> VERSION_COMPARATOR = Comparator.comparing(DependencyVersion::getVersion)
@@ -47,6 +47,7 @@ class DependencyVersion implements Comparable<DependencyVersion> {
 				if (o1.getModifier().isEmpty() && !o2.getModifier().isEmpty()) {
 					return 1;
 				}
+
 				if (!o1.getModifier().isEmpty() && o2.getModifier().isEmpty()) {
 					return -1;
 				}
@@ -91,6 +92,9 @@ class DependencyVersion implements Comparable<DependencyVersion> {
 			String modifier;
 			String counter;
 			String versionString = versionMatcher.group(1);
+
+			versionString = versionString.endsWith(".") ? versionString.substring(0, versionString.length() - 1)
+					: versionString;
 			try {
 				version = Version.parse(versionString);
 			} catch (RuntimeException e) {

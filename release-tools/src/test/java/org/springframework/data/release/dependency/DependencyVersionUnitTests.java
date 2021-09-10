@@ -43,6 +43,19 @@ class DependencyVersionUnitTests {
 	}
 
 	@Test
+	void shouldConsiderSpringVersionOrder() {
+
+		List<String> sorted = Stream.of("1.0.0", "1.0.0.M1", "1.0.0.RC1", "1.0.0.M2") //
+				.map(DependencyVersion::of) //
+				.sorted() //
+				.map(DependencyVersion::getIdentifier) //
+				.collect(Collectors.toList());
+
+		System.out.println(sorted);
+		assertThat(sorted).containsExactly("1.0.0.M1", "1.0.0.M2", "1.0.0.RC1", "1.0.0");
+	}
+
+	@Test
 	void shouldConsiderReleaseTrainSortOrder() {
 
 		List<String> sorted = Stream.of("Bismuth-SR1", "Aluminium-SR1", "Aluminium-RELEASE", "Aluminium-SR2") //
