@@ -52,7 +52,7 @@ public class Dependencies {
 
 	public static final Dependency MOCKK = Dependency.of("Mockk", "io.mockk:mockk");
 
-	public static final Dependency QUERYDSL = Dependency.of("Querydsl", "com.querydsl:querydsl-jpa");
+	public static final Dependency QUERYDSL = Dependency.of("Querydsl", "com.querydsl:querydsl-bom");
 
 	public static final Dependency RXJAVA1 = Dependency.of("RxJava", "io.reactivex:rxjava");
 
@@ -93,6 +93,11 @@ public class Dependencies {
 	public static final Dependency LETTUCE = Dependency.of("Lettuce", "io.lettuce:lettuce-core");
 
 	public static final Dependency JEDIS = Dependency.of("Jedis", "redis.clients:jedis");
+
+	public static final Dependency JMOLECULES = Dependency.of("JMolecules", "org.jmolecules:jmolecules");
+
+	public static final Dependency JMOLECULES_INTEGRATION = Dependency.of("JMolecules",
+			"org.jmolecules.integrations:jmolecules-spring");
 
 	public static final Dependency CASSANDRA_DRIVER3 = Dependency.of("Cassandra Driver",
 			"com.datastax.cassandra:cassandra-driver-core");

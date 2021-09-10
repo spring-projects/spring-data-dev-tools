@@ -44,6 +44,9 @@ public class ProjectDependencies implements Streamable<ProjectDependencies.Proje
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("jacoco", Dependencies.JACOCO));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("jodatime", Dependencies.JODA_TIME));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("junit5", Dependencies.JUNIT5));
+		config.add(Projects.BUILD, ProjectDependency.ofProperty("jmolecules", Dependencies.JMOLECULES));
+		config.add(Projects.BUILD,
+				ProjectDependency.ofProperty("jmolecules-integration", Dependencies.JMOLECULES_INTEGRATION));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("junit", Dependencies.JUNIT4));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("kotlin", Dependencies.KOTLIN));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("kotlin-coroutines", Dependencies.KOTLIN_COROUTINES));
