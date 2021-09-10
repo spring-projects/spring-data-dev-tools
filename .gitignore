@@ -7,5 +7,6 @@ target/
 application-local.properties
 spring-shell.log
 .idea/
+release-tools/logs/
 *.iml
 dependency-upgrade-*.properties

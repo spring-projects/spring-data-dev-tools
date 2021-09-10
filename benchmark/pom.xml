@@ -22,6 +22,7 @@
 		<module>support</module>
 		<module>commons</module>
 		<module>mongodb</module>
+		<module>redis</module>
 		<module>relational</module>
 	</modules>
 
