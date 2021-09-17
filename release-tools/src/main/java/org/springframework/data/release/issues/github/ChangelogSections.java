@@ -36,7 +36,7 @@ class ChangelogSections {
 	static {
 		List<ChangelogSection> sections = new ArrayList<>();
 		add(sections, ":star: New Features", "enhancement");
-		add(sections, ":beetle: Bug Fixes", "bug", "regression");
+		add(sections, ":lady_beetle: Bug Fixes", "bug", "regression");
 		add(sections, ":notebook_with_decorative_cover: Documentation", "documentation");
 		add(sections, ":hammer: Dependency Upgrades", "dependency-upgrade");
 		DEFAULT_SECTIONS = Collections.unmodifiableList(sections);
