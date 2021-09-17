@@ -21,8 +21,6 @@ import lombok.Value;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.release.model.Iteration;
-
 /**
  * @author Mark Paluch
  */
@@ -33,10 +31,10 @@ class DependencyUpgradeProposal {
 	DependencyVersion current, latest, latestMinor, proposal;
 	List<DependencyVersion> newerVersions;
 
-	public static DependencyUpgradeProposal of(Iteration iteration, DependencyVersion currentVersion,
+	public static DependencyUpgradeProposal of(DependencyUpgradePolicy policy, DependencyVersion currentVersion,
 			DependencyVersion latestMinor, DependencyVersion latest, List<DependencyVersion> newerVersions) {
 
-		if (iteration.isServiceIteration()) {
+		if (policy.restrictToMinorVersion()) {
 			return new DependencyUpgradeProposal(currentVersion, latest, latestMinor, latestMinor, newerVersions);
 		}
 

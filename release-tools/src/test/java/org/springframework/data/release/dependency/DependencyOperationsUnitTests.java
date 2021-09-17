@@ -40,7 +40,8 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.SR1,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.SR1),
 				DependencyVersion.of("5.7.0"), availableVersions);
 
 		assertThat(proposal.getCurrent()).isEqualTo(DependencyVersion.of("5.7.0"));
@@ -57,7 +58,8 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.SR1,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.SR1),
 				DependencyVersion.of("5.7.0"), availableVersions);
 
 		assertThat(proposal.getCurrent()).isEqualTo(DependencyVersion.of("5.7.0"));
@@ -74,7 +76,8 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.M1,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.M1),
 				DependencyVersion.of("5.7.0"), availableVersions);
 
 		assertThat(proposal.getCurrent()).isEqualTo(DependencyVersion.of("5.7.0"));
@@ -91,11 +94,13 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.SR1,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.SR1),
 				DependencyVersion.of("5.7.1"), availableVersions);
 
 		assertThat(proposal.getNewerVersions()).extracting(DependencyVersion::getIdentifier).containsExactly("5.7.2-M2",
 				"5.7.2", "5.8.0");
+		assertThat(proposal.getProposal()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.2");
 	}
 
 	@Test
@@ -106,7 +111,8 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.M1,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.M1),
 				DependencyVersion.of("5.7.1"), availableVersions);
 
 		assertThat(proposal.getLatest()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.2-M2");
@@ -122,7 +128,8 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.RC1,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.RC1),
 				DependencyVersion.of("5.7.1"), availableVersions);
 
 		assertThat(proposal.getLatest()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.2-M2");
@@ -138,7 +145,8 @@ class DependencyOperationsUnitTests {
 				.sorted() //
 				.collect(Collectors.toList());
 
-		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(Iteration.GA,
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.GA),
 				DependencyVersion.of("5.7.1"), availableVersions);
 
 		assertThat(proposal.getLatest()).extracting(DependencyVersion::getIdentifier).isEqualTo("5.7.1");

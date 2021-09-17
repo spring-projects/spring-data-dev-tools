@@ -20,6 +20,10 @@ import lombok.SneakyThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -28,7 +32,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -47,6 +53,7 @@ import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.Projects;
+import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Streamable;
@@ -99,10 +106,145 @@ public class DependencyOperations {
 
 			DependencyVersion currentVersion = currentDependencies.get(dependency);
 			List<DependencyVersion> versions = getAvailableVersions(dependency);
-			DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(iteration, currentVersion, versions);
+			DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(DependencyUpgradePolicy.from(iteration),
+					currentVersion, versions);
 
 			proposals.put(dependency, proposal);
 		});
+
+		return new DependencyUpgradeProposals(proposals);
+	}
+
+	/**
+	 * Obtain dependency upgrade proposals for Maven Wrapper.
+	 *
+	 * @param project
+	 * @param iteration
+	 * @return
+	 */
+	public DependencyUpgradeProposals getMavenWrapperDependencyUpgradeProposals(TrainIteration iteration) {
+
+		for (ModuleIteration moduleIteration : iteration) {
+
+			// ensure we have Maven Wrapper for each project.
+			getMavenWrapperVersion(moduleIteration.getProject());
+		}
+
+		return getDependencyUpgradeProposals(Projects.BUILD, DependencyUpgradePolicy.LATEST_STABLE, Dependencies.MAVEN,
+				this::getMavenWrapperVersion);
+	}
+
+	/**
+	 * Applies the upgrade and creates a commit.
+	 *
+	 * @param tickets
+	 * @param module
+	 * @param dependencyVersions
+	 */
+	public Tickets upgradeMavenWrapperVersion(Tickets tickets, ModuleIteration module,
+			DependencyVersions dependencyVersions) {
+
+		if (dependencyVersions.isEmpty()) {
+			logger.log(module, "No dependency upgrades to apply");
+		}
+
+		return doWithDependencyVersionsAndCommit(tickets, module, dependencyVersions, (dependency, version) -> {
+			upgradeMavenWrapperVersion(module.getProject(), version);
+		});
+	}
+
+	public List<Project> getProjectsToUpgradeMavenWrapper(DependencyVersion targetVersion, TrainIteration iteration) {
+
+		List<Project> projectsToUpgrade = new ArrayList<>();
+
+		for (ModuleIteration moduleIteration : iteration) {
+
+			DependencyVersion currentVersion = getMavenWrapperVersion(moduleIteration.getProject());
+
+			if (targetVersion.isNewer(currentVersion)) {
+				projectsToUpgrade.add(moduleIteration.getProject());
+			}
+		}
+
+		return projectsToUpgrade;
+	}
+
+	private DependencyVersion getMavenWrapperVersion(Project project) {
+
+		try {
+
+			File file = getMavenWrapperProperties(project);
+			String distributionUrl;
+
+			try (FileInputStream fileInputStream = new FileInputStream(file)) {
+
+				Properties properties = new Properties();
+				properties.load(fileInputStream);
+
+				distributionUrl = properties.getProperty("distributionUrl");
+
+			}
+
+			Pattern versionPattern = Pattern.compile(".*/maven2/org/apache/maven/apache-maven/([\\d\\.]+)/.*");
+
+			Matcher matcher = versionPattern.matcher(distributionUrl);
+			if (!matcher.find()) {
+				throw new IllegalStateException(
+						String.format("Invalid distribution URL in %s: %s", project.getName(), distributionUrl));
+			}
+
+			return DependencyVersion.of(matcher.group(1));
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	private void upgradeMavenWrapperVersion(Project project, DependencyVersion dependencyVersion) {
+
+		String distributionUrlTemplate = "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/%s/apache-maven-%s-bin.zip";
+
+		try {
+
+			File file = getMavenWrapperProperties(project);
+			Properties properties = new Properties();
+
+			try (FileInputStream is = new FileInputStream(file)) {
+				properties.load(is);
+			}
+
+			properties.setProperty("distributionUrl",
+					String.format(distributionUrlTemplate, dependencyVersion.getIdentifier(), dependencyVersion.getIdentifier()));
+
+			try (FileOutputStream os = new FileOutputStream(file)) {
+				properties.store(os, null);
+			}
+
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	private File getMavenWrapperProperties(Project project) throws FileNotFoundException {
+		File file = workspace.getFile(".mvn/wrapper/maven-wrapper.properties", project);
+
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.toString());
+		}
+		return file;
+	}
+
+	public DependencyUpgradeProposals getDependencyUpgradeProposals(Project project, DependencyUpgradePolicy policy,
+			Dependency dependency, Function<Project, DependencyVersion> currentVersionExtractor) {
+
+		DependencyVersions currentDependencies = new DependencyVersions(
+				Collections.singletonMap(dependency, currentVersionExtractor.apply(project)));
+		Map<Dependency, DependencyUpgradeProposal> proposals = Collections.synchronizedMap(new LinkedHashMap<>());
+
+		DependencyVersion currentVersion = currentDependencies.get(dependency);
+		List<DependencyVersion> versions = getAvailableVersions(dependency);
+		DependencyUpgradeProposal proposal = getDependencyUpgradeProposal(policy, currentVersion, versions);
+
+		proposals.put(dependency, proposal);
 
 		return new DependencyUpgradeProposals(proposals);
 	}
@@ -114,17 +256,16 @@ public class DependencyOperations {
 	 * @param dependencyVersions
 	 * @return
 	 */
-	public Tickets createUpgradeTickets(ModuleIteration module, DependencyVersions dependencyVersions) {
+	public Tickets getOrCreateUpgradeTickets(ModuleIteration module, DependencyVersions dependencyVersions) {
 
 		Project project = module.getProject();
-		DependencyVersions upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
 
 		IssueTracker tracker = this.tracker.getRequiredPluginFor(project);
 		Tickets tickets = tracker.getTicketsFor(module);
 
 		List<Ticket> upgradeTickets = new ArrayList<>();
 
-		upgrades.forEach((dependency, dependencyVersion) -> {
+		dependencyVersions.forEach((dependency, dependencyVersion) -> {
 
 			String upgradeTicketSummary = getUpgradeTicketSummary(dependency, dependencyVersion);
 			Optional<Ticket> upgradeTicket = getDependencyUpgradeTicket(tickets, upgradeTicketSummary);
@@ -151,7 +292,7 @@ public class DependencyOperations {
 	}
 
 	/**
-	 * Verifies dependencies to upgrade, applies the upgrade, creates a commit.
+	 * Applies the upgrade, creates a commit.
 	 *
 	 * @param tickets
 	 * @param module
@@ -160,25 +301,45 @@ public class DependencyOperations {
 	public Tickets upgradeDependencies(Tickets tickets, ModuleIteration module, DependencyVersions dependencyVersions) {
 
 		Project project = module.getProject();
-		DependencyVersions upgrades = getDependencyUpgradesToApply(project, dependencyVersions);
 		ProjectDependencies dependencies = ProjectDependencies.get(project);
 
-		if (upgrades.isEmpty()) {
+		if (dependencyVersions.isEmpty()) {
+			logger.log(module, "No dependency upgrades to apply");
+		}
+
+		return doWithDependencyVersionsAndCommit(tickets, module, dependencyVersions, (dependency, version) -> {
+
+			String versionProperty = dependencies.getVersionPropertyFor(dependency);
+			File pom = getPomFile(project);
+			update(pom, Pom.class, it -> {
+				it.setProperty(versionProperty, version.getIdentifier());
+			});
+
+		});
+	}
+
+	/**
+	 * Verifies dependencies to upgrade, applies the upgrade, creates a commit.
+	 *
+	 * @param tickets
+	 * @param module
+	 * @param dependencyVersions
+	 */
+	private Tickets doWithDependencyVersionsAndCommit(Tickets tickets, ModuleIteration module,
+			DependencyVersions dependencyVersions, BiConsumer<Dependency, DependencyVersion> action) {
+
+		if (dependencyVersions.isEmpty()) {
 			logger.log(module, "No dependency upgrades to apply");
 		}
 
 		List<Ticket> ticketsToClose = new ArrayList<>();
 
-		upgrades.forEach((dependency, dependencyVersion) -> {
+		dependencyVersions.forEach((dependency, dependencyVersion) -> {
 
 			String upgradeTicketSummary = getUpgradeTicketSummary(dependency, dependencyVersion);
 			Ticket upgradeTicket = getDependencyUpgradeTicket(tickets, upgradeTicketSummary).get();
-			String versionProperty = dependencies.getVersionPropertyFor(dependency);
 
-			File pom = getPomFile(project);
-			update(pom, Pom.class, it -> {
-				it.setProperty(versionProperty, dependencyVersion.getIdentifier());
-			});
+			action.accept(dependency, dependencyVersion);
 
 			gitOperations.commit(module, upgradeTicket, upgradeTicketSummary, Optional.empty());
 
@@ -197,7 +358,7 @@ public class DependencyOperations {
 		}
 	}
 
-	private DependencyVersions getDependencyUpgradesToApply(Project project, DependencyVersions dependencyVersions) {
+	public DependencyVersions getDependencyUpgradesToApply(Project project, DependencyVersions dependencyVersions) {
 
 		DependencyVersions currentDependencies = getCurrentDependencies(project);
 		Map<Dependency, DependencyVersion> upgrades = new LinkedHashMap<>();
@@ -232,11 +393,11 @@ public class DependencyOperations {
 		return Optional.ofNullable(upgradeTickets.isEmpty() ? null : upgradeTickets.get(0));
 	}
 
-	protected static DependencyUpgradeProposal getDependencyUpgradeProposal(Iteration iteration,
+	protected static DependencyUpgradeProposal getDependencyUpgradeProposal(DependencyUpgradePolicy policy,
 			DependencyVersion currentVersion, List<DependencyVersion> allVersions) {
 
-		Optional<DependencyVersion> latestMinor = findLatestMinor(iteration, currentVersion, allVersions);
-		Optional<DependencyVersion> latest = findLatest(iteration, allVersions);
+		Optional<DependencyVersion> latestMinor = findLatestMinor(policy, currentVersion, allVersions);
+		Optional<DependencyVersion> latest = findLatest(policy, allVersions);
 		List<DependencyVersion> newerVersions = allVersions.stream() //
 				.sorted() //
 				.filter(it -> it.compareTo(currentVersion) > 0) //
@@ -244,16 +405,16 @@ public class DependencyOperations {
 
 		DependencyVersion latestToUse = latest.filter(it -> it.isNewer(currentVersion)).orElse(currentVersion);
 
-		return DependencyUpgradeProposal.of(iteration, currentVersion, latestMinor.orElse(latestToUse), latestToUse,
+		return DependencyUpgradeProposal.of(policy, currentVersion, latestMinor.orElse(latestToUse), latestToUse,
 				newerVersions);
 	}
 
-	private static Optional<DependencyVersion> findLatest(Iteration iteration,
+	private static Optional<DependencyVersion> findLatest(DependencyUpgradePolicy policy,
 			List<DependencyVersion> availableVersions) {
 
 		return availableVersions.stream().filter(it -> {
 
-			if (iteration.isPublic() && StringUtils.hasText(it.getModifier())) {
+			if (!policy.milestoneAllowed() && StringUtils.hasText(it.getModifier())) {
 				return false;
 			}
 
@@ -262,14 +423,14 @@ public class DependencyOperations {
 		}).max(DependencyVersion::compareTo);
 	}
 
-	private static Optional<DependencyVersion> findLatestMinor(Iteration iteration,
+	private static Optional<DependencyVersion> findLatestMinor(DependencyUpgradePolicy policy,
 			DependencyVersion currentVersion,
 			List<DependencyVersion> availableVersions) {
 
 		return availableVersions.stream().filter(it -> {
 
-			if (iteration.isPublic() && StringUtils.hasText(it.getModifier())) {
-				return false;
+			if (policy.milestoneAllowed() && StringUtils.hasText(it.getModifier())) {
+				return true;
 			}
 
 			if (it.getVersion() == null || currentVersion.getVersion() == null) {

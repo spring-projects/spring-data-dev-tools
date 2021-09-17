@@ -115,7 +115,15 @@ public class DependencyCommands extends TimedCommand {
 
 		git.checkout(iteration.getTrain(), false);
 
-		Tickets tickets = operations.createUpgradeTickets(module, dependencyVersions);
+		DependencyVersions upgradesToApply = operations.getDependencyUpgradesToApply(module.getProject(),
+				dependencyVersions);
+
+		if (upgradesToApply.isEmpty()) {
+			logger.log(module, "No dependency upgrades to apply");
+			return;
+		}
+
+		Tickets tickets = operations.getOrCreateUpgradeTickets(module, upgradesToApply);
 		operations.upgradeDependencies(tickets, module, dependencyVersions);
 
 		git.push(module);

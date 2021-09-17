@@ -117,6 +117,8 @@ public class Dependencies {
 	public static final Dependency SPRING_LDAP = Dependency.of("Spring LDAP",
 			"org.springframework.ldap:spring-ldap-core");
 
+	public static final Dependency MAVEN = Dependency.of("Maven Wrapper", "org.apache.maven:apache-maven");
+
 	static {
 
 		ReflectionUtils.doWithFields(Dependencies.class, field -> {
