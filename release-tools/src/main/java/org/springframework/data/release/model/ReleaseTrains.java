@@ -29,7 +29,7 @@ public class ReleaseTrains {
 
 	public static final List<Train> TRAINS;
 	public static final Train CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN,
-			OCKHAM, PASCAL, Q;
+			OCKHAM, PASCAL, Q, R, TURING;
 
 	static {
 
@@ -41,14 +41,6 @@ public class ReleaseTrains {
 		HOPPER = GOSLING.next("Hopper", Transition.MINOR, new Module(SOLR, "2.0"), new Module(ENVERS, "1.0"),
 				new Module(NEO4J, "4.1"), new Module(COUCHBASE, "2.1"), new Module(ELASTICSEARCH, "2.0"));
 		INGALLS = HOPPER.next("Ingalls", Transition.MINOR, new Module(LDAP, "1.0"));
-
-		Iteration RC3 = new Iteration("RC3", GA);
-		Iteration RC2 = new Iteration("RC2", RC3);
-		Iteration RC1 = new Iteration("RC1", RC2);
-		Iteration M4 = new Iteration("M4", RC1);
-		Iteration M3 = new Iteration("M3", M4);
-		Iteration M2 = new Iteration("M2", M3);
-		Iteration M1 = new Iteration("M1", M2);
 
 		KAY = INGALLS.next("Kay", Transition.MAJOR, new Module(GEODE, "2.0"));
 
@@ -72,17 +64,26 @@ public class ReleaseTrains {
 
 		PASCAL = OCKHAM.next("Pascal", Transition.MINOR) //
 				.filterModules(module -> !module.getProject().equals(SOLR))
-				.withCalver("2021.0") //
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+				.withCalver("2021.0");
 
 		Q = PASCAL.next("Q", Transition.MINOR) //
 				.withCalver("2021.1") //
 				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
 
+		R = Q.next("R", Transition.MINOR) //
+				.withCalver("2022.0") //
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+
+		TURING = PASCAL.next("Turing", Transition.MAJOR) //
+				.withCalver("2022.1") //
+				.filterModules(module -> !(module.getProject().equals(R2DBC) || module.getProject().equals(ENVERS)))
+				.withAlwaysUseBranch(true)
+				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+
 		// Trains
 
 		TRAINS = Arrays.asList(CODD, DIJKSTRA, EVANS, FOWLER, GOSLING, HOPPER, INGALLS, KAY, LOVELACE, MOORE, NEUMANN,
-				OCKHAM, PASCAL, Q);
+				OCKHAM, PASCAL, Q, R, TURING);
 	}
 
 	private static Train codd() {
