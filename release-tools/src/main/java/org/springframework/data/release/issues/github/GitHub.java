@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -383,6 +384,11 @@ public class GitHub extends GitHubSupport implements IssueTracker {
 	}
 
 	private Optional<Milestone> findMilestone(ModuleIteration moduleIteration, String repositoryName) {
+		return doFindMilestone(moduleIteration, repositoryName, m -> m.matches(moduleIteration));
+	}
+
+	private Optional<Milestone> doFindMilestone(ModuleIteration moduleIteration, String repositoryName,
+			Predicate<Milestone> milestonePredicate) {
 
 		AtomicReference<Milestone> milestoneRef = new AtomicReference<>();
 
@@ -398,7 +404,7 @@ public class GitHub extends GitHubSupport implements IssueTracker {
 					MILESTONES_TYPE, milestones -> {
 
 						Optional<Milestone> milestone = milestones.stream(). //
-						filter(m -> m.matches(moduleIteration)). //
+						filter(milestonePredicate). //
 						findFirst(). //
 						map(m -> {
 							logger.log(moduleIteration, "Found milestone %s.", m);
