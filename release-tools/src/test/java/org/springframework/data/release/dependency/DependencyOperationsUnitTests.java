@@ -104,6 +104,20 @@ class DependencyOperationsUnitTests {
 	}
 
 	@Test
+	void shouldNotReportMajorVersionForServiceRelease() {
+
+		List<DependencyVersion> availableVersions = Stream.of("5.0.0") //
+				.map(DependencyVersion::of) //
+				.collect(Collectors.toList());
+
+		DependencyUpgradeProposal proposal = DependencyOperations.getDependencyUpgradeProposal(
+				DependencyUpgradePolicy.from(Iteration.SR1), DependencyVersion.of("4.1"), availableVersions);
+
+		assertThat(proposal.getNewerVersions()).extracting(DependencyVersion::getIdentifier).containsExactly("5.0.0");
+		assertThat(proposal.getProposal()).extracting(DependencyVersion::getIdentifier).isEqualTo("4.1");
+	}
+
+	@Test
 	void shouldReportMilestoneVersionForMilestoneIteration() {
 
 		List<DependencyVersion> availableVersions = Stream.of("5.7.0", "5.7.1", "5.7.2-M2") //

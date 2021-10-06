@@ -405,8 +405,35 @@ public class DependencyOperations {
 
 		DependencyVersion latestToUse = latest.filter(it -> it.isNewer(currentVersion)).orElse(currentVersion);
 
-		return DependencyUpgradeProposal.of(policy, currentVersion, latestMinor.orElse(latestToUse), latestToUse,
+		DependencyVersion latestMinorFallback = latest
+				.filter(it -> isUpgradeable(policy, it, currentVersion) && it.isNewer(currentVersion)).orElse(currentVersion);
+
+		return DependencyUpgradeProposal.of(policy, currentVersion, latestMinor.orElse(latestMinorFallback), latestToUse,
 				newerVersions);
+	}
+
+	private static boolean isUpgradeable(DependencyUpgradePolicy policy, DependencyVersion proposal,
+			DependencyVersion currentVersion) {
+
+		if (policy.restrictToMinorVersion()) {
+
+			if (proposal.getTrainName() != null && currentVersion.getTrainName() != null) {
+				return proposal.getTrainName().equals(currentVersion.getTrainName());
+			}
+
+			if (proposal.getVersion().getMajor() == currentVersion.getVersion().getMajor()
+					&& proposal.getVersion().getMinor() == currentVersion.getVersion().getMinor()) {
+				return true;
+			}
+
+			return false;
+		}
+
+		if (StringUtils.hasText(proposal.getModifier())) {
+			return policy.milestoneAllowed();
+		}
+
+		return true;
 	}
 
 	private static Optional<DependencyVersion> findLatest(DependencyUpgradePolicy policy,
@@ -414,8 +441,8 @@ public class DependencyOperations {
 
 		return availableVersions.stream().filter(it -> {
 
-			if (!policy.milestoneAllowed() && StringUtils.hasText(it.getModifier())) {
-				return false;
+			if (StringUtils.hasText(it.getModifier())) {
+				return policy.milestoneAllowed();
 			}
 
 			return true;
@@ -429,8 +456,8 @@ public class DependencyOperations {
 
 		return availableVersions.stream().filter(it -> {
 
-			if (policy.milestoneAllowed() && StringUtils.hasText(it.getModifier())) {
-				return true;
+			if (StringUtils.hasText(it.getModifier())) {
+				return policy.milestoneAllowed();
 			}
 
 			if (it.getVersion() == null || currentVersion.getVersion() == null) {
