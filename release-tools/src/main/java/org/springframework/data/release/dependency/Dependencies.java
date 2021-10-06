@@ -75,6 +75,8 @@ public class Dependencies {
 
 	public static final Dependency OPEN_WEB_BEANS = Dependency.of("OpenWebBeans", "org.apache.openwebbeans:openwebbeans");
 
+	public static final Dependency SMALLRYE_MUTINY = Dependency.of("Smallrye Mutiny", "io.smallrye.reactive:mutiny");
+
 	public static final Dependency VAVR = Dependency.of("Vavr", "io.vavr:vavr").excludeVersionStartingWith("1.0.0-alpha");
 
 	public static final Dependency XML_BEAM = Dependency.of("XMLBeam", "org.xmlbeam:xmlprojector");

@@ -57,6 +57,7 @@ public class ProjectDependencies implements Streamable<ProjectDependencies.Proje
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava2", Dependencies.RXJAVA2));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava3", Dependencies.RXJAVA3));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("rxjava-reactive-streams", Dependencies.RXJAVA_RS));
+		config.add(Projects.BUILD, ProjectDependency.ofProperty("smallrye-mutiny", Dependencies.SMALLRYE_MUTINY));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("spring-hateoas", Dependencies.SPRING_HATEOAS));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("spring-plugin", Dependencies.SPRING_PLUGIN));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("testcontainers", Dependencies.TESTCONTAINERS));
