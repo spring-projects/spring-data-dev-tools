@@ -55,11 +55,11 @@ See `application-local.template` for details.
 | Build the artefacts and push them to the apropriate maven repository | `$ release build $trainIteration` |
 | |`$ release conclude $trainIteration` |
 | Push the created commits to GitHub |`$ github push $trainIteration` |
+| Push new maintanance branches if the release version was a GA release (`X.Y.0` version)|`$ github push $trainIteration.next`|
 | Distribute documentation and static resources from tag |`$ release distribute $trainIteration`|
 | **Post-release tasks** ||
 |Close JIRA tickets and GitHub release tickets.|`$ tracker close $trainIteration`|
 |Create new release versions and tickets for upcoming version|`$ tracker setup-next $trainIteration.next`|
-|Push maintanance new branch if the release version was a `X.Y.0` version|`$ github push $trainIteration.next`|
 | Update versions in Sagan. `$targets` is given as comma separated lists of code names, without spaces. E.g. `Moore,Neumann` | `$ sagan update $releasetrains`|
 |  Create list of docs for release announcements | `$ announcement $trainIteration`|
 | Announce release (Blog, Twitter) and notify downstream dependency projects as needed. | N.A. |
