@@ -55,7 +55,7 @@ See `application-local.template` for details.
 | Build the artefacts and push them to the apropriate maven repository | `$ release build $trainIteration` |
 | |`$ release conclude $trainIteration` |
 | Push the created commits to GitHub |`$ github push $trainIteration` |
-| Push new maintanance branches if the release version was a GA release (`X.Y.0` version)|`$ github push $trainIteration.next`|
+| Push new maintanance branches if the release version was a GA release (`X.Y.0` version)|`$ git push $trainIteration.next`|
 | Distribute documentation and static resources from tag |`$ release distribute $trainIteration`|
 | **Post-release tasks** ||
 |Close JIRA tickets and GitHub release tickets.|`$ tracker close $trainIteration`|
