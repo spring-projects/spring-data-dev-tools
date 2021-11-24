@@ -556,7 +556,7 @@ public class GitHub extends GitHubSupport implements IssueTracker {
 		List<GitHubReadIssue> gitHubIssues = findGitHubIssues(module, ticketIds);
 
 		ArtifactVersion version = ArtifactVersion.of(module);
-		DocumentationMetadata documentation = DocumentationMetadata.of(module.getProject(), version);
+		DocumentationMetadata documentation = DocumentationMetadata.of(module.getProject(), version, false);
 
 		ChangelogGenerator generator = new ChangelogGenerator();
 		generator.getExcludeContributors().addAll(properties.getTeam());
@@ -598,14 +598,18 @@ public class GitHub extends GitHubSupport implements IssueTracker {
 
 	private String getDocumentationLinks(ModuleIteration module, DocumentationMetadata documentation) {
 
-		String referenceDocUrl = documentation.getReferenceDocUrl(module.getTrain());
-		String apiDocUrl = documentation.getApiDocUrl(module.getTrain());
+		if (module.getProject() == Projects.BUILD || module.getProject() == Projects.BOM) {
+			return "";
+		}
+
+		String referenceDocUrl = documentation.getReferenceDocUrl();
+		String apiDocUrl = documentation.getApiDocUrl();
 
 		String reference = String.format("* [%s %s Reference documentation](%s)", module.getProject().getFullName(),
-				documentation.getVersion(module.getTrain()), referenceDocUrl);
+				module.getVersion().toString(), referenceDocUrl);
 
 		String apidoc = String.format("* [%s %s Javadoc](%s)", module.getProject().getFullName(),
-				documentation.getVersion(module.getTrain()), apiDocUrl);
+				module.getVersion().toString(), apiDocUrl);
 
 		return String.format("%s%n%s%n", reference, apidoc);
 	}

@@ -47,7 +47,8 @@ class ProjectMetadata {
 
 		this.version = version;
 		this.versions = versions;
-		this.documentation = DocumentationMetadata.of(version.getProject(), version.getVersion());
+		this.documentation = DocumentationMetadata.of(version.getProject(), version.getVersion(),
+				versions.isMainVersion(version));
 	}
 
 	/**
@@ -56,7 +57,7 @@ class ProjectMetadata {
 	 * @return
 	 */
 	public String getReferenceDocUrl() {
-		return documentation.getReferenceDocUrl(version.getTrain());
+		return documentation.getReferenceDocUrl();
 	}
 
 	/**
@@ -75,7 +76,7 @@ class ProjectMetadata {
 	 * @return
 	 */
 	public String getApiDocUrl() {
-		return documentation.getApiDocUrl(version.getTrain());
+		return documentation.getApiDocUrl();
 	}
 
 	/**
@@ -85,6 +86,6 @@ class ProjectMetadata {
 	 * @return
 	 */
 	public String getVersion() {
-		return documentation.getVersion(version.getTrain());
+		return documentation.getVersionOrTrainName(version.getTrain());
 	}
 }

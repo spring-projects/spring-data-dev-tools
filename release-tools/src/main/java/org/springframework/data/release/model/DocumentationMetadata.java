@@ -33,23 +33,24 @@ public class DocumentationMetadata {
 
 	Project project;
 	ArtifactVersion version;
+	boolean isCurrent;
 
 	/**
 	 * Returns the JavaDoc URL for non-snapshot versions and not the build project.
 	 *
 	 * @return
 	 */
-	public String getApiDocUrl(Train train) {
+	public String getApiDocUrl() {
 
 		if (version.isSnapshotVersion()) {
 			return "";
 		}
 
 		if (Projects.BUILD.equals(project)) { // Report Commons Docs for Spring Data Build
-			return String.format(JAVADOC, Projects.COMMONS.getName().toLowerCase(Locale.US), version.toString());
+			return String.format(JAVADOC, Projects.COMMONS.getName().toLowerCase(Locale.US), getDocumentationVersion());
 		}
 
-		return String.format(JAVADOC, project.getName().toLowerCase(Locale.US), getVersion(train));
+		return String.format(JAVADOC, project.getName().toLowerCase(Locale.US), getDocumentationVersion());
 	}
 
 	/**
@@ -57,20 +58,20 @@ public class DocumentationMetadata {
 	 *
 	 * @return
 	 */
-	public String getReferenceDocUrl(Train train) {
+	public String getReferenceDocUrl() {
 
 		if (version.isSnapshotVersion()) {
 			return "";
 		}
 
 		if (Projects.BUILD.equals(project)) { // Report Commons Docs for Spring Data Build
-			return String.format(DOCS, Projects.COMMONS.getName().toLowerCase(Locale.US), version.toString());
+			return String.format(DOCS, Projects.COMMONS.getName().toLowerCase(Locale.US), getDocumentationVersion());
 		}
 
-		return String.format(DOCS, project.getName().toLowerCase(Locale.US), getVersion(train));
+		return String.format(DOCS, project.getName().toLowerCase(Locale.US), getDocumentationVersion());
 	}
 
-	public String getVersion(Train train) {
+	public String getVersionOrTrainName(Train train) {
 
 		if (Projects.BUILD.equals(project)) {
 
@@ -90,6 +91,10 @@ public class DocumentationMetadata {
 		}
 
 		return version.toString();
+	}
+
+	public String getDocumentationVersion() {
+		return isCurrent ? "current" : version.toString();
 	}
 
 }
