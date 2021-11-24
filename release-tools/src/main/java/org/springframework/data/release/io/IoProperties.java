@@ -53,7 +53,7 @@ class IoProperties {
 
 		if (!javaHomeDir.isDirectory()) {
 			log.warn(String.format(
-					"⚠️️ Property 'io.javaHome' does not point to a vaild directory ('%s')! Falling back to os.default.",
+					"⚠️️ Property 'io.javaHome' does not point to a valid directory ('%s')! Falling back to os.default.",
 					javaHomeDir.getPath()));
 			return;
 		}
