@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.springframework.data.microbenchmark.jdbc;
+
+import lombok.Getter;
 
 import java.lang.reflect.Field;
 
@@ -30,11 +32,9 @@ import org.springframework.data.microbenchmark.FixtureUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.util.ReflectionUtils;
 
-import lombok.Getter;
-
 /**
  * Test fixture for JDBC and Spring Data JDBC benchmarks.
- * 
+ *
  * @author Oliver Drotbohm
  */
 class JdbcFixture {
@@ -50,14 +50,14 @@ class JdbcFixture {
 
 		this.bookMapper = (rs, rowNum) -> new Book(rs.getLong("id"), rs.getString("title"), rs.getInt("pages"));
 	}
-	
+
 	private static void disableEntityCallbacks(ApplicationContext context) {
-		
+
 		JdbcBookRepository repository = context.getBean(JdbcBookRepository.class);
 
 		Field field = ReflectionUtils.findField(SimpleJdbcRepository.class, "entityOperations");
 		ReflectionUtils.makeAccessible(field);
-		
+
 		try {
 			JdbcAggregateTemplate aggregateTemplate = (JdbcAggregateTemplate) ReflectionUtils.getField(field,
 					((Advised) repository).getTargetSource().getTarget());
@@ -65,9 +65,9 @@ class JdbcFixture {
 			field = ReflectionUtils.findField(JdbcAggregateTemplate.class, "publisher");
 			ReflectionUtils.makeAccessible(field);
 			ReflectionUtils.setField(field, aggregateTemplate, NoOpApplicationEventPublisher.INSTANCE);
-			
+
 			aggregateTemplate.setEntityCallbacks(NoOpEntityCallbacks.INSTANCE);
-			
+
 		} catch (Exception o_O) {
 			throw new RuntimeException(o_O);
 		}
@@ -83,11 +83,11 @@ class JdbcFixture {
 		@Override
 		public void publishEvent(Object event) {}
 	}
-	
+
 	enum NoOpEntityCallbacks implements EntityCallbacks {
 
 		INSTANCE;
-		
+
 		@Override
 		public void addEntityCallback(EntityCallback<?> callback) {}
 

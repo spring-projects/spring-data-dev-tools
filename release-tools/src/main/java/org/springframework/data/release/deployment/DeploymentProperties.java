@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import lombok.Data;
 import java.net.URI;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.data.release.model.Gpg;
 import org.springframework.data.release.model.Password;
 import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.stereotype.Component;

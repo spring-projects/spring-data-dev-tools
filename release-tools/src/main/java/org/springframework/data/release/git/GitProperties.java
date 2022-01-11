@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 
 /**
  * Configurable properties for Git.
- * 
+ *
  * @author Oliver Gierke
  * @author Mark Paluch
  */
@@ -54,7 +54,7 @@ public class GitProperties {
 
 	/**
 	 * Returns the jGit {@link CredentialsProvider} to be used.
-	 * 
+	 *
 	 * @return
 	 */
 	public CredentialsProvider getCredentials() {

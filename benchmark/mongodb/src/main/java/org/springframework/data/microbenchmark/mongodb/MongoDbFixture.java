@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.microbenchmark.mongodb;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.stream.IntStream;
 
@@ -22,8 +24,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.mongodb.core.MongoOperations;
-
-import lombok.Getter;
 
 /**
  * @author Oliver Drotbohm
@@ -40,11 +40,11 @@ class MongoDbFixture {
 		application.setLazyInitialization(true);
 
 		this.context = application.run();
-		
+
 		MongoOperations operations = context.getBean(MongoOperations.class);
-		
+
 		operations.dropCollection(Book.class);
-		
+
 		IntStream.range(0, Constants.NUMBER_OF_BOOKS) //
 			.mapToObj(it -> new Book("title" + it, it)) //
 			.forEach(operations::save);

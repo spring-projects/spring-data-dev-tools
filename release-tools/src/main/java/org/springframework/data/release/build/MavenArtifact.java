@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 
 /**
  * Value object to represent a Maven artifact.
- * 
+ *
  * @author Oliver Gierke
  */
 @EqualsAndHashCode
@@ -41,7 +41,7 @@ public class MavenArtifact {
 
 	/**
 	 * Creates a new {@link MavenArtifact} for the given {@link ModuleIteration}.
-	 * 
+	 *
 	 * @param module must not be {@literal null}.
 	 */
 	public MavenArtifact(ModuleIteration module) {
@@ -66,7 +66,7 @@ public class MavenArtifact {
 
 	/**
 	 * Returns the Maven artifact identifier.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getArtifactId() {
@@ -82,7 +82,7 @@ public class MavenArtifact {
 
 	/**
 	 * Returns the URL pointing to the artifacts.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getRootUrl() {
