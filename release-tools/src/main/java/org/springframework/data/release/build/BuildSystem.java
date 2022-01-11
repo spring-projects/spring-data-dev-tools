@@ -16,6 +16,7 @@
 package org.springframework.data.release.build;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
+import org.springframework.data.release.model.JavaVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
@@ -77,4 +78,12 @@ interface BuildSystem extends Plugin<Project> {
 	 * Verify general functionality and correctness of the build setup.
 	 */
 	void verify();
+
+	/**
+	 * Prepare the build system with a Java version.
+	 *
+	 * @param javaVersion
+	 * @return
+	 */
+	BuildSystem withJavaVersion(JavaVersion javaVersion);
 }

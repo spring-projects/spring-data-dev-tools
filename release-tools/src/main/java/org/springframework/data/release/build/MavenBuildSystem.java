@@ -37,6 +37,7 @@ import org.springframework.data.release.deployment.DeploymentProperties;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Gpg;
+import org.springframework.data.release.model.JavaVersion;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Phase;
 import org.springframework.data.release.model.Project;
@@ -67,6 +68,12 @@ class MavenBuildSystem implements BuildSystem {
 	MavenRuntime mvn;
 	DeploymentProperties properties;
 	Gpg gpg;
+
+	@Override
+	public BuildSystem withJavaVersion(JavaVersion javaVersion) {
+		return new MavenBuildSystem(workspace, projectionFactory, logger, mvn.withJavaVersion(javaVersion), properties,
+				gpg);
+	}
 
 	/*
 	 * (non-Javadoc)

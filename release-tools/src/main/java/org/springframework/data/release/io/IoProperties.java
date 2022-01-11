@@ -20,9 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 
+import org.apache.commons.io.FileUtils;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Oliver Gierke
@@ -35,30 +36,12 @@ import org.springframework.util.StringUtils;
 @ConfigurationProperties(prefix = "io")
 class IoProperties {
 
-	private File workDir, javaHome, logs;
+	private File workDir, logs;
 
 	public void setWorkDir(String workDir) {
 
 		log.info(String.format("🔧 Using %s as working directory!", workDir));
-		this.workDir = new File(workDir.replace("~", System.getProperty("user.home")));
+		this.workDir = new File(workDir.replace("~", FileUtils.getUserDirectoryPath()));
 	}
 
-	public void setJavaHome(String javaHome) {
-
-		if (!StringUtils.hasText(javaHome)) {
-			return;
-		}
-
-		File javaHomeDir = new File(javaHome.replace("~", System.getProperty("user.home")));
-
-		if (!javaHomeDir.isDirectory()) {
-			log.warn(String.format(
-					"⚠️️ Property 'io.javaHome' does not point to a valid directory ('%s')! Falling back to os.default.",
-					javaHomeDir.getPath()));
-			return;
-		}
-
-		log.info(String.format("🔧 Setting javaHome to: '%s'.", javaHomeDir.getPath()));
-		this.javaHome = javaHomeDir;
-	}
 }

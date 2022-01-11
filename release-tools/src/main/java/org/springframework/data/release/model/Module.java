@@ -15,7 +15,10 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Value;
+import lombok.With;
 
 import org.springframework.util.Assert;
 
@@ -24,24 +27,32 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  */
 @Value
-public class Module implements VersionAware, ProjectAware, Comparable<Module> {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class Module implements VersionAware, ProjectAware, JavaVersionAware, Comparable<Module> {
 
-	private final Project project;
-	private final Version version;
-	private final Iteration customFirstIteration;
+	Project project;
+	Version version;
+	Iteration customFirstIteration;
+	@With JavaVersion javaVersion;
 
 	public Module(Project project, String version) {
-		this(project, version, null);
+		this(project, version, null, JavaVersion.JAVA_8);
 	}
 
 	Module(Project project, String version, String customFirstIteration) {
+		this(project, version, customFirstIteration, JavaVersion.JAVA_8);
+	}
+
+	Module(Project project, String version, String customFirstIteration, JavaVersion javaVersion) {
 
 		Assert.notNull(project, "Project must not be null!");
+		Assert.notNull(javaVersion, "JavaVersion must not be null!");
 
 		this.project = project;
 		this.version = Version.parse(version);
 		this.customFirstIteration = customFirstIteration == null ? null
 				: new Iteration(customFirstIteration, Iteration.RC1);
+		this.javaVersion = javaVersion;
 	}
 
 	public boolean hasName(String name) {
@@ -84,5 +95,10 @@ public class Module implements VersionAware, ProjectAware, Comparable<Module> {
 	@Override
 	public String toString() {
 		return String.format("Spring Data %s %s - %s", project.getName(), version, project.getKey());
+	}
+
+	public Module withJavaVersion(JavaVersion javaVersion) {
+		return this.javaVersion == javaVersion ? this
+				: new Module(this.project, this.version, this.customFirstIteration, javaVersion);
 	}
 }

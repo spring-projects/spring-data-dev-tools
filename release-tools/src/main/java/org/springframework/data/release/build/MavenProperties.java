@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -55,7 +57,7 @@ class MavenProperties {
 
 		log.info("Using {} as local Maven repository!", localRepository);
 
-		this.localRepository = new File(localRepository.replace("~", System.getProperty("user.home")));
+		this.localRepository = new File(localRepository.replace("~", FileUtils.getUserDirectoryPath()));
 
 		if (!this.localRepository.exists()) {
 			this.localRepository.mkdirs();

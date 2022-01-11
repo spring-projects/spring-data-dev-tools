@@ -54,13 +54,14 @@ public class Train implements Streamable<Module> {
 	private @Nullable Version calver;
 	private @With Iterations iterations;
 	private @With boolean alwaysUseBranch;
+	private JavaVersion javaVersion;
 
 	public Train(String name, Module... modules) {
 		this(name, Arrays.asList(modules));
 	}
 
 	public Train(String name, Collection<Module> modules) {
-		this(name, Modules.of(modules), null, Iterations.DEFAULT, false);
+		this(name, Modules.of(modules), null, Iterations.DEFAULT, false, JavaVersion.JAVA_8);
 	}
 
 	/*
@@ -115,12 +116,12 @@ public class Train implements Streamable<Module> {
 								(it, additionalModule) -> it.hasSameProjectAs(additionalModule) ? additionalModule : it))
 				.collect(Collectors.toSet());
 
-		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch);
+		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch, javaVersion);
 	}
 
 	public Train filterModules(Predicate<Module> filterPredicate) {
 		return new Train(name, Modules.of(getModules().stream().filter(filterPredicate).collect(Collectors.toList())),
-				calver, iterations, alwaysUseBranch);
+				calver, iterations, alwaysUseBranch, javaVersion);
 	}
 
 	/**
@@ -158,7 +159,6 @@ public class Train implements Streamable<Module> {
 		return doGetTrainIteration(iterations.getIterationByName(name));
 	}
 
-
 	public ArtifactVersion getModuleVersion(Project project, Iteration iteration) {
 
 		Module module = getModule(project);
@@ -182,7 +182,16 @@ public class Train implements Streamable<Module> {
 
 		}).collect(Collectors.toSet());
 
-		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch);
+		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch, javaVersion);
+	}
+
+	public Train withJavaVersion(JavaVersion javaVersion) {
+
+		Set<Module> modules = this.modules.stream().map(it -> {
+			return it.withJavaVersion(javaVersion);
+		}).collect(Collectors.toSet());
+
+		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch, javaVersion);
 	}
 
 	/**

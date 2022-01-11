@@ -35,6 +35,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.IOUtils;
 
+import org.springframework.data.release.model.JavaVersionAware;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectAware;
 import org.springframework.data.release.utils.ListWrapperCollector;
@@ -162,12 +163,19 @@ class BuildExecutor {
 				String.format("No build system plugin found for project %s!", module.getProject()));
 
 		BuildSystem buildSystem = buildSystems.getPluginFor(module.getProject(), exception);
+		BuildSystem buildSystemToUse;
+
+		if (module instanceof JavaVersionAware) {
+			buildSystemToUse = buildSystem.withJavaVersion(((JavaVersionAware) module).getJavaVersion());
+		} else {
+			buildSystemToUse = buildSystem;
+		}
 
 		Runnable runnable = () -> {
 
 			try {
 
-				result.complete(function.apply(buildSystem, module));
+				result.complete(function.apply(buildSystemToUse, module));
 			} catch (Exception e) {
 				result.completeExceptionally(e);
 			}

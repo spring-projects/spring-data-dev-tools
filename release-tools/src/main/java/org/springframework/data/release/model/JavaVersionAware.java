@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 package org.springframework.data.release.model;
 
 /**
- * An object that is aware of a {@link Project}. Typically implemented by {@link Module} or {@link ModuleIteration}.
- *
  * @author Mark Paluch
  */
-public interface ProjectAware {
+public interface JavaVersionAware {
 
-	Project getProject();
-
+	JavaVersion getJavaVersion();
 }

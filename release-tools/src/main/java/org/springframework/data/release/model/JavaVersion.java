@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,24 @@
  */
 package org.springframework.data.release.model;
 
+import lombok.Value;
+
+import java.util.function.Predicate;
+
 /**
- * An object that is aware of a {@link Project}. Typically implemented by {@link Module} or {@link ModuleIteration}.
+ * Value object representing a Java version.
  *
  * @author Mark Paluch
  */
-public interface ProjectAware {
+@Value(staticConstructor = "of")
+public class JavaVersion {
 
-	Project getProject();
+	public static final JavaVersion JAVA_8 = of("Java 1.8",
+			version -> version.getMajor() == 1 && version.getMinor() == 8);
+
+	public static final JavaVersion JAVA_17 = of("Java 17", version -> version.getMajor() == 17);
+
+	String name;
+	Predicate<Version> versionDetector;
 
 }

@@ -32,8 +32,10 @@ import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 
-import org.springframework.data.release.io.OsOperations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.release.io.JavaRuntimes;
 import org.springframework.data.release.io.Workspace;
+import org.springframework.data.release.model.JavaVersion;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.support.util.StringUtils;
@@ -48,24 +50,33 @@ import org.springframework.stereotype.Component;
 class MavenRuntime {
 
 	private final Workspace workspace;
-	private final OsOperations os;
 	private final Logger logger;
 	private final MavenProperties properties;
+	private final JavaRuntimes.JdkInstallation jdk;
 
 	/**
 	 * Creates a new {@link MavenRuntime} for the given {@link Workspace} and Maven home.
 	 *
 	 * @param workspace must not be {@literal null}.
-	 * @param os must not be {@literal null}.
 	 * @param logger must not be {@literal null}.
 	 * @param properties must not be {@literal null}.
 	 */
-	public MavenRuntime(Workspace workspace, OsOperations os, Logger logger, MavenProperties properties) {
+	@Autowired
+	public MavenRuntime(Workspace workspace, Logger logger, MavenProperties properties) {
+		this(workspace, logger, properties, JavaVersion.JAVA_8);
+	}
+
+	private MavenRuntime(Workspace workspace, Logger logger, MavenProperties properties,
+			JavaVersion requiredJavaVersion) {
 
 		this.workspace = workspace;
-		this.os = os;
 		this.logger = logger;
 		this.properties = properties;
+		this.jdk = JavaRuntimes.Selector.from(requiredJavaVersion).notGraalVM().getRequiredJdkInstallation();
+	}
+
+	public MavenRuntime withJavaVersion(JavaVersion javaVersion) {
+		return new MavenRuntime(workspace, logger, properties, javaVersion);
 	}
 
 	public void execute(Project project, CommandLine arguments) {
@@ -85,8 +96,10 @@ class MavenRuntime {
 				invoker.setLocalRepositoryDirectory(localRepository);
 			}
 
+			File javaHome = getJavaHome();
+			mavenLogger.info(String.format("Java Home: %s", jdk));
 			InvocationRequest request = new DefaultInvocationRequest();
-			request.setJavaHome(os.getJavaHome());
+			request.setJavaHome(javaHome);
 			request.setShellEnvironmentInherited(true);
 			request.setBaseDirectory(workspace.getProjectDirectory(project));
 			request.setBatchMode(true);
@@ -108,6 +121,10 @@ class MavenRuntime {
 			}
 			throw new RuntimeException(e);
 		}
+	}
+
+	private File getJavaHome() {
+		return jdk.getHome().getAbsoluteFile();
 	}
 
 	private MavenLogger getLogger(Project project, List<CommandLine.Goal> goals) {

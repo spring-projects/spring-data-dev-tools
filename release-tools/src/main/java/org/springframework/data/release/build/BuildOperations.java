@@ -87,7 +87,7 @@ public class BuildOperations {
 	/**
 	 * Triggers the distribution builds for all modules participating in the given {@link Train}.
 	 *
-	 * @param iteration must not be {@literal null}.
+	 * @param train must not be {@literal null}.
 	 */
 	public void distributeResources(Train train) {
 
