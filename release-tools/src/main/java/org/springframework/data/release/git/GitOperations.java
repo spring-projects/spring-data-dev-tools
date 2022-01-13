@@ -488,7 +488,14 @@ public class GitOperations {
 
 			Optional<Tag> fromTag = tags.filter(iteration.getTrain()).findTag(iteration.getIteration());
 
-			Tag tag = fromTag.get();
+			if (!fromTag.isPresent()) {
+
+				// fall back to main
+				return repo.parseCommit(repo.resolve(Branch.MAIN.toString()));
+			}
+
+			Tag tag = fromTag.orElseThrow(() -> new IllegalStateException(
+					String.format("Cannot determine from tag for %s %s", project.getName(), iteration)));
 
 			return repo.parseCommit(repo.resolve(tag.getName()));
 		}

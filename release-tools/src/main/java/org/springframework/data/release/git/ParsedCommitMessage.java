@@ -45,7 +45,7 @@ class ParsedCommitMessage {
 	private static final Pattern GITHUB_TICKET = Pattern.compile("((?>#|gh-)\\d+)");
 
 	private static final Pattern GITHUB_CLOSE_SYNTAX = Pattern.compile(
-			"(?>closes|closed|close|fixes|fixed|fix|resolves|resolved|resolve|see)[\\s:]*((?>#|gh-)\\d+)",
+			"(?>closes|closed|close|fixes|fixed|fix|resolves|resolved|resolve|see|related to)[\\s:]*((?>#|gh-)\\d+)",
 			Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private static final Pattern GITHUB_PREFIX_SYNTAX = Pattern.compile("^(#\\d+)");
