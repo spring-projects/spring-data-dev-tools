@@ -220,7 +220,9 @@ public class BuildOperations {
 		Supplier<IllegalStateException> exception = () -> new IllegalStateException(
 				String.format("No build system plugin found for project %s!", module.getProject()));
 
-		return function.apply(buildSystems.getPluginFor(module.getProject(), exception), module);
+		BuildSystem buildSystem = buildSystems.getPluginFor(module.getProject(), exception);
+
+		return function.apply(buildSystem.withJavaVersion(module.getJavaVersion()), module);
 	}
 
 }

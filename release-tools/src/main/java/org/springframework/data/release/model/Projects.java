@@ -54,7 +54,10 @@ public class Projects {
 
 		COMMONS = new Project("DATACMNS", "Commons", Tracker.GITHUB).withDependencies(BUILD);
 
-		JPA = new Project("DATAJPA", "JPA", Tracker.GITHUB).withDependencies(COMMONS);
+		JPA = new Project("DATAJPA", "JPA", Tracker.GITHUB) //
+				.withDependencies(COMMONS) //
+				// TODO: This is only for Spring Data 3.0.
+				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-envers"));
 
 		MONGO_DB = new Project("DATAMONGO", "MongoDB", Tracker.GITHUB) //
 				.withDependencies(COMMONS) //
