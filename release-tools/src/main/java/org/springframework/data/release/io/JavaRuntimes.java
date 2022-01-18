@@ -172,9 +172,19 @@ public class JavaRuntimes {
 			return Arrays.stream(files).map(it -> {
 
 				Matcher matcher = CANDIDATE.matcher(it.getName());
-				matcher.find();
+				if (!matcher.find()) {
+					throw new IllegalArgumentException("Cannot determine JVM version number from SDKman candidate name "
+							+ it.getName() + ". This should not happen in an ideal world, check the CANDIDATE regex.");
+				}
 
-				return new JdkInstallation(Version.parse(matcher.group(1)), it.getName(), it);
+				String candidateVersion = matcher.group(1);
+				Version version = Version.parse(candidateVersion);
+				if (version.getMajor() <= 8) {
+					candidateVersion = "1." + candidateVersion;
+					version = Version.parse(candidateVersion);
+				}
+
+				return new JdkInstallation(version, it.getName(), it);
 
 			}).collect(Collectors.toList());
 		}
@@ -210,7 +220,7 @@ public class JavaRuntimes {
 
 		private static final File javaHomeBinary = new File("/usr/libexec/java_home");
 
-		private static final Pattern VERSION = Pattern.compile("(\\d+(:?\\.\\d+)*)(:?_\\+.*)?");
+		private static final Pattern VERSION = Pattern.compile("((:?\\d+(:?\\.\\d+)*)(:?_+\\d+)?)");
 
 		@Override
 		public boolean isAvailable() {
@@ -244,7 +254,10 @@ public class JavaRuntimes {
 				String version = dict.get("JVMVersion").toJavaObject(String.class);
 
 				Matcher matcher = VERSION.matcher(version);
-				matcher.find();
+				if (!matcher.find()) {
+					throw new IllegalArgumentException("Cannot determine JVM version number from JVMVersion " + version
+							+ ". This should not happen in an ideal world, check the VERSION regex.");
+				}
 
 				return new JdkInstallation(JavaVersion.parse(matcher.group(1)), name, new File(jvmHomePath));
 
