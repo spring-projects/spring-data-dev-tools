@@ -27,12 +27,20 @@ import java.util.function.Predicate;
 @Value(staticConstructor = "of")
 public class JavaVersion {
 
-	public static final JavaVersion JAVA_8 = of("Java 1.8",
-			version -> version.getMajor() == 1 && version.getMinor() == 8);
+	public static final JavaVersion JAVA_8 = of("1.8.0_312");
 
 	public static final JavaVersion JAVA_17 = of("Java 17", version -> version.getMajor() == 17);
 
 	String name;
 	Predicate<Version> versionDetector;
+
+	public static JavaVersion of(String version) {
+		Version expectedVersion = parse(version);
+		return of("Java " + version, candidate -> candidate.is(expectedVersion));
+	}
+
+	public static Version parse(String version) {
+		return Version.parse(version.replace('_', '.'));
+	}
 
 }

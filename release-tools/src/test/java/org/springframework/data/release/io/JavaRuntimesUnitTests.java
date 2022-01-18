@@ -26,7 +26,7 @@ import org.springframework.data.release.model.Version;
  *
  * @author Mark Paluch
  */
-class JdkUtilityTests {
+class JavaRuntimesUnitTests {
 
 	@Test
 	void shouldDiscoverCurrentJavaVersion() {

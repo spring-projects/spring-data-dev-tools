@@ -52,7 +52,8 @@ import com.dd.plist.XMLPropertyListParser;
  */
 public class JavaRuntimes {
 
-	private static final List<JdkDetector> DETECTORS = Arrays.asList(new SDKmanJdkDetector(), new MacNativeJdkDetector());
+	private static final List<JdkDetector> DETECTORS = Arrays.asList(new SDKmanJdkDetector(), new MacNativeJdkDetector(),
+			new JavaHomeJdkDetector());
 	private static final Lazy<List<JdkInstallation>> JDKS = Lazy.of(() -> {
 
 		List<JdkInstallation> jdks = DETECTORS.stream().flatMap(it -> it.detect().stream()).sorted()
@@ -180,6 +181,28 @@ public class JavaRuntimes {
 	}
 
 	/**
+	 * Detector using the {@code java.home} system property.
+	 */
+	static class JavaHomeJdkDetector implements JdkDetector {
+
+		private static final File javaHome = new File(System.getProperty("java.home"));
+		private static final String javaVersion = System.getProperty("java.version");
+		private static final String javaVendor = System.getProperty("java.vendor");
+
+		@Override
+		public boolean isAvailable() {
+			return javaHome.exists() && javaHome.isDirectory();
+		}
+
+		@Override
+		public List<JdkInstallation> detect() {
+
+			return Collections
+					.singletonList(new JdkInstallation(JavaVersion.parse(javaVersion), javaVendor + " " + javaVersion, javaHome));
+		}
+	}
+
+	/**
 	 * Detector using the {@code /usr/libexec/java_home} utility storing Java installations in {@code /Libraries/Java} on
 	 * the Mac.
 	 */
@@ -218,12 +241,12 @@ public class JavaRuntimes {
 
 				String jvmHomePath = dict.get("JVMHomePath").toJavaObject(String.class);
 				String name = dict.get("JVMName").toJavaObject(String.class);
-				String version = dict.get("JVMVersion").toJavaObject(String.class).replace('_', '.');
+				String version = dict.get("JVMVersion").toJavaObject(String.class);
 
 				Matcher matcher = VERSION.matcher(version);
 				matcher.find();
 
-				return new JdkInstallation(Version.parse(matcher.group(1)), name, new File(jvmHomePath));
+				return new JdkInstallation(JavaVersion.parse(matcher.group(1)), name, new File(jvmHomePath));
 
 			}).collect(Collectors.toList());
 		}
