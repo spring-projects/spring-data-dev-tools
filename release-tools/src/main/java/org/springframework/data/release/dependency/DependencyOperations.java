@@ -15,8 +15,10 @@
  */
 package org.springframework.data.release.dependency;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.experimental.FieldDefaults;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -42,7 +44,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.build.Pom;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
@@ -59,6 +60,7 @@ import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Streamable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.plugin.core.PluginRegistry;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestOperations;
 
@@ -72,8 +74,9 @@ import org.xmlbeam.io.XBStreamInput;
  *
  * @author Mark Paluch
  */
-@CliComponent
+@Component
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DependencyOperations {
 
 	public static final Pattern REPO_MAVEN_ORG_DIR_LISTING = Pattern
@@ -341,7 +344,7 @@ public class DependencyOperations {
 
 			action.accept(dependency, dependencyVersion);
 
-			gitOperations.commit(module, upgradeTicket, upgradeTicketSummary, Optional.empty());
+			gitOperations.commit(module, upgradeTicket, upgradeTicketSummary, Optional.empty(), true);
 
 			ticketsToClose.add(upgradeTicket);
 		});

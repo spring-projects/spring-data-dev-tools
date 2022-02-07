@@ -57,6 +57,7 @@ public class InfrastructureCommands extends TimedCommand {
 	DependencyOperations operations;
 	ExecutorService executor;
 	GitOperations git;
+	InfrastructureOperations infra;
 	Logger logger;
 
 	@CliCommand(value = "infra maven check")
@@ -118,6 +119,17 @@ public class InfrastructureCommands extends TimedCommand {
 		}
 
 		return DependencyUpgradeProposals.fromProperties(iteration, properties);
+	}
+
+	@CliCommand(value = "infra distribute ci-properties")
+	public void distributeCiProperties(@CliOption(key = "", mandatory = true) TrainIteration iteration)
+			throws IOException, InterruptedException {
+
+		logger.log(iteration, "Distributing CI properties for Spring Data…");
+
+		git.checkout(iteration.getTrain(), true);
+
+		infra.distributeCiProperties(iteration);
 	}
 
 }

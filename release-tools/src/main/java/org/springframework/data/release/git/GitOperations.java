@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CherryPickResult;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
@@ -37,6 +38,7 @@ import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.lib.ObjectId;
@@ -633,7 +635,7 @@ public class GitOperations {
 				() -> String.format("No issue tracker found for project %s!", project));
 		Ticket ticket = tracker.getReleaseTicketFor(module);
 
-		commit(module, ticket, summary, details);
+		commit(module, ticket, summary, details, true);
 	}
 
 	/**
@@ -644,7 +646,28 @@ public class GitOperations {
 	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
 	 */
-	public void commit(ModuleIteration module, Ticket ticket, String summary, Optional<String> details) {
+	public void commit(ModuleIteration module, String summary, Optional<String> details, boolean all) {
+
+		Assert.notNull(module, "Module iteration must not be null!");
+		Assert.hasText(summary, "Summary must not be null or empty!");
+
+		Project project = module.getProject();
+		IssueTracker tracker = issueTracker.getRequiredPluginFor(project,
+				() -> String.format("No issue tracker found for project %s!", project));
+		Ticket ticket = tracker.getReleaseTicketFor(module);
+
+		commit(module, ticket, summary, details, all);
+	}
+
+	/**
+	 * Commits the given files for the given {@link ModuleIteration} using the given summary and details for the commit
+	 * message. If no files are given, all pending changes are committed.
+	 *
+	 * @param module must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
+	 * @param details can be {@literal null} or empty.
+	 */
+	public void commit(ModuleIteration module, Ticket ticket, String summary, Optional<String> details, boolean all) {
 
 		Assert.notNull(module, "Module iteration must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
@@ -654,6 +677,7 @@ public class GitOperations {
 		Commit commit = new Commit(ticket, summary, details);
 		String author = gitProperties.getAuthor();
 		String email = gitProperties.getEmail();
+		boolean allowEmpty = all;
 
 		logger.log(module, "git commit -m \"%s\" %s --author=\"%s <%s>\"", commit.getSummary(),
 				gpg.isGpgAvailable() ? "-S" + gpg.getKeyname() : "", author, email);
@@ -664,7 +688,8 @@ public class GitOperations {
 					.setMessage(commit.toString())//
 					.setAuthor(author, email)//
 					.setCommitter(author, email)//
-					.setAll(true);
+					.setAllowEmpty(allowEmpty) //
+					.setAll(all);
 
 			if (gpg.isGpgAvailable()) {
 				commitCommand.setSign(true).setSigningKey(gpg.getKeyname())
@@ -672,6 +697,31 @@ public class GitOperations {
 			} else {
 				commitCommand.setSign(false);
 			}
+
+			try {
+				commitCommand.call();
+			} catch (EmptyCommitException e) {
+				// allowed if not all
+			}
+		});
+	}
+
+	/**
+	 * Adds the {@code filepattern} to the staging area.
+	 *
+	 * @param project must not be {@literal null}.
+	 * @param filepattern must not be {@literal null} or empty.
+	 */
+	public void add(Project project, String filepattern) {
+
+		Assert.notNull(project, "Project must not be null!");
+
+		logger.log(project, "git add \"filepattern\"");
+
+		doWithGit(project, git -> {
+
+			AddCommand commitCommand = git.add()//
+					.addFilepattern(filepattern);
 
 			commitCommand.call();
 		});
