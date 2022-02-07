@@ -185,15 +185,6 @@ public class Train implements Streamable<Module> {
 		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch, javaVersion);
 	}
 
-	public Train withJavaVersion(JavaVersion javaVersion) {
-
-		Set<Module> modules = this.modules.stream().map(it -> {
-			return it.withJavaVersion(javaVersion);
-		}).collect(Collectors.toSet());
-
-		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch, javaVersion);
-	}
-
 	/**
 	 * Check whether this train comes before {@link Train other}.
 	 *

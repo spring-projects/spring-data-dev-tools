@@ -37,4 +37,5 @@ class JavaRuntimesUnitTests {
 		assertThat(jdk).isNotNull();
 		assertThat(System.getProperty("java.home")).contains(jdk.getHome().getPath());
 	}
+
 }

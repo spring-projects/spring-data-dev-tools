@@ -18,6 +18,8 @@ package org.springframework.data.release.model;
 import lombok.Value;
 
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Value object representing a Java version.
@@ -27,20 +29,49 @@ import java.util.function.Predicate;
 @Value(staticConstructor = "of")
 public class JavaVersion {
 
+	private static final Pattern DOCKER_TAG_PATTERN = Pattern.compile("((:?\\d+(:?u\\d+)?(:?\\.\\d+)*)).*");
+
 	public static final JavaVersion JAVA_8 = of("1.8.0_312");
 
-	public static final JavaVersion JAVA_17 = of("Java 17", version -> version.getMajor() == 17);
+	public static final JavaVersion JAVA_17 = of("Java 17", version -> version.getMajor() == 17, it -> true);
 
 	String name;
 	Predicate<Version> versionDetector;
+	Predicate<String> implementor;
 
 	public static JavaVersion of(String version) {
 		Version expectedVersion = parse(version);
-		return of("Java " + version, candidate -> candidate.is(expectedVersion));
+		return of("Java " + version, candidate -> candidate.is(expectedVersion), it -> true);
 	}
 
 	public static Version parse(String version) {
 		return Version.parse(version.replace('_', '.'));
 	}
 
+	/**
+	 * Parse a docker tag into a Java version using {@code eclipse-temurin} conventions.
+	 *
+	 * @param tagName
+	 * @return
+	 */
+	public static JavaVersion fromDockerTag(String tagName) {
+
+		Pattern versionExtractor = Pattern.compile("(:?\\d+(:?u\\d+)?(:?\\.\\d+)*).*");
+		Matcher matcher = versionExtractor.matcher(tagName);
+		if (!matcher.find()) {
+			throw new IllegalStateException(String.format("Cannot parse Java version '%s'", tagName));
+		}
+
+		String plainVersion = matcher.group(1);
+
+		if (plainVersion.startsWith("8u")) {
+			return of("1.8.0_" + plainVersion.substring(2));
+		}
+
+		return of(plainVersion).withImplementor("Temurin");
+	}
+
+	public JavaVersion withImplementor(String implementor) {
+		return of(String.format("%s (%s)", name, implementor), versionDetector, it -> it.contains(implementor));
+	}
 }

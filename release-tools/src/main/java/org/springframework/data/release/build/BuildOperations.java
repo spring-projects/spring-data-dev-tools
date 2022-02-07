@@ -222,7 +222,7 @@ public class BuildOperations {
 
 		BuildSystem buildSystem = buildSystems.getPluginFor(module.getProject(), exception);
 
-		return function.apply(buildSystem.withJavaVersion(module.getJavaVersion()), module);
+		return function.apply(buildSystem.withJavaVersion(executor.detectJavaVersion(module.getProject())), module);
 	}
 
 }

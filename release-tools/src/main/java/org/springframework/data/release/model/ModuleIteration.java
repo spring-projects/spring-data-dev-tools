@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @EqualsAndHashCode
-public class ModuleIteration implements IterationVersion, ProjectAware, JavaVersionAware {
+public class ModuleIteration implements IterationVersion, ProjectAware {
 
 	private final @Getter Module module;
 	private final @Getter TrainIteration trainIteration;
@@ -44,11 +44,6 @@ public class ModuleIteration implements IterationVersion, ProjectAware, JavaVers
 	@Override
 	public Project getProject() {
 		return module.getProject();
-	}
-
-	@Override
-	public JavaVersion getJavaVersion() {
-		return trainIteration.getTrain().getJavaVersion();
 	}
 
 	/*

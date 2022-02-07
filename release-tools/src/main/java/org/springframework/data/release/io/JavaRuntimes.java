@@ -91,6 +91,10 @@ public class JavaRuntimes {
 				.orElseThrow(() -> new NoSuchElementException(String.format("%s%nAvailable JDK: %s", message.get(), jdks)));
 	}
 
+	public static List<JdkInstallation> getJdks() {
+		return JDKS.get();
+	}
+
 	/**
 	 * JDK detection strategy.
 	 */
@@ -125,7 +129,10 @@ public class JavaRuntimes {
 		}
 
 		public static Selector from(JavaVersion javaVersion) {
-			return builder().and(it -> javaVersion.getVersionDetector().test(it.getVersion()))
+
+			return builder()
+					.and(it -> javaVersion.getVersionDetector().test(it.getVersion())
+							&& javaVersion.getImplementor().test(it.getImplementor()))
 					.message("Cannot find Java " + javaVersion.getName());
 		}
 
@@ -184,9 +191,28 @@ public class JavaRuntimes {
 					version = Version.parse(candidateVersion);
 				}
 
-				return new JdkInstallation(version, it.getName(), it);
+				String implementor = normalizeImplementor(parseImplementor(it));
+
+				return new JdkInstallation(version, toDisplayName(implementor, candidateVersion), implementor, it);
 
 			}).collect(Collectors.toList());
+		}
+
+		@SneakyThrows
+		private String parseImplementor(File candidateHome) {
+
+			List<String> release = FileUtils.readLines(new File(candidateHome, "release"));
+
+			for (String line : release) {
+
+				if (line.startsWith("IMPLEMENTOR=")) {
+					String substring = line.substring(line.indexOf("=\""));
+					substring = substring.substring(2, substring.length() - 1);
+					return substring;
+				}
+			}
+
+			return "?";
 		}
 	}
 
@@ -208,7 +234,8 @@ public class JavaRuntimes {
 		public List<JdkInstallation> detect() {
 
 			return Collections
-					.singletonList(new JdkInstallation(JavaVersion.parse(javaVersion), javaVendor + " " + javaVersion, javaHome));
+					.singletonList(new JdkInstallation(JavaVersion.parse(javaVersion), toDisplayName(javaVendor, javaVersion),
+							normalizeImplementor(javaVendor), javaHome));
 		}
 	}
 
@@ -252,6 +279,7 @@ public class JavaRuntimes {
 				String jvmHomePath = dict.get("JVMHomePath").toJavaObject(String.class);
 				String name = dict.get("JVMName").toJavaObject(String.class);
 				String version = dict.get("JVMVersion").toJavaObject(String.class);
+				String vendor = dict.get("JVMVendor").toJavaObject(String.class);
 
 				Matcher matcher = VERSION.matcher(version);
 				if (!matcher.find()) {
@@ -259,7 +287,9 @@ public class JavaRuntimes {
 							+ ". This should not happen in an ideal world, check the VERSION regex.");
 				}
 
-				return new JdkInstallation(JavaVersion.parse(matcher.group(1)), name, new File(jvmHomePath));
+				String implementor = normalizeImplementor(vendor);
+				return new JdkInstallation(JavaVersion.parse(matcher.group(1)), toDisplayName(implementor, version),
+						implementor, new File(jvmHomePath));
 
 			}).collect(Collectors.toList());
 		}
@@ -270,11 +300,34 @@ public class JavaRuntimes {
 
 		Version version;
 		String name;
+		String implementor;
 		File home;
 
 		@Override
 		public int compareTo(JdkInstallation o) {
 			return this.version.compareTo(o.version);
 		}
+	}
+
+	static String normalizeImplementor(String implementor) {
+
+		if (implementor.equals("Eclipse Adoptium")) {
+			return "Eclipse Temurin";
+		}
+
+		if (implementor.equals("Eclipse Foundation")) {
+			return "Eclipse Temurin";
+		}
+
+		return implementor;
+	}
+
+	static String toDisplayName(String implementor, String version) {
+
+		if (implementor.startsWith("Oracle")) {
+			implementor = "Oracle Java";
+		}
+
+		return implementor + " " + version;
 	}
 }

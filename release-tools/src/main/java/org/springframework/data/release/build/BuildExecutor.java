@@ -16,11 +16,16 @@
 package org.springframework.data.release.build;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,11 +40,12 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.IOUtils;
 
-import org.springframework.data.release.model.JavaVersionAware;
+import org.springframework.data.release.dependency.InfrastructureOperations;
+import org.springframework.data.release.io.Workspace;
+import org.springframework.data.release.model.JavaVersion;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.model.ProjectAware;
 import org.springframework.data.release.utils.ListWrapperCollector;
-import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Streamable;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
@@ -51,19 +57,13 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  */
 @Component
+@RequiredArgsConstructor
 class BuildExecutor {
 
 	private final @NonNull PluginRegistry<BuildSystem, Project> buildSystems;
 	private final MavenProperties mavenProperties;
 	private final ExecutorService executor;
-
-	public BuildExecutor(PluginRegistry<BuildSystem, Project> buildSystems, Logger logger,
-			MavenProperties mavenProperties, ExecutorService buildExecutor) {
-
-		this.buildSystems = buildSystems;
-		this.mavenProperties = mavenProperties;
-		this.executor = buildExecutor;
-	}
+	private final Workspace workspace;
 
 	@PreDestroy
 	public void shutdown() {
@@ -162,20 +162,14 @@ class BuildExecutor {
 		Supplier<IllegalStateException> exception = () -> new IllegalStateException(
 				String.format("No build system plugin found for project %s!", module.getProject()));
 
-		BuildSystem buildSystem = buildSystems.getPluginFor(module.getProject(), exception);
-		BuildSystem buildSystemToUse;
-
-		if (module instanceof JavaVersionAware) {
-			buildSystemToUse = buildSystem.withJavaVersion(((JavaVersionAware) module).getJavaVersion());
-		} else {
-			buildSystemToUse = buildSystem;
-		}
+		BuildSystem buildSystem = buildSystems.getPluginFor(module.getProject(), exception)
+				.withJavaVersion(detectJavaVersion(module.getProject()));
 
 		Runnable runnable = () -> {
 
 			try {
 
-				result.complete(function.apply(buildSystemToUse, module));
+				result.complete(function.apply(buildSystem, module));
 			} catch (Exception e) {
 				result.completeExceptionally(e);
 			}
@@ -184,6 +178,24 @@ class BuildExecutor {
 		executor.execute(runnable);
 
 		return result;
+	}
+
+	@SneakyThrows
+	public JavaVersion detectJavaVersion(Project project) {
+
+		File ciProperties = workspace.getFile(InfrastructureOperations.CI_PROPERTIES, project);
+
+		if (!ciProperties.exists()) {
+			throw new IllegalStateException(String.format("Cannot find %s for project %s", ciProperties, project));
+		}
+
+		Properties properties = new Properties();
+
+		try (FileInputStream fis = new FileInputStream(ciProperties)) {
+			properties.load(fis);
+		}
+
+		return JavaVersion.fromDockerTag(properties.getProperty("java.main.tag"));
 	}
 
 	/**
