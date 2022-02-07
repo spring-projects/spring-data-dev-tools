@@ -118,6 +118,7 @@ public class ProjectLabelConfiguration {
 
 			config.register(LabelFactories.IN_LABEL, "statement-builder", "SQL Statement builder API");
 			config.register(LabelFactories.IN_LABEL, "relational", "Relational module");
+			config.register(LabelFactories.IN_LABEL, "kotlin", "Kotlin support");
 		}));
 
 		labelConfigurations.put(Projects.JPA, commonLabels.mergeWith(coreMappingRepository).mergeWith(config -> {
