@@ -48,6 +48,11 @@ public class Dependencies {
 	public static final Dependency KOTLIN_COROUTINES = Dependency.of("Kotlin Coroutines",
 			"org.jetbrains.kotlinx:kotlinx-coroutines-bom");
 
+	public static final Dependency MICROMETER = Dependency.of("Micrometer", "io.micrometer:micrometer-bom");
+
+	public static final Dependency MICROMETER_TRACING = Dependency.of("Micrometer Tracing",
+			"io.micrometer:micrometer-tracing-bom");
+
 	public static final Dependency MOCKITO = Dependency.of("Mockito", "org.mockito:mockito-core");
 
 	public static final Dependency MOCKK = Dependency.of("Mockk", "io.mockk:mockk");

@@ -50,6 +50,8 @@ public class ProjectDependencies implements Streamable<ProjectDependencies.Proje
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("junit", Dependencies.JUNIT4));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("kotlin", Dependencies.KOTLIN));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("kotlin-coroutines", Dependencies.KOTLIN_COROUTINES));
+		config.add(Projects.BUILD, ProjectDependency.ofProperty("micrometer", Dependencies.MICROMETER));
+		config.add(Projects.BUILD, ProjectDependency.ofProperty("micrometer-tracing", Dependencies.MICROMETER_TRACING));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("mockito", Dependencies.MOCKITO));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("mockk", Dependencies.MOCKK));
 		config.add(Projects.BUILD, ProjectDependency.ofProperty("querydsl", Dependencies.QUERYDSL));
