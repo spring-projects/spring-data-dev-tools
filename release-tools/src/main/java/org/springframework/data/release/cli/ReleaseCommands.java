@@ -128,7 +128,6 @@ class ReleaseCommands extends TimedCommand {
 			deployment.promote(information);
 
 		} else {
-
 			build.performRelease(iteration).forEach(deployment::promote);
 		}
 	}

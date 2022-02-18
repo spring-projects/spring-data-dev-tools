@@ -48,7 +48,9 @@ public class AnnouncementOperations {
 
 			builder.append("* ");
 			builder.append(project.getFullName()).append(" ");
+			builder.append("`");
 			builder.append(module.getShortVersionString());
+			builder.append("`");
 			builder.append(" - ");
 
 			MavenArtifact artifact = new MavenArtifact(module);
