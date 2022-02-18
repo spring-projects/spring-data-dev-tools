@@ -40,7 +40,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.IOUtils;
 
-import org.springframework.data.release.dependency.InfrastructureOperations;
+import org.springframework.data.release.infra.InfrastructureOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.JavaVersion;
 import org.springframework.data.release.model.Project;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.release.dependency;
+package org.springframework.data.release.infra;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
