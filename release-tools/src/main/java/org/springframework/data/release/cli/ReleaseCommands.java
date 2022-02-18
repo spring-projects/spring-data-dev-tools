@@ -28,6 +28,8 @@ import org.springframework.data.release.build.BuildOperations;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentOperations;
 import org.springframework.data.release.git.GitOperations;
+import org.springframework.data.release.issues.IssueTrackerCommands;
+import org.springframework.data.release.issues.github.GitHubCommands;
 import org.springframework.data.release.misc.ReleaseOperations;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.ModuleIteration;
@@ -53,6 +55,8 @@ class ReleaseCommands extends TimedCommand {
 	@NonNull ReleaseOperations misc;
 	@NonNull DeploymentOperations deployment;
 	@NonNull BuildOperations build;
+	@NonNull IssueTrackerCommands tracker;
+	@NonNull GitHubCommands gitHub;
 
 	@CliCommand("release predict")
 	public String predictTrainAndIteration() {
@@ -60,6 +64,30 @@ class ReleaseCommands extends TimedCommand {
 		return git.getTags(COMMONS).getLatest().toArtifactVersion().//
 				map(ReleaseCommands::getTrainNameForCommonsVersion).//
 				orElse(null);
+	}
+
+	/**
+	 * Composite command to ship a full release.
+	 *
+	 * @param iteration
+	 * @throws Exception
+	 */
+	@CliCommand(value = "ship-it")
+	public void shipIt(@CliOption(key = "", mandatory = true) TrainIteration iteration) throws Exception {
+
+		tracker.trackerPrepare(iteration);
+
+		prepare(iteration);
+
+		buildRelease(iteration, null);
+
+		conclude(iteration);
+
+		gitHub.push(iteration);
+
+		distribute(iteration, null);
+
+		tracker.closeIteration(iteration);
 	}
 
 	/**
@@ -152,10 +180,19 @@ class ReleaseCommands extends TimedCommand {
 	 * @throws Exception
 	 */
 	@CliCommand("release distribute")
-	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+	public void distribute(@CliOption(key = "", mandatory = true) TrainIteration iteration,
+			@CliOption(key = "project", mandatory = false) String projectName) {
 
 		git.checkout(iteration);
-		build.distributeResources(iteration);
+
+		if (projectName != null) {
+			Project project = Projects.requiredByName(projectName);
+			ModuleIteration module = iteration.getModule(project);
+
+			build.distributeResources(module);
+		} else {
+			build.distributeResources(iteration);
+		}
 	}
 
 	private static String getTrainNameForCommonsVersion(ArtifactVersion version) {

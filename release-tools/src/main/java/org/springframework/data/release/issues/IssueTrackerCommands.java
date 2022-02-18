@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
 @CliComponent
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-class IssueTrackerCommands extends TimedCommand {
+public class IssueTrackerCommands extends TimedCommand {
 
 	@NonNull PluginRegistry<IssueTracker, Project> tracker;
 	@NonNull Executor executor;

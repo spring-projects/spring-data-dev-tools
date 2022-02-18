@@ -100,6 +100,18 @@ public class BuildOperations {
 	}
 
 	/**
+	 * Triggers the distribution builds for the given module.
+	 *
+	 * @param iteration must not be {@literal null}.
+	 */
+	public void distributeResources(ModuleIteration iteration) {
+
+		Assert.notNull(iteration, "ModuleIteration must not be null!");
+
+		doWithBuildSystem(iteration, BuildSystem::triggerDistributionBuild);
+	}
+
+	/**
 	 * Performs the release build for all modules in the given {@link TrainIteration}.
 	 *
 	 * @param iteration must not be {@literal null}.

@@ -45,7 +45,7 @@ import org.springframework.shell.core.annotation.CliOption;
 @CliComponent
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-class GitHubCommands extends TimedCommand {
+public class GitHubCommands extends TimedCommand {
 
 	@NonNull PluginRegistry<IssueTracker, Project> tracker;
 	@NonNull GitHub gitHub;
