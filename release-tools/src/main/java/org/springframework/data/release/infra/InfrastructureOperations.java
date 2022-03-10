@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.io.FileUtils;
 
+import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.git.Branch;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
@@ -52,7 +53,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class InfrastructureOperations {
+public class InfrastructureOperations extends TimedCommand {
 
 	public static final String CI_PROPERTIES = "ci/pipeline.properties";
 
@@ -97,7 +98,7 @@ public class InfrastructureOperations {
 
 			git.add(module.getProject(), CI_PROPERTIES);
 			git.commit(module, "Update CI properties.", Optional.empty(), false);
-			// git.push(iteration);
+			git.push(module);
 		});
 	}
 

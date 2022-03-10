@@ -49,6 +49,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
+import org.springframework.data.release.issues.TicketOperations;
 import org.springframework.data.release.issues.Tickets;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
@@ -59,7 +60,6 @@ import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Streamable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestOperations;
@@ -87,7 +87,7 @@ public class DependencyOperations {
 	private final ProjectionFactory projectionFactory;
 	private final GitOperations gitOperations;
 	private final Workspace workspace;
-	private final PluginRegistry<IssueTracker, Project> tracker;
+	private final TicketOperations tickets;
 	private final ExecutorService executor;
 	private final RestOperations restOperations;
 	private final Logger logger;
@@ -261,37 +261,12 @@ public class DependencyOperations {
 	 */
 	public Tickets getOrCreateUpgradeTickets(ModuleIteration module, DependencyVersions dependencyVersions) {
 
-		Project project = module.getProject();
-
-		IssueTracker tracker = this.tracker.getRequiredPluginFor(project);
-		Tickets tickets = tracker.getTicketsFor(module);
-
-		List<Ticket> upgradeTickets = new ArrayList<>();
-
+		List<String> summaries = new ArrayList<>();
 		dependencyVersions.forEach((dependency, dependencyVersion) -> {
-
-			String upgradeTicketSummary = getUpgradeTicketSummary(dependency, dependencyVersion);
-			Optional<Ticket> upgradeTicket = getDependencyUpgradeTicket(tickets, upgradeTicketSummary);
-
-			if (upgradeTicket.isPresent()) {
-				logger.log(project, "Found upgrade ticket %s", upgradeTicket.get());
-				upgradeTicket.ifPresent(it -> {
-					tracker.assignTicketToMe(project, it);
-					upgradeTickets.add(it);
-				});
-			} else {
-
-				logger.log(module, "Creating upgrade ticket for %s", upgradeTicketSummary);
-				Ticket ticket = tracker.createTicket(module, upgradeTicketSummary, IssueTracker.TicketType.DependencyUpgrade,
-						true);
-				upgradeTickets.add(ticket);
-			}
+			summaries.add(getUpgradeTicketSummary(dependency, dependencyVersion));
 		});
 
-		// flush cache
-		tracker.reset();
-
-		return new Tickets(upgradeTickets);
+		return tickets.getOrCreateTicketsWithSummary(module, IssueTracker.TicketType.DependencyUpgrade, summaries);
 	}
 
 	/**
@@ -353,12 +328,7 @@ public class DependencyOperations {
 	}
 
 	public void closeUpgradeTickets(ModuleIteration module, Tickets tickets) {
-
-		IssueTracker tracker = this.tracker.getRequiredPluginFor(module.getProject());
-
-		for (Ticket ticket : tickets) {
-			tracker.closeTicket(module, ticket);
-		}
+		this.tickets.closeTickets(module, tickets);
 	}
 
 	public DependencyVersions getDependencyUpgradesToApply(Project project, DependencyVersions dependencyVersions) {
