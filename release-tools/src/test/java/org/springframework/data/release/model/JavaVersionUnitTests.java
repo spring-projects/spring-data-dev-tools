@@ -31,8 +31,8 @@ class JavaVersionUnitTests {
 
 		assertThat(JavaVersion.fromDockerTag("8u312-b07-jdk").getName()).isEqualTo("Java 1.8.0_312");
 		assertThat(JavaVersion.fromDockerTag("8u322-b06-jre-focal").getName()).isEqualTo("Java 1.8.0_322");
-		assertThat(JavaVersion.fromDockerTag("11.0.13_8-jdk").getName()).isEqualTo("Java 11.0.13");
-		assertThat(JavaVersion.fromDockerTag("17.0.1_12").getName()).isEqualTo("Java 17.0.1");
+		assertThat(JavaVersion.fromDockerTag("11.0.13_8-jdk").getName()).isEqualTo("Java 11.0.13 (Temurin)");
+		assertThat(JavaVersion.fromDockerTag("17.0.1_12").getName()).isEqualTo("Java 17.0.1 (Temurin)");
 	}
 
 	@Test
