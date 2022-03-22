@@ -39,6 +39,7 @@ import org.springframework.boot.system.SystemProperties;
 import org.springframework.data.release.model.JavaVersion;
 import org.springframework.data.release.model.Version;
 import org.springframework.data.util.Lazy;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StreamUtils;
 
 import com.dd.plist.NSArray;
@@ -56,7 +57,10 @@ public class JavaRuntimes {
 			new JavaHomeJdkDetector());
 	private static final Lazy<List<JdkInstallation>> JDKS = Lazy.of(() -> {
 
-		List<JdkInstallation> jdks = DETECTORS.stream().flatMap(it -> it.detect().stream()).sorted()
+		List<JdkInstallation> jdks = DETECTORS.stream() //
+				.filter(JdkDetector::isAvailable) //
+				.flatMap(it -> it.detect().stream()) //
+				.sorted() //
 				.collect(Collectors.toList());
 
 		Collections.reverse(jdks);
@@ -93,6 +97,10 @@ public class JavaRuntimes {
 
 	public static List<JdkInstallation> getJdks() {
 		return JDKS.get();
+	}
+
+	static boolean isDirectory(File file) {
+		return file.exists() && file.isDirectory();
 	}
 
 	/**
@@ -168,7 +176,7 @@ public class JavaRuntimes {
 
 		@Override
 		public boolean isAvailable() {
-			return sdkManJavaHome.exists() && sdkManJavaHome.isDirectory();
+			return isDirectory(sdkManJavaHome);
 		}
 
 		@Override
@@ -227,15 +235,14 @@ public class JavaRuntimes {
 
 		@Override
 		public boolean isAvailable() {
-			return javaHome.exists() && javaHome.isDirectory();
+			return isDirectory(javaHome);
 		}
 
 		@Override
 		public List<JdkInstallation> detect() {
 
-			return Collections
-					.singletonList(new JdkInstallation(JavaVersion.parse(javaVersion), toDisplayName(javaVendor, javaVersion),
-							normalizeImplementor(javaVendor), javaHome));
+			return Collections.singletonList(new JdkInstallation(JavaVersion.parse(javaVersion),
+					toDisplayName(javaVendor, javaVersion), normalizeImplementor(javaVendor), javaHome));
 		}
 	}
 
@@ -247,11 +254,14 @@ public class JavaRuntimes {
 
 		private static final File javaHomeBinary = new File("/usr/libexec/java_home");
 
+		private static final File nativeInstallationDirectory = new File("/Library/Java/JavaVirtualMachines");
+
 		private static final Pattern VERSION = Pattern.compile("((:?\\d+(:?\\.\\d+)*)(:?_+\\d+)?)");
 
 		@Override
 		public boolean isAvailable() {
-			return javaHomeBinary.exists() && SystemProperties.get("os.name").contains("Mac");
+			return isDirectory(nativeInstallationDirectory) && !ObjectUtils.isEmpty(nativeInstallationDirectory.listFiles())
+					&& javaHomeBinary.exists() && SystemProperties.get("os.name").contains("Mac");
 		}
 
 		@Override
