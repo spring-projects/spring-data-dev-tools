@@ -19,12 +19,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
+import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.model.ReleaseTrains;
+import org.springframework.data.release.model.Train;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
@@ -42,12 +45,18 @@ import org.springframework.stereotype.Component;
 class SaganCommands extends TimedCommand {
 
 	SaganOperations sagan;
+	GitOperations git;
 
 	@CliCommand("sagan update")
-	public void updateProjectInformation(@CliOption(key = "", mandatory = true) String trains) {
+	public void updateProjectInformation(@CliOption(key = "", mandatory = true) String trainNames) {
 
-		sagan.updateProjectMetadata(Stream.of(trains.split(","))//
+		List<Train> trains = Stream.of(trainNames.split(","))//
 				.map(ReleaseTrains::getTrainByName) //
-				.collect(Collectors.toList()));
+				.collect(Collectors.toList());
+
+		// ensure we have all git repositories available
+		trains.forEach(git::checkout);
+
+		sagan.updateProjectMetadata(trains);
 	}
 }

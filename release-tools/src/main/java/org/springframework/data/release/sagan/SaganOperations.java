@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,15 +77,14 @@ class SaganOperations {
 
 		Map<Project, MaintainedVersions> versions = findVersions(trains);
 
-		ExecutionUtils.run(executor, Streamable.of(versions.entrySet()),
-				entry -> {
+		ExecutionUtils.run(executor, Streamable.of(versions.entrySet()), entry -> {
 
-					if (entry.getKey() == Projects.BOM) {
-						return;
-					}
+			if (entry.getKey() == Projects.BOM) {
+				return;
+			}
 
-					client.updateProjectMetadata(entry.getKey(), entry.getValue());
-				});
+			client.updateProjectMetadata(entry.getKey(), entry.getValue());
+		});
 	}
 
 	/**
@@ -104,13 +104,66 @@ class SaganOperations {
 
 		Assert.notNull(trains, "Trains must not be null!");
 
-		return ExecutionUtils.runAndReturn(executor, Streamable.of(trains), train -> {
+		Map<Project, MaintainedVersions> versions = ExecutionUtils.runAndReturn(executor, Streamable.of(trains), train -> {
 			return ExecutionUtils.runAndReturn(executor,
 					Streamable.of(() -> train.stream().filter(module -> !TO_FILTER.contains(module.getProject()))), module -> {
 						return getLatestVersion(module, train);
 					});
 		}).stream().flatMap(Collection::stream).flatMap(Collection::stream).collect(
 				Collectors.groupingBy(MaintainedVersion::getProject, ListWrapperCollector.collectInto(MaintainedVersions::of)));
+
+		// Migration because of the R2DBC merge into Spring Data Relational and project rename to Relational
+		versions.put(Projects.R2DBC, MaintainedVersions.of(getR2dbcVersions(versions)));
+		versions.put(Projects.RELATIONAL, MaintainedVersions.of(getRelationalVersions(versions)));
+
+		versions.remove(Projects.JDBC);
+
+		return versions;
+	}
+
+	/**
+	 * Copy Relational versions into R2DBC as we feed two projects (JDBC, R2DBC) from {@link Projects#RELATIONAL}.
+	 *
+	 * @param versions
+	 * @return
+	 */
+	private List<MaintainedVersion> getR2dbcVersions(Map<Project, MaintainedVersions> versions) {
+
+		List<MaintainedVersion> r2dbcVersions = new ArrayList<>(
+				versions.getOrDefault(Projects.R2DBC, MaintainedVersions.of()).toList());
+
+		MaintainedVersions relationalVersions = versions.get(Projects.RELATIONAL);
+
+		for (MaintainedVersion relationalVersion : relationalVersions) {
+			if (relationalVersion.getVersion().getVersion().getMajor() >= 3) {
+				r2dbcVersions.add(relationalVersion.withProject(Projects.R2DBC));
+			}
+		}
+		return r2dbcVersions;
+	}
+
+	/**
+	 * Merge JDBC versions into Relational to avoid having two projects mapping to Spring Data JDBC in Sagan.
+	 *
+	 * @param versions
+	 * @return
+	 */
+	private List<MaintainedVersion> getRelationalVersions(Map<Project, MaintainedVersions> versions) {
+
+		List<MaintainedVersion> relationalVersions = new ArrayList<>(
+				versions.getOrDefault(Projects.RELATIONAL, MaintainedVersions.of()).toList());
+
+		if (versions.containsKey(Projects.JDBC)) {
+
+			MaintainedVersions jdbcVersions = versions.get(Projects.JDBC);
+
+			for (MaintainedVersion jdbcVersion : jdbcVersions) {
+				if (jdbcVersion.getVersion().getVersion().getMajor() < 3) {
+					relationalVersions.add(jdbcVersion.withProject(Projects.RELATIONAL));
+				}
+			}
+		}
+		return relationalVersions;
 	}
 
 	private List<MaintainedVersion> getLatestVersion(Module module, Train train) {

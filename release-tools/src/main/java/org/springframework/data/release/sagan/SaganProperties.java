@@ -95,6 +95,15 @@ class SaganProperties {
 	}
 
 	private static String getProjectPathSegment(Project project) {
-		return Projects.BUILD.equals(project) ? "spring-data" : project.getFolderName();
+
+		if (Projects.BUILD.equals(project)) {
+			return "spring-data";
+		}
+
+		if (Projects.RELATIONAL.equals(project) || Projects.JDBC.equals(project)) {
+			return "spring-data-jdbc";
+		}
+
+		return project.getFolderName();
 	}
 }

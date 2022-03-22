@@ -39,7 +39,8 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
  */
 public class Projects {
 
-	public static final Project BOM, COMMONS, BUILD, REST, JDBC, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
+	public static final Project BOM, COMMONS, BUILD, REST, JDBC, RELATIONAL, JPA, MONGO_DB, NEO4J, SOLR, COUCHBASE,
+			CASSANDRA,
 			ELASTICSEARCH, R2DBC, REDIS, GEMFIRE, KEY_VALUE, ENVERS, LDAP, GEODE;
 	public static final List<Project> PROJECTS;
 
@@ -82,8 +83,13 @@ public class Projects {
 
 		REDIS = new Project("DATAREDIS", "Redis", Tracker.GITHUB).withDependencies(KEY_VALUE);
 
-		JDBC = new Project("DATAJDBC", "JDBC", Tracker.GITHUB)
-				.withAdditionalArtifacts(ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational"))
+		JDBC = new Project("DATAJDBC", "Relational", Tracker.GITHUB)
+				.withAdditionalArtifacts(
+						ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational", "spring-data-jdbc"))
+				.withDependencies(COMMONS);
+
+		RELATIONAL = new Project("DATAJDBC", "Relational", Tracker.GITHUB).withAdditionalArtifacts(
+				ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational", "spring-data-jdbc", "spring-data-r2dbc"))
 				.withDependencies(COMMONS);
 
 		R2DBC = new Project("DATAR2DBC", "R2DBC", Tracker.GITHUB).withDependencies(COMMONS, JDBC);
@@ -109,7 +115,8 @@ public class Projects {
 		LDAP = new Project("DATALDAP", "LDAP", Tracker.GITHUB).withDependencies(COMMONS);
 
 		// Specify build order to avoid maven dependency errors during build.
-		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, JDBC, MONGO_DB, NEO4J, SOLR, COUCHBASE, CASSANDRA,
+		List<Project> projects = Arrays.asList(BUILD, COMMONS, JPA, JDBC, RELATIONAL, MONGO_DB, NEO4J, SOLR, COUCHBASE,
+				CASSANDRA,
 				ELASTICSEARCH, REDIS, GEMFIRE, REST, KEY_VALUE, ENVERS, LDAP, GEODE, R2DBC);
 
 		DefaultDirectedGraph<Project, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);

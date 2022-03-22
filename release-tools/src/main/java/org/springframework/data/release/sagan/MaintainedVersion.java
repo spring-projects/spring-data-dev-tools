@@ -16,6 +16,7 @@
 package org.springframework.data.release.sagan;
 
 import lombok.Value;
+import lombok.With;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
 @Value(staticConstructor = "of")
 class MaintainedVersion implements Comparable<MaintainedVersion> {
 
-	Project project;
+	@With Project project;
 	ArtifactVersion version;
 	Train train;
 	@Nullable LocalDate releaseDate;
