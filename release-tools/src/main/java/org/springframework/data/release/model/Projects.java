@@ -83,7 +83,7 @@ public class Projects {
 
 		REDIS = new Project("DATAREDIS", "Redis", Tracker.GITHUB).withDependencies(KEY_VALUE);
 
-		JDBC = new Project("DATAJDBC", "Relational", Tracker.GITHUB)
+		JDBC = new Project("DATAJDBC", "JDBC", Tracker.GITHUB)
 				.withAdditionalArtifacts(
 						ArtifactCoordinates.SPRING_DATA.artifacts("spring-data-relational", "spring-data-jdbc"))
 				.withDependencies(COMMONS);

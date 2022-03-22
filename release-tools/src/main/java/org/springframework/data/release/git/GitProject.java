@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.Projects;
 
 /**
  * @author Oliver Gierke
@@ -39,16 +40,17 @@ public class GitProject {
 
 	/**
 	 * Returns the name of the repository the project is using.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getRepositoryName() {
-		return String.format("%s-%s", PROJECT_PREFIX, project.getName().toLowerCase());
+		return String.format("%s-%s", PROJECT_PREFIX,
+				project == Projects.JDBC ? "relational" : project.getName().toLowerCase());
 	}
 
 	/**
 	 * Returns the URI of the {@link Project}'s repository.
-	 * 
+	 *
 	 * @return
 	 */
 	public String getProjectUri() {
