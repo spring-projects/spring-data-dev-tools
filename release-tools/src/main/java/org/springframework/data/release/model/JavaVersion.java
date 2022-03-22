@@ -31,7 +31,7 @@ public class JavaVersion {
 
 	private static final Pattern DOCKER_TAG_PATTERN = Pattern.compile("((:?\\d+(:?u\\d+)?(:?\\.\\d+)*)).*");
 
-	public static final JavaVersion JAVA_8 = of("1.8.0_312");
+	public static final JavaVersion JAVA_8 = of("1.8.0_322");
 
 	public static final JavaVersion JAVA_17 = of("Java 17", version -> version.getMajor() == 17, it -> true);
 
