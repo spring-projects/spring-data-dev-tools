@@ -17,9 +17,13 @@ package org.springframework.data.release.git;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -29,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CherryPickResult;
@@ -60,11 +65,13 @@ import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.TicketReference;
+import org.springframework.data.release.issues.TicketStatus;
 import org.springframework.data.release.model.ArtifactVersion;
 import org.springframework.data.release.model.Gpg;
 import org.springframework.data.release.model.Iteration;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
+import org.springframework.data.release.model.ProjectAware;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.ReleaseTrains;
 import org.springframework.data.release.model.Train;
@@ -667,19 +674,32 @@ public class GitOperations {
 	 * @param summary must not be {@literal null} or empty.
 	 * @param details can be {@literal null} or empty.
 	 */
-	public void commit(ModuleIteration module, Ticket ticket, String summary, Optional<String> details, boolean all) {
+	public void commit(ProjectAware module, Ticket ticket, String summary, Optional<String> details, boolean all) {
 
-		Assert.notNull(module, "Module iteration must not be null!");
+		Assert.notNull(module, "ProjectAware must not be null!");
+
+		commit(module.getProject(), ticket, summary, details, all);
+	}
+
+	/**
+	 * Commits the given files for the given {@link ModuleIteration} using the given summary and details for the commit
+	 * message. If no files are given, all pending changes are committed.
+	 *
+	 * @param project must not be {@literal null}.
+	 * @param summary must not be {@literal null} or empty.
+	 * @param details can be {@literal null} or empty.
+	 */
+	public void commit(Project project, Ticket ticket, String summary, Optional<String> details, boolean all) {
+
+		Assert.notNull(project, "Project must not be null!");
 		Assert.hasText(summary, "Summary must not be null or empty!");
-
-		Project project = module.getProject();
 
 		Commit commit = new Commit(ticket, summary, details);
 		String author = gitProperties.getAuthor();
 		String email = gitProperties.getEmail();
 		boolean allowEmpty = all;
 
-		logger.log(module, "git commit -m \"%s\" %s --author=\"%s <%s>\"", commit.getSummary(),
+		logger.log(project, "git commit -m \"%s\" %s --author=\"%s <%s>\"", commit.getSummary(),
 				gpg.isGpgAvailable() ? "-S" + gpg.getKeyname() : "", author, email);
 
 		doWithGit(project, git -> {
@@ -840,8 +860,43 @@ public class GitOperations {
 	/**
 	 * Verify general Git operations.
 	 */
+	@SneakyThrows
 	public void verify() {
-		checkout(Projects.BUILD, Branch.MAIN);
+
+		Project project = Projects.BUILD;
+		File projectDirectory = workspace.getProjectDirectory(project);
+		if (projectDirectory.exists()) {
+			FileUtils.deleteDirectory(projectDirectory);
+		}
+
+		update(project);
+		checkout(project, Branch.MAIN);
+
+		commitRandomFile(project, projectDirectory);
+
+		reset(project, Branch.MAIN);
+	}
+
+	private void commitRandomFile(Project project, File projectDirectory) throws IOException {
+
+		String randomFileName = UUID.randomUUID() + ".txt";
+		File randomFile = new File(projectDirectory, randomFileName);
+
+		try (FileOutputStream fos = new FileOutputStream(randomFile)) {
+			fos.write(randomFileName.getBytes(StandardCharsets.UTF_8));
+		}
+
+		commit(project, new Ticket("1234", "Verify", new TicketStatus() {
+			@Override
+			public String getLabel() {
+				return null;
+			}
+
+			@Override
+			public boolean isResolved() {
+				return false;
+			}
+		}), "Verify Commit Signing", Optional.empty(), true);
 	}
 
 	private void cherryPickCommitToBranch(ObjectId id, Project project, Branch branch) {
@@ -1103,7 +1158,6 @@ public class GitOperations {
 	}
 
 	private static class VersionedIterations {
-
 
 	}
 }
