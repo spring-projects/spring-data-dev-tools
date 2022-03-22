@@ -36,8 +36,6 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CherryPickResult;
-import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
@@ -811,6 +809,7 @@ public class GitOperations {
 
 					git.pull()//
 							.setRemote("origin")//
+							.setRebase(true) //
 							.setRemoteBranchName(branch.toString())//
 							.call();
 					break;
@@ -897,37 +896,6 @@ public class GitOperations {
 				return false;
 			}
 		}), "Verify Commit Signing", Optional.empty(), true);
-	}
-
-	private void cherryPickCommitToBranch(ObjectId id, Project project, Branch branch) {
-
-		doWithGit(project, git -> {
-
-			try {
-				checkout(project, branch);
-			} catch (RuntimeException o_O) {
-
-				logger.warn(project, "Couldn't check out branch %s. Skipping cherrypick of commit %s.", branch, id.getName());
-				return;
-			}
-
-			logger.log(project, "git cp %s", id.getName());
-
-			// Required as the CherryPick command has no setter for a CredentialsProvide *sigh*
-			if (gpg.isGpgAvailable()) {
-				CredentialsProvider.setDefault(new GpgPassphraseProvider(gpg));
-			}
-
-			CherryPickResult result = git.cherryPick().include(id).call();
-
-			if (result.getStatus().equals(CherryPickStatus.OK)) {
-				logger.log(project, "Successfully cherry-picked commit %s to branch %s.", id.getName(), branch);
-			} else {
-				logger.warn(project, "Cherry pick failed. aborting…");
-				logger.log(project, "git reset --hard");
-				git.reset().setMode(ResetType.HARD).call();
-			}
-		});
 	}
 
 	/**
