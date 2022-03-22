@@ -21,6 +21,7 @@ import org.springframework.data.release.git.GitProject;
 import org.springframework.data.release.git.Tag;
 import org.springframework.data.release.git.VersionTags;
 import org.springframework.data.release.model.ArtifactVersion;
+import org.springframework.data.release.model.DocumentationMetadata;
 import org.springframework.data.release.model.ModuleIteration;
 import org.springframework.data.release.model.Project;
 
@@ -31,32 +32,27 @@ import org.springframework.data.release.model.Project;
 @RequiredArgsConstructor
 public class StaticResources {
 
-	private static final String URL_TEMPLATE = "https://docs.spring.io/spring-data/%s/docs/%s";
-
-	private final String baseUrl;
+	private final DocumentationMetadata metadata;
 
 	private final String releaseUrl;
 
 	public StaticResources(ModuleIteration module) {
 
+		this.metadata = DocumentationMetadata.of(module.getProject(), ArtifactVersion.of(module), false);
+
 		Project project = module.getProject();
-		ArtifactVersion version = ArtifactVersion.of(module);
-
-		this.baseUrl = String.format(URL_TEMPLATE, project.getName().toLowerCase(), version);
-
 		GitProject gitProject = GitProject.of(project);
-
 		Tag tag = VersionTags.empty(module.getProject()).createTag(module);
 
 		this.releaseUrl = String.format("%s/releases/tag/%s", gitProject.getProjectUri(), tag.getName());
 	}
 
 	public String getDocumentationUrl() {
-		return baseUrl.concat("/reference/html");
+		return metadata.getReferenceDocUrl();
 	}
 
 	public String getJavaDocUrl() {
-		return baseUrl.concat("/api");
+		return metadata.getApiDocUrl();
 	}
 
 	public String getChangelogUrl() {

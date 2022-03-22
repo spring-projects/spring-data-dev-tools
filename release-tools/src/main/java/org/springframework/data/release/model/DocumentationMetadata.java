@@ -47,10 +47,19 @@ public class DocumentationMetadata {
 		}
 
 		if (Projects.BUILD.equals(project)) { // Report Commons Docs for Spring Data Build
-			return String.format(JAVADOC, Projects.COMMONS.getName().toLowerCase(Locale.US), getDocumentationVersion());
+			return String.format(JAVADOC, getProjectName(Projects.COMMONS), getDocumentationVersion());
 		}
 
-		return String.format(JAVADOC, project.getName().toLowerCase(Locale.US), getDocumentationVersion());
+		return String.format(JAVADOC, getProjectName(project), getDocumentationVersion());
+	}
+
+	private String getProjectName(Project project) {
+
+		if (project == Projects.RELATIONAL) {
+			return "jdbc";
+		}
+
+		return project.getName().toLowerCase(Locale.US);
 	}
 
 	/**
@@ -65,10 +74,10 @@ public class DocumentationMetadata {
 		}
 
 		if (Projects.BUILD.equals(project)) { // Report Commons Docs for Spring Data Build
-			return String.format(DOCS, Projects.COMMONS.getName().toLowerCase(Locale.US), getDocumentationVersion());
+			return String.format(DOCS, getProjectName(Projects.COMMONS), getDocumentationVersion());
 		}
 
-		return String.format(DOCS, project.getName().toLowerCase(Locale.US), getDocumentationVersion());
+		return String.format(DOCS, getProjectName(project), getDocumentationVersion());
 	}
 
 	public String getVersionOrTrainName(Train train) {
