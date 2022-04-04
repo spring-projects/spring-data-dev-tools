@@ -108,6 +108,15 @@ public class Train implements Streamable<Module> {
 		return modules.stream().filter(module -> module.getProject().equals(project)).findFirst();
 	}
 
+	/**
+	 * Creates a new release {@link Train} with a given {@code name}. Resets the {@link #alwaysUseBranch} flag as we
+	 * typically do not want branch-inheritance across trains.
+	 *
+	 * @param name
+	 * @param transition
+	 * @param additionalModules
+	 * @return
+	 */
 	public Train next(String name, Transition transition, Module... additionalModules) {
 
 		Set<Module> modules = Stream.concat(this.modules.stream(), Stream.of(additionalModules)).//
@@ -116,7 +125,7 @@ public class Train implements Streamable<Module> {
 								(it, additionalModule) -> it.hasSameProjectAs(additionalModule) ? additionalModule : it))
 				.collect(Collectors.toSet());
 
-		return new Train(name, Modules.of(modules), calver, iterations, alwaysUseBranch, javaVersion);
+		return new Train(name, Modules.of(modules), calver, iterations, false, javaVersion);
 	}
 
 	public Train filterModules(Predicate<Module> filterPredicate) {
@@ -259,8 +268,7 @@ public class Train implements Streamable<Module> {
 	public static class Iterations implements Iterable<Iteration> {
 
 		public static Iterations DEFAULT = new Iterations(M1, M2, M3, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5, SR6, SR7, SR8,
-				SR9, SR10,
-				SR11, SR12, SR13, SR14, SR15, SR16, SR17, SR18, SR19, SR20, SR21, SR22, SR23, SR24);
+				SR9, SR10, SR11, SR12, SR13, SR14, SR15, SR16, SR17, SR18, SR19, SR20, SR21, SR22, SR23, SR24);
 
 		private final List<Iteration> iterations;
 
