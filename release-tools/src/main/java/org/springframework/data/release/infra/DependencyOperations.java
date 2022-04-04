@@ -59,9 +59,11 @@ import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Streamable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestOperations;
 
 import org.xmlbeam.ProjectionFactory;
@@ -424,8 +426,7 @@ public class DependencyOperations {
 	}
 
 	private static Optional<DependencyVersion> findLatestMinor(DependencyUpgradePolicy policy,
-			DependencyVersion currentVersion,
-			List<DependencyVersion> availableVersions) {
+			DependencyVersion currentVersion, List<DependencyVersion> availableVersions) {
 
 		return availableVersions.stream().filter(it -> {
 
@@ -498,14 +499,13 @@ public class DependencyOperations {
 		String baseUrl = String.format("https://repo1.maven.org/maven2/%s/%s/", dependency.getGroupId().replace('.', '/'),
 				dependency.getArtifactId());
 
-		ResponseEntity<byte[]> mavenMetadata = restOperations.getForEntity(baseUrl + "/maven-metadata.xml", byte[].class);
-		ResponseEntity<String> directoryListing = restOperations.getForEntity(baseUrl, String.class);
-
-		Map<String, LocalDateTime> creationDates = parseCreationDates(directoryListing.getBody());
-
-		XBStreamInput io = projectionFactory.io().stream(new ByteArrayInputStream(mavenMetadata.getBody()));
-
 		try {
+			ResponseEntity<byte[]> mavenMetadata = restOperations.getForEntity(baseUrl + "/maven-metadata.xml", byte[].class);
+			ResponseEntity<String> directoryListing = restOperations.getForEntity(baseUrl, String.class);
+
+			Map<String, LocalDateTime> creationDates = parseCreationDates(directoryListing.getBody());
+
+			XBStreamInput io = projectionFactory.io().stream(new ByteArrayInputStream(mavenMetadata.getBody()));
 
 			MavenMetadata metadata = io.read(MavenMetadata.class);
 
@@ -528,6 +528,13 @@ public class DependencyOperations {
 			}).collect(Collectors.toList());
 
 		} catch (Exception o_O) {
+
+			if (o_O instanceof HttpClientErrorException) {
+				if (((HttpClientErrorException) o_O).getStatusCode() == HttpStatus.NOT_FOUND) {
+					return Collections.emptyList();
+				}
+			}
+
 			throw new RuntimeException(String.format("Cannot determine available versions for %s", dependency), o_O);
 		}
 	}

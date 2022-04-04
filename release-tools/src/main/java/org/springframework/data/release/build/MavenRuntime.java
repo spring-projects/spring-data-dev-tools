@@ -98,7 +98,7 @@ class MavenRuntime {
 
 			File javaHome = getJavaHome();
 			mavenLogger.info(String.format("Java Home: %s", jdk));
-			mavenLogger.info(String.format("Executing mvn %s", arguments));
+			mavenLogger.info(String.format("Executing: mvn %s", arguments));
 
 			InvocationRequest request = new DefaultInvocationRequest();
 			request.setJavaHome(javaHome);

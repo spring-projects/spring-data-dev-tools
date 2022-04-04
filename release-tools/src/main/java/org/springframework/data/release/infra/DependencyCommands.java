@@ -62,7 +62,7 @@ public class DependencyCommands extends TimedCommand {
 	public void check(@CliOption(key = "", mandatory = true) TrainIteration iteration,
 			@CliOption(key = "all", mandatory = false) Boolean reportAll) throws IOException {
 
-		git.checkout(iteration.getTrain());
+		git.prepare(iteration);
 
 		checkBuildDependencies(iteration, reportAll != null ? reportAll : false);
 		checkModuleDependencies(iteration, reportAll != null ? reportAll : false);
@@ -77,7 +77,7 @@ public class DependencyCommands extends TimedCommand {
 	@CliCommand(value = "dependency report")
 	public String report(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
 
-		git.checkout(iteration.getTrain());
+		git.prepare(iteration);
 
 		List<Project> projects = Projects.all().stream()
 				.filter(it -> it != Projects.BOM && it != Projects.BUILD && it != Projects.COMMONS)
@@ -112,8 +112,6 @@ public class DependencyCommands extends TimedCommand {
 
 		ModuleIteration module = iteration.getModule(Projects.BUILD);
 		DependencyVersions dependencyVersions = loadDependencyUpgrades(module);
-
-		git.checkout(iteration.getTrain(), false);
 
 		DependencyVersions upgradesToApply = operations.getDependencyUpgradesToApply(module.getProject(),
 				dependencyVersions);
