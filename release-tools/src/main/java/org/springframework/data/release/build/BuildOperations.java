@@ -211,10 +211,15 @@ public class BuildOperations {
 		executor.doWithBuildSystemAnyOrder(iteration, BuildSystem::triggerPreReleaseCheck);
 	}
 
+	/**
+	 * Verifies Java version presence and that the project can be build using Maven.
+	 */
 	public void verify() {
 
-		BuildSystem buildSystem = buildSystems.getRequiredPluginFor(Projects.BUILD);
-		buildSystem.verify();
+		Project project = Projects.BUILD;
+		BuildSystem buildSystem = buildSystems.getRequiredPluginFor(project);
+
+		buildSystem.withJavaVersion(executor.detectJavaVersion(project)).verify();
 	}
 
 	/**
