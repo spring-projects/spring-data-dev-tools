@@ -59,11 +59,11 @@ public class TicketOperations {
 	 *
 	 * @param module
 	 * @param ticketType
-	 * @param summary
+	 * @param summaries
 	 * @return
 	 */
 	public Tickets getOrCreateTicketsWithSummary(ModuleIteration module, IssueTracker.TicketType ticketType,
-			List<String> summary) {
+			List<String> summaries) {
 
 		Project project = module.getProject();
 
@@ -71,9 +71,9 @@ public class TicketOperations {
 		Tickets tickets = tracker.getTicketsFor(module);
 		List<Ticket> results = new ArrayList<>();
 
-		for (String s : summary) {
+		for (String summary : summaries) {
 
-			Optional<Ticket> upgradeTicket = findBySummary(tickets, s);
+			Optional<Ticket> upgradeTicket = findBySummary(tickets, summary);
 
 			if (upgradeTicket.isPresent()) {
 				logger.log(project, "Found ticket %s", upgradeTicket.get());
@@ -84,7 +84,7 @@ public class TicketOperations {
 			} else {
 
 				logger.log(module, "Creating ticket for %s", summary);
-				Ticket ticket = tracker.createTicket(module, s, ticketType, true);
+				Ticket ticket = tracker.createTicket(module, summary, ticketType, true);
 				results.add(ticket);
 			}
 		}
