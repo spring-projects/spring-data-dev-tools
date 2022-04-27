@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public enum Tracker {
 
-	JIRA("(([A-Z]{1,10})+-\\d+)"), //
 	GITHUB("((#)?\\d+)");
 
 	public static final String RELEASE_PREFIX = "Release ";

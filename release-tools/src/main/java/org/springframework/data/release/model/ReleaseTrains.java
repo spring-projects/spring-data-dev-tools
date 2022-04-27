@@ -55,7 +55,7 @@ public class ReleaseTrains {
 				new Module(MONGO_DB, "3.0"), //
 				new Module(JDBC, "2.0"), //
 				new Module(R2DBC, "1.1")) //
-				.filterModules(module -> !module.getProject().equals(GEMFIRE));
+				.filterModules(module -> !module.getProject().getName().equalsIgnoreCase("GemFire"));
 
 		OCKHAM = NEUMANN.next("Ockham", Transition.MINOR, //
 				new Module(BOM, "2020.0.0"), //
@@ -63,8 +63,7 @@ public class ReleaseTrains {
 		).withIterations(Train.Iterations.DEFAULT).withCalver("2020.0");
 
 		PASCAL = OCKHAM.next("Pascal", Transition.MINOR) //
-				.filterModules(module -> !module.getProject().equals(SOLR))
-				.withCalver("2021.0");
+				.filterModules(module -> !module.getProject().equals(SOLR)).withCalver("2021.0");
 
 		Q = PASCAL.next("Q", Transition.MINOR) //
 				.withCalver("2021.1") //
@@ -114,13 +113,12 @@ public class ReleaseTrains {
 		Module couchbase = new Module(COUCHBASE, "1.1");
 		Module cassandra = new Module(CASSANDRA, "1.0");
 		Module elasticsearch = new Module(ELASTICSEARCH, "1.0", "M2");
-		Module gemfire = new Module(GEMFIRE, "1.4");
 		Module redis = new Module(REDIS, "1.3");
 
 		Module rest = new Module(REST, "2.1");
 
-		return new Train("Dijkstra", build, commons, jpa, mongoDb, neo4j, solr, couchbase, cassandra, elasticsearch,
-				gemfire, redis, rest);
+		return new Train("Dijkstra", build, commons, jpa, mongoDb, neo4j, solr, couchbase, cassandra, elasticsearch, redis,
+				rest);
 	}
 
 	public static Train getTrainByName(String name) {
