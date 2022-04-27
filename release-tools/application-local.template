@@ -22,11 +22,6 @@ deployment.username=
 deployment.password=
 deployment.api-key=
 
-# Jira
-jira.username=
-jira.password=
-jira.url=https://jira.spring.io
-
 # GPG
 gpg.keyname=
 gpg.password=

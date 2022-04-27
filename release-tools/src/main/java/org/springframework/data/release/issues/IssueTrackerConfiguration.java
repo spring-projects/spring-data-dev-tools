@@ -39,7 +39,6 @@ import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.release.issues.github.GitHubProperties;
-import org.springframework.data.release.issues.jira.JiraProperties;
 import org.springframework.data.release.model.Project;
 import org.springframework.data.release.utils.HttpBasicCredentials;
 import org.springframework.data.util.Lazy;
@@ -88,14 +87,12 @@ class IssueTrackerConfiguration {
 	}
 
 	@Bean
-	HttpComponentsClientHttpRequestFactory clientHttpRequestFactory(JiraProperties jiraProperties,
-			GitHubProperties gitHubProperties) {
+	HttpComponentsClientHttpRequestFactory clientHttpRequestFactory(GitHubProperties gitHubProperties) {
 
 		// Preemptive auth
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
 		AuthCache authCache = new BasicAuthCache();
 
-		addPreemptiveAuth(credsProvider, authCache, jiraProperties.getApiUrl(), jiraProperties.getCredentials());
 		addPreemptiveAuth(credsProvider, authCache, gitHubProperties.getApiUrl(), gitHubProperties.getHttpCredentials());
 
 		Lazy<CloseableHttpClient> lazy = Lazy

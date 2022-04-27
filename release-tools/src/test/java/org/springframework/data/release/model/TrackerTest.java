@@ -29,26 +29,6 @@ import org.junit.jupiter.api.Test;
 class TrackerTest {
 
 	@Test
-	void testMatchesTicketNumber() throws Exception {
-
-		Pattern pattern = Pattern.compile(Tracker.JIRA.getTicketPattern());
-		Matcher matcher = pattern.matcher("DATAREDIS-1");
-		matcher.find();
-
-		assertThat(matcher.group(1)).isEqualTo("DATAREDIS-1");
-	}
-
-	@Test
-	void testMatchesBranchNamedLikeTicket() throws Exception {
-
-		Pattern pattern = Pattern.compile(Tracker.JIRA.getTicketPattern());
-		Matcher matcher = pattern.matcher("issues/DATAREDIS-1-dummy");
-		matcher.find();
-
-		assertThat(matcher.group(1)).isEqualTo("DATAREDIS-1");
-	}
-
-	@Test
 	void testVersionBranch() throws Exception {
 
 		Pattern pattern = Pattern.compile(Tracker.GITHUB.getTicketPattern());

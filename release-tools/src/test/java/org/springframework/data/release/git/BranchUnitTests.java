@@ -49,7 +49,6 @@ class BranchUnitTests {
 
 		Branch branch = Branch.from("issue/DATACMNS-4711");
 
-		assertThat(branch.isIssueBranch(Tracker.JIRA)).isTrue();
 		assertThat(branch.isIssueBranch(Tracker.GITHUB)).isFalse();
 	}
 }

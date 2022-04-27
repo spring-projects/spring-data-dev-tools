@@ -26,7 +26,6 @@ import org.springframework.data.release.build.BuildOperations;
 import org.springframework.data.release.deployment.DeploymentOperations;
 import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.issues.github.GitHub;
-import org.springframework.data.release.issues.jira.Jira;
 import org.springframework.data.release.sagan.SaganClient;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -45,7 +44,6 @@ class VerifyCommands extends TimedCommand {
 	@NonNull GitHub github;
 	@NonNull DeploymentOperations deployment;
 	@NonNull BuildOperations build;
-	@NonNull Jira jira;
 	@NonNull SaganClient saganClient;
 	@NonNull Logger logger;
 
@@ -63,9 +61,6 @@ class VerifyCommands extends TimedCommand {
 
 		// GitHub verification
 		github.verifyAuthentication();
-
-		// Jira verification
-		jira.verifyAuthentication();
 
 		// Sagan Verification
 		saganClient.verifyAuthentication();
