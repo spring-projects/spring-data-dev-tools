@@ -143,33 +143,44 @@ class ReleaseCommands extends TimedCommand {
 
 		Assert.notNull(iteration, "Train iteration must not be null!");
 
-		build.prepareVersions(iteration, Phase.CLEANUP);
-		git.commit(iteration, "Prepare next development iteration.");
-
-		// Prepare main branch
-		build.updateProjectDescriptors(iteration, Phase.CLEANUP);
-		git.commit(iteration, "After release cleanups.");
-
 		// Tag release
 		git.tagRelease(iteration);
 
-		// Prepare maintenance branches
-		if (iteration.getIteration().isGAIteration()) {
+		if (iteration.getTrain().isAlwaysUseBranch()) {
+			setupMaintenanceVersions(iteration);
+		} else {
 
-			// Create bugfix branches
-			git.createMaintenanceBranches(iteration);
-
-			// Set project version to maintenance once
-			build.prepareVersions(iteration, Phase.MAINTENANCE);
+			build.prepareVersions(iteration, Phase.CLEANUP);
 			git.commit(iteration, "Prepare next development iteration.");
 
-			// Update inter-project dependencies and repositories
-			build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
+			// Prepare main branch
+			build.updateProjectDescriptors(iteration, Phase.CLEANUP);
 			git.commit(iteration, "After release cleanups.");
 
-			// Back to main branch
-			git.checkout(iteration);
+			// Prepare maintenance branches
+			if (iteration.getIteration().isGAIteration()) {
+
+				// Create bugfix branches
+				git.createMaintenanceBranches(iteration);
+
+				// Set project version to maintenance once
+				setupMaintenanceVersions(iteration);
+			}
 		}
+	}
+
+	private void setupMaintenanceVersions(TrainIteration iteration) throws Exception {
+
+		// Set project version to maintenance once
+		build.prepareVersions(iteration, Phase.MAINTENANCE);
+		git.commit(iteration, "Prepare next development iteration.");
+
+		// Update inter-project dependencies and repositories
+		build.updateProjectDescriptors(iteration, Phase.MAINTENANCE);
+		git.commit(iteration, "After release cleanups.");
+
+		// Back to main branch
+		git.checkout(iteration);
 	}
 
 	/**
