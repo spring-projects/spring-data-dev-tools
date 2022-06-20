@@ -66,13 +66,11 @@ public class ReleaseTrains {
 				.filterModules(module -> !module.getProject().equals(SOLR)).withCalver("2021.0");
 
 		Q = PASCAL.next("Q", Transition.MINOR) //
-				.withCalver("2021.1") //
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+				.withCalver("2021.1");
 
 		RAJ = Q.next("Raj", Transition.MINOR) //
 				.withCalver("2021.2") //
-				.withAlwaysUseBranch(true)
-				.withIterations(new Train.Iterations(M1, M2, M3, M4, M5, RC1, RC2, GA, SR1, SR2, SR3, SR4, SR5));
+				.withAlwaysUseBranch(true);
 
 		TURING = PASCAL.next("Turing", Transition.MAJOR, //
 				new Module(RELATIONAL, "3.0")) //
