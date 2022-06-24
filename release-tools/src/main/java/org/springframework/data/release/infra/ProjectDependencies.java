@@ -88,7 +88,11 @@ public class ProjectDependencies implements Streamable<ProjectDependencies.Proje
 
 		config.add(Projects.COUCHBASE, ProjectDependency.ofProperty("couchbase", Dependencies.COUCHBASE));
 
-		config.add(Projects.ELASTICSEARCH, ProjectDependency.ofProperty("elasticsearch", Dependencies.ELASTICSEARCH));
+		config.add(Projects.ELASTICSEARCH, ProjectDependency.ofProperty("elasticsearch", Dependencies.ELASTICSEARCH_RHLC));
+		config.add(Projects.ELASTICSEARCH,
+				ProjectDependency.ofProperty("elasticsearch-rhlc", Dependencies.ELASTICSEARCH_RHLC));
+		config.add(Projects.ELASTICSEARCH,
+				ProjectDependency.ofProperty("elasticsearch-java", Dependencies.ELASTICSEARCH_REST_CLIENT));
 
 		config.add(Projects.LDAP, ProjectDependency.ofProperty("spring-ldap", Dependencies.SPRING_LDAP));
 	}

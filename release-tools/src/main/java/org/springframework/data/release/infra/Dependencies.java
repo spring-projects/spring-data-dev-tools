@@ -118,8 +118,11 @@ public class Dependencies {
 
 	public static final Dependency COUCHBASE = Dependency.of("Couchbase Client", "com.couchbase.client:java-client");
 
-	public static final Dependency ELASTICSEARCH = Dependency.of("Elasticsearch",
+	public static final Dependency ELASTICSEARCH_RHLC = Dependency.of("Elasticsearch",
 			"org.elasticsearch.client:elasticsearch-rest-high-level-client");
+
+	public static final Dependency ELASTICSEARCH_REST_CLIENT = Dependency.of("Elasticsearch REST Client",
+			"org.elasticsearch.client:elasticsearch-rest-client");
 
 	public static final Dependency SPRING_LDAP = Dependency.of("Spring LDAP",
 			"org.springframework.ldap:spring-ldap-core");
