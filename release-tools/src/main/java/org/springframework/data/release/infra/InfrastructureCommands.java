@@ -22,16 +22,21 @@ import lombok.experimental.FieldDefaults;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+
+import org.bouncycastle.util.Strings;
 
 import org.springframework.data.release.CliComponent;
 import org.springframework.data.release.TimedCommand;
 import org.springframework.data.release.git.GitOperations;
+import org.springframework.data.release.io.JavaRuntimes;
 import org.springframework.data.release.model.Projects;
 import org.springframework.data.release.model.TrainIteration;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.table.Table;
+import org.springframework.shell.support.table.TableHeader;
 
 /**
  * Shell commands for dependency management.
@@ -47,6 +52,24 @@ public class InfrastructureCommands extends TimedCommand {
 	GitOperations git;
 	InfrastructureOperations infra;
 	Logger logger;
+
+	@CliCommand(value = "infra jdk list")
+	public Table listJdkVersions() {
+
+		List<JavaRuntimes.JdkInstallation> jdks = JavaRuntimes.getJdks();
+		StringBuilder builder = new StringBuilder("Available Java versions" + Strings.lineSeparator());
+
+		Table table = new Table();
+		table.addHeader(1, new TableHeader("Version", 15));
+		table.addHeader(2, new TableHeader("Vendor", 20));
+		table.addHeader(3, new TableHeader("Home"));
+
+		for (JavaRuntimes.JdkInstallation jdk : jdks) {
+			table.addRow(jdk.getVersion().toString(), jdk.getImplementor(), jdk.getHome().toString());
+		}
+
+		return table;
+	}
 
 	@CliCommand(value = "infra maven check")
 	public void check(@CliOption(key = "", mandatory = true) TrainIteration iteration,
