@@ -47,6 +47,7 @@ class BuildConfiguration {
 		DefaultXMLFactoriesConfig config = new DefaultXMLFactoriesConfig();
 		config.setNamespacePhilosophy(NamespacePhilosophy.AGNOSTIC);
 		config.setOmitXMLDeclaration(false);
+		config.setPrettyPrinting(false);
 
 		return new XBProjector(config, Flags.TO_STRING_RENDERS_XML);
 	}
