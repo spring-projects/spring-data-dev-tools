@@ -23,9 +23,23 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.commons.io.IOUtils;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.data.release.build.CommandLine.Argument;
@@ -48,7 +62,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import org.xmlbeam.ProjectionFactory;
-import org.xmlbeam.io.XBFileIO;
+import org.xmlbeam.XBProjector;
+import org.xmlbeam.dom.DOMAccess;
+import org.xmlbeam.io.XBStreamInput;
 
 /**
  * @author Oliver Gierke
@@ -96,7 +112,7 @@ class MavenBuildSystem implements BuildSystem {
 			updateBom(information, "bom/pom.xml", BOM);
 		} else {
 
-			execute(workspace.getFile(POM_XML, updater.getProject()), pom -> {
+			doWithProjection(workspace.getFile(POM_XML, updater.getProject()), pom -> {
 
 				updater.updateDependencyProperties(pom);
 				updater.updateParentVersion(pom);
@@ -156,7 +172,7 @@ class MavenBuildSystem implements BuildSystem {
 
 		logger.log(BUILD, "Updating BOM pom.xml…");
 
-		execute(workspace.getFile(file, project), pom -> {
+		doWithProjection(workspace.getFile(file, project), pom -> {
 
 			for (ModuleIteration module : iteration.getModulesExcept(BUILD, BOM)) {
 
@@ -197,7 +213,7 @@ class MavenBuildSystem implements BuildSystem {
 	private void updateParentPom(UpdateInformation information) {
 
 		// Fix version of shared resources to to-be-released version.
-		execute(workspace.getFile("parent/pom.xml", BUILD), ParentPom.class, pom -> {
+		doWithProjection(workspace.getFile("parent/pom.xml", BUILD), ParentPom.class, pom -> {
 
 			logger.log(BUILD, "Setting shared resources version to %s.", information.getParentVersionToSet());
 			pom.setSharedResourcesVersion(information.getParentVersionToSet());
@@ -398,25 +414,51 @@ class MavenBuildSystem implements BuildSystem {
 		return workspace.getFile(POM_XML, project).exists();
 	}
 
-	private void execute(File file, Consumer<Pom> callback) {
-		execute(file, Pom.class, callback);
+	private void doWithProjection(File file, Consumer<Pom> callback) {
+		doWithProjection(file, Pom.class, callback);
 	}
 
 	/**
 	 * TODO: Move XML file callbacks using the {@link ProjectionFactory} to {@link Workspace}.
 	 */
-	private <T extends Pom> void execute(File file, Class<T> type, Consumer<T> callback) {
+	private <T extends Pom> void doWithProjection(File file, Class<T> type, Consumer<T> callback) {
 
-		XBFileIO io = projectionFactory.io().file(file);
+		try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+			byte[] content = doWithProjection((XBProjector) projectionFactory, bis, type, callback);
 
-		try {
-
-			T pom = (T) io.read(type);
-			callback.accept(pom);
-			io.write(pom);
-
-		} catch (Exception o_O) {
-			throw new RuntimeException(o_O);
+			try (FileOutputStream fos = new FileOutputStream(file)) {
+				fos.write(content);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
+	}
+
+	static <T extends Pom> byte[] doWithProjection(XBProjector projector, InputStream stream, Class<T> type,
+			Consumer<T> callback) throws IOException {
+
+		XBStreamInput io = projector.io().stream(stream);
+		T pom = io.read(type);
+		callback.accept(pom);
+
+		StringWriter writer = new StringWriter();
+		try {
+			projector.config().createTransformer().transform(new DOMSource(((DOMAccess) pom).getDOMNode()),
+					new StreamResult(writer));
+		} catch (TransformerException e) {
+			throw new RuntimeException(e);
+		}
+
+		String s = writer.toString();
+
+		if (s.contains("standalone=\"no\"?><")) {
+			s = s.replaceAll(Pattern.quote("standalone=\"no\"?><"), "standalone=\"no\"?>" + IOUtils.LINE_SEPARATOR + "<");
+		}
+
+		if (!s.endsWith(IOUtils.LINE_SEPARATOR)) {
+			s += IOUtils.LINE_SEPARATOR;
+		}
+
+		return s.getBytes(StandardCharsets.UTF_8);
 	}
 }

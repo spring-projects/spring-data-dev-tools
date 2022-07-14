@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.release.model.Project;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
-import org.xmlbeam.ProjectionFactory;
+
 import org.xmlbeam.XBProjector;
 import org.xmlbeam.XBProjector.Flags;
 import org.xmlbeam.config.DefaultXMLFactoriesConfig;
@@ -42,7 +42,7 @@ class BuildConfiguration {
 	}
 
 	@Bean
-	public ProjectionFactory projectionFactory() {
+	public XBProjector projectionFactory() {
 
 		DefaultXMLFactoriesConfig config = new DefaultXMLFactoriesConfig();
 		config.setNamespacePhilosophy(NamespacePhilosophy.AGNOSTIC);
