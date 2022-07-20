@@ -1,0 +1,44 @@
+pipeline {
+	agent none
+
+	options {
+		disableConcurrentBuilds()
+		buildDiscarder(logRotator(numToKeepStr: '14'))
+	}
+
+	stages {
+		stage('Bake the Spring Data release tools into a container') {
+		    when {
+		        branch 'container'
+		    }
+		    agent {
+		        label 'data'
+		    }
+
+		    steps {
+		        script {
+                    def image = docker.build("springci/spring-data-release-tools:0.1", "release-tools/ci")
+                    docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+                        image.push()
+                    }
+		        }
+		    }
+		}
+	}
+
+	post {
+		changed {
+			script {
+				slackSend(
+						color: (currentBuild.currentResult == 'SUCCESS') ? 'good' : 'danger',
+						channel: '#spring-data-dev',
+						message: "${currentBuild.fullDisplayName} - `${currentBuild.currentResult}`\n${env.BUILD_URL}")
+				emailext(
+						subject: "[${currentBuild.fullDisplayName}] ${currentBuild.currentResult}",
+						mimeType: 'text/html',
+						recipientProviders: [[$class: 'CulpritsRecipientProvider'], [$class: 'RequesterRecipientProvider']],
+						body: "<a href=\"${env.BUILD_URL}\">${currentBuild.fullDisplayName} is reported as ${currentBuild.currentResult}</a>")
+			}
+		}
+	}
+}

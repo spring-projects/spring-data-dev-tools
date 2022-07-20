@@ -24,7 +24,7 @@ deployment.api-key=
 
 # GPG
 gpg.keyname=
-gpg.password=
+gpg.passphrase=
 gpg.executable=/usr/local/bin/gpg2
 
 # A GitHub token with user:email, read:user and read:org scopes.

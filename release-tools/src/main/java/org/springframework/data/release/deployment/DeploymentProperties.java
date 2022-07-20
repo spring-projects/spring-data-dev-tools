@@ -62,7 +62,11 @@ public class DeploymentProperties {
 	 */
 	private String distributionRepository;
 
+	private String settingsXml;
+
 	private String repositoryPrefix = "";
+
+	private MavenCentral mavenCentral;
 
 	public String getStagingRepository() {
 		return repositoryPrefix.concat(stagingRepository);
@@ -115,6 +119,13 @@ public class DeploymentProperties {
 		public URI getVerificationResource() {
 			return URI.create(uri.concat(VERIFICATION_RESOURCE));
 		}
+	}
+
+	@Data
+	public static class MavenCentral {
+
+		private String stagingProfileId;
+
 	}
 
 }

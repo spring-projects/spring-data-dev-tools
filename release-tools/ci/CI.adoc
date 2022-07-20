@@ -1,0 +1,29 @@
+== Running CI tasks locally
+
+Since the pipeline uses Docker, it's easy to:
+
+* Debug what went wrong on your local machine.
+* Test out a tweak to your `ci/build-and-deploy.bash` script before sending it out.
+* Experiment against a new image before submitting your pull request.
+
+All of these use cases are great reasons to essentially run what Jenkins does on your local machine.
+
+IMPORTANT: To do this you must have Docker installed on your machine.
+
+1. `cd ..`
++
+Because this tool is actually a subfolder, you must run the Docker container from up above.
++
+2. `docker run -it --mount type=bind,source="$(pwd)",target=/spring-data-dev-tools springci/spring-data-release-tools:0.1 /bin/bash`
++
+This will launch the Docker image and mount your source code at `release-tools-github`.
++
+3. `cd spring-data-dev-tools/release-tools`
++
+Next, run the `ci/build-and-deploy.bash` script from inside the container:
++
+4. `SONATYPE_USR=foo SONATYPE_PSW=bar ci/build-and-deploy.bash`
+
+Since the container is binding to your source, you can make edits from your IDE and continue to run build jobs.
+
+NOTE: Docker containers can eat up disk space fast! From time to time, run `docker system prune` to clean out old images.

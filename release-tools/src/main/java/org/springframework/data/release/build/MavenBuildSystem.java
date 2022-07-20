@@ -16,21 +16,18 @@
 package org.springframework.data.release.build;
 
 import static org.springframework.data.release.build.CommandLine.Argument.*;
-import static org.springframework.data.release.build.CommandLine.Goal.*;
-import static org.springframework.data.release.model.Projects.*;
+import static org.springframework.data.release.model.Projects.BOM;
+import static org.springframework.data.release.model.Projects.BUILD;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -40,8 +37,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
-
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.data.release.build.CommandLine.Argument;
 import org.springframework.data.release.build.CommandLine.Goal;
 import org.springframework.data.release.build.Pom.Artifact;
@@ -49,18 +47,10 @@ import org.springframework.data.release.deployment.DefaultDeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentInformation;
 import org.springframework.data.release.deployment.DeploymentProperties;
 import org.springframework.data.release.io.Workspace;
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Gpg;
-import org.springframework.data.release.model.JavaVersion;
-import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Phase;
-import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.ProjectAware;
-import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.model.*;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
 import org.xmlbeam.ProjectionFactory;
 import org.xmlbeam.XBProjector;
 import org.xmlbeam.dom.DOMAccess;
@@ -69,6 +59,7 @@ import org.xmlbeam.io.XBStreamInput;
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 @Component
 @Order(100)
@@ -85,10 +76,17 @@ class MavenBuildSystem implements BuildSystem {
 	DeploymentProperties properties;
 	Gpg gpg;
 
+	Environment env;
+
+	static String stagingRepositoryId = null;
+
+	static final String REPO_OPENING_TAG = "<repository>";
+	static final String REPO_CLOSING_TAG = "</repository>";
+
 	@Override
 	public BuildSystem withJavaVersion(JavaVersion javaVersion) {
-		return new MavenBuildSystem(workspace, projectionFactory, logger, mvn.withJavaVersion(javaVersion), properties,
-				gpg);
+		return new MavenBuildSystem(workspace, projectionFactory, logger, mvn.withJavaVersion(javaVersion), properties, gpg,
+				env);
 	}
 
 	/*
@@ -245,7 +243,7 @@ class MavenBuildSystem implements BuildSystem {
 		Project project = module.getProject();
 		UpdateInformation information = UpdateInformation.of(module.getTrainIteration(), phase);
 
-		CommandLine goals = CommandLine.of(goal("versions:set"), goal("versions:commit"));
+		CommandLine goals = CommandLine.of(Goal.goal("versions:set"), Goal.goal("versions:commit"));
 
 		if (BOM.equals(project)) {
 
@@ -277,10 +275,63 @@ class MavenBuildSystem implements BuildSystem {
 		return module;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.release.build.BuildSystem#deploy(org.springframework.data.release.model.ModuleIteration)
+	/**
+	 * Perform a {@literal nexus-staging:rc-open} and extract the stagingProfileId from the results.
 	 */
+	@Override
+	public void open() {
+
+		try {
+			CommandLine arguments = CommandLine.of(Goal.goal("nexus-staging:rc-open"), //
+					profile("central"), //
+					of("-s " + properties.getSettingsXml()), //
+					arg("stagingProfileId").withValue(properties.getMavenCentral().getStagingProfileId()), //
+					arg("openedRepositoryMessageFormat").withValue("'" + REPO_OPENING_TAG + "%s" + REPO_CLOSING_TAG + "'"));
+
+			mvn.execute(BUILD, arguments);
+
+			String rcOpenLogfile = "mvn-" + BUILD.getName() + "-nexus-staging.rc-open.log";
+
+			logger.log(BUILD, "Searching " + this.workspace.getLogsDirectory().getAbsolutePath() + " for " + rcOpenLogfile);
+
+			Path rcOpenLogfilePath = Paths.get(this.workspace.getLogsDirectory().getAbsolutePath(), rcOpenLogfile);
+			logger.log(BUILD, "The log file is at " + rcOpenLogfilePath.toAbsolutePath() + " and "
+					+ (rcOpenLogfilePath.toFile().exists() ? " it exists!" : " it does NOT exist!"));
+
+			List<String> rcOpenLogContents = Files.readAllLines(rcOpenLogfilePath);
+
+			stagingRepositoryId = rcOpenLogContents.stream() //
+					.filter(line -> line.contains(REPO_OPENING_TAG) && !line.contains("%s")) //
+					.reduce((first, second) -> second) // find the last entry, a.k.a. the most recent log line
+					.map(s -> s.substring( //
+							s.indexOf(REPO_OPENING_TAG) + REPO_OPENING_TAG.length(), //
+							s.indexOf(REPO_CLOSING_TAG))) //
+					.orElse("");
+
+			logger.log(BUILD, "We just grabbed the staging repository ID at " + stagingRepositoryId);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Perform a {@literal nexus-staging:rc-close}.
+	 */
+	@Override
+	public void close() {
+
+		CommandLine arguments = CommandLine.of(Goal.goal("nexus-staging:rc-close"), //
+				profile("central"), //
+				of("-s " + properties.getSettingsXml()), //
+				arg("stagingRepositoryId").withValue(stagingRepositoryId));
+
+		mvn.execute(BUILD, arguments);
+	}
+
+	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.release.build.BuildSystem#deploy(org.springframework.data.release.model.ModuleIteration)
+	*/
 	@Override
 	public DeploymentInformation deploy(ModuleIteration module) {
 
@@ -289,6 +340,7 @@ class MavenBuildSystem implements BuildSystem {
 		DeploymentInformation information = new DefaultDeploymentInformation(module, properties);
 
 		deployToArtifactory(module, information);
+
 		deployToMavenCentral(module);
 
 		return information;
@@ -342,8 +394,8 @@ class MavenBuildSystem implements BuildSystem {
 				profile("central"), //
 				SKIP_TESTS, //
 				arg("gpg.executable").withValue(gpg.getExecutable()), //
-				arg("gpg.keyname").withValue(gpg.getKeyname()), //
-				arg("gpg.password").withValue(gpg.getPassword()));
+				arg("gpg.passphrase").withValue(gpg.getPassphrase()), //
+				arg("gpg.secretKeyring").withValue(gpg.getSecretKeyring()));
 
 		mvn.execute(BUILD, arguments);
 
@@ -403,9 +455,13 @@ class MavenBuildSystem implements BuildSystem {
 		CommandLine arguments = CommandLine.of(Goal.CLEAN, Goal.DEPLOY, //
 				profile("ci,release,central"), //
 				SKIP_TESTS, //
+				settingsXml(properties.getSettingsXml()), //
 				arg("gpg.executable").withValue(gpg.getExecutable()), //
 				arg("gpg.keyname").withValue(gpg.getKeyname()), //
-				arg("gpg.password").withValue(gpg.getPassword()));
+				arg("gpg.passphrase").withValue(gpg.getPassphrase()), //
+				arg("stagingRepositoryId").withValue(stagingRepositoryId)) //
+				.conditionalAnd(arg("gpg.secretKeyring").withValue(gpg.getSecretKeyring()),
+						() -> env.acceptsProfiles(Profiles.of("jenkins")));
 
 		mvn.execute(module.getProject(), arguments);
 	}

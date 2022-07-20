@@ -30,11 +30,12 @@ import org.springframework.util.StringUtils;
 @ConfigurationProperties(prefix = "gpg")
 public class Gpg {
 
-	private String keyname, executable;
-
-	private Password password;
+	private String keyname;
+	private String executable;
+	private String passphrase;
+	private String secretKeyring;
 
 	public boolean isGpgAvailable() {
-		return this.password != null && StringUtils.hasText(keyname);
+		return this.passphrase != null && StringUtils.hasText(secretKeyring);
 	}
 }

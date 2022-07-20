@@ -20,11 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -179,6 +175,10 @@ class CommandLine {
 
 		public static Argument debug() {
 			return Argument.of("-X");
+		}
+
+		public static Argument settingsXml(String path) {
+			return Argument.of("-s " + path);
 		}
 
 		public Argument withValue(Object value) {

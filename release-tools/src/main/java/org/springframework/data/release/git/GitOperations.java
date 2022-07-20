@@ -34,12 +34,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
@@ -51,29 +47,15 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.CredentialItem.CharArrayType;
 import org.eclipse.jgit.transport.CredentialItem.InformationalMessage;
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.TagOpt;
-import org.eclipse.jgit.transport.URIish;
-
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.issues.IssueTracker;
 import org.springframework.data.release.issues.Ticket;
 import org.springframework.data.release.issues.TicketReference;
 import org.springframework.data.release.issues.TicketStatus;
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.Gpg;
-import org.springframework.data.release.model.Iteration;
-import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.ProjectAware;
-import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
-import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.model.*;
 import org.springframework.data.release.utils.ExecutionUtils;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.data.util.Pair;
@@ -710,7 +692,9 @@ public class GitOperations {
 					.setAll(all);
 
 			if (gpg.isGpgAvailable()) {
-				commitCommand.setSign(true).setSigningKey(gpg.getKeyname())
+				commitCommand //
+						.setSign(true) //
+						.setSigningKey(gpg.getKeyname()) //
 						.setCredentialsProvider(new GpgPassphraseProvider(gpg));
 			} else {
 				commitCommand.setSign(false);
@@ -1101,6 +1085,7 @@ public class GitOperations {
 		}
 
 		private boolean matchesKey(CredentialItem[] items) {
+
 			return Arrays.stream(items).filter(InformationalMessage.class::isInstance) //
 					.map(CredentialItem::getPromptText) //
 					.map(it -> it.toLowerCase(Locale.US)) //
@@ -1116,7 +1101,7 @@ public class GitOperations {
 
 			for (CredentialItem item : items) {
 				if (item instanceof CharArrayType) {
-					((CharArrayType) item).setValueNoCopy(gpg.getPassword().toString().toCharArray());
+					((CharArrayType) item).setValueNoCopy(gpg.getPassphrase().toCharArray());
 
 					return true;
 				}

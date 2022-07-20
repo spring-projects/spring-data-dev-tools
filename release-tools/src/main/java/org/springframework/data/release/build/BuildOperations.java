@@ -25,15 +25,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.assertj.core.util.VisibleForTesting;
-
 import org.springframework.data.release.deployment.DeploymentInformation;
-import org.springframework.data.release.model.Module;
-import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Phase;
-import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.model.Train;
-import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.model.*;
 import org.springframework.data.release.utils.Logger;
 import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.stereotype.Component;
@@ -180,6 +173,21 @@ public class BuildOperations {
 	}
 
 	/**
+	 * Opens a repository to stage artifacts for this {@link ModuleIteration}.
+	 *
+	 * @param module must not be {@literal null}.
+	 */
+	public void open() {
+		buildSystems.getRequiredPluginFor(Projects.BUILD) //
+				.withJavaVersion(executor.detectJavaVersion(Projects.BUILD)).open();
+	}
+
+	public void close() {
+		buildSystems.getRequiredPluginFor(Projects.BUILD) //
+				.withJavaVersion(executor.detectJavaVersion(Projects.BUILD)).close();
+	}
+
+	/**
 	 * Builds the release for the given {@link ModuleIteration} and deploys it to the staging repository.
 	 *
 	 * @param module must not be {@literal null}.
@@ -241,5 +249,4 @@ public class BuildOperations {
 
 		return function.apply(buildSystem.withJavaVersion(executor.detectJavaVersion(module.getProject())), module);
 	}
-
 }

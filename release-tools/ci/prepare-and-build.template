@@ -1,0 +1,5 @@
+workspace cleanup
+release prepare ${VERSION}
+repository open ${VERSION}
+release build ${VERSION}
+repository close ${VERSION}

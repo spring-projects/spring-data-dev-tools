@@ -25,7 +25,7 @@ Add an `application-local.properties` to the project root and add the following 
 - `deployment.api-key` - The Artifactory API key to use for artifact promotion.
 - `deployment.password` - The encrypted Artifactory password..
 - `gpg.keyname` - The GPG key name.
-- `gpg.password` - The password of your GPG key.
+- `gpg.passphrase` - The password of your GPG key.
 - `gpg.executable` - Path to your GPG executable, typically `/usr/local/MacGPG2/bin/gpg2`
   or `/usr/local/bin/gpg`.
 - `sagan.key` - Sagan authentication token. Must be a valid GitHub token. Can be the same

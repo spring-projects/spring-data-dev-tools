@@ -18,20 +18,11 @@ package org.springframework.data.release.build;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.maven.shared.invoker.DefaultInvocationRequest;
-import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationRequest;
-import org.apache.maven.shared.invoker.InvocationResult;
-import org.apache.maven.shared.invoker.Invoker;
-
+import org.apache.maven.shared.invoker.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.release.io.JavaRuntimes;
 import org.springframework.data.release.io.Workspace;
@@ -77,6 +68,10 @@ class MavenRuntime {
 
 	public MavenRuntime withJavaVersion(JavaVersion javaVersion) {
 		return new MavenRuntime(workspace, logger, properties, javaVersion);
+	}
+
+	public MavenProperties getProperties() {
+		return this.properties;
 	}
 
 	public void execute(Project project, CommandLine arguments) {

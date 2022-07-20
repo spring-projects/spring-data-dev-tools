@@ -16,11 +16,7 @@
 package org.springframework.data.release.build;
 
 import org.springframework.data.release.deployment.DeploymentInformation;
-import org.springframework.data.release.model.JavaVersion;
-import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Phase;
-import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.ProjectAware;
+import org.springframework.data.release.model.*;
 import org.springframework.plugin.core.Plugin;
 
 /**
@@ -47,6 +43,13 @@ interface BuildSystem extends Plugin<Project> {
 	 * @return
 	 */
 	ModuleIteration prepareVersion(ModuleIteration module, Phase phase);
+
+	/**
+	 * Open a remote repository for staging artifacts.
+	 */
+	void open();
+
+	void close();
 
 	/**
 	 * Deploy artifacts for the given {@link ModuleIteration} and return the {@link DeploymentInformation}.

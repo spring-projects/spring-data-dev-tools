@@ -21,12 +21,7 @@ import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -39,7 +34,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.IOUtils;
-
 import org.springframework.data.release.infra.InfrastructureOperations;
 import org.springframework.data.release.io.Workspace;
 import org.springframework.data.release.model.JavaVersion;
@@ -111,6 +105,13 @@ class BuildExecutor {
 			if (skip.contains(moduleIteration.getProject())) {
 				continue;
 			}
+		}
+
+		for (M moduleIteration : iteration) {
+
+			if (skip.contains(moduleIteration.getProject())) {
+				continue;
+			}
 
 			if (considerDependencyOrder) {
 				Set<Project> dependencies = moduleIteration.getProject().getDependencies();
@@ -134,6 +135,7 @@ class BuildExecutor {
 			}
 
 			CompletableFuture<T> result = run(moduleIteration, function);
+
 			results.put(moduleIteration.getProject(), result);
 		}
 

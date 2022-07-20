@@ -15,7 +15,7 @@
  */
 package org.springframework.data.release.cli;
 
-import static org.springframework.data.release.model.Projects.*;
+import static org.springframework.data.release.model.Projects.COMMONS;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -31,14 +31,7 @@ import org.springframework.data.release.git.GitOperations;
 import org.springframework.data.release.issues.IssueTrackerCommands;
 import org.springframework.data.release.issues.github.GitHubCommands;
 import org.springframework.data.release.misc.ReleaseOperations;
-import org.springframework.data.release.model.ArtifactVersion;
-import org.springframework.data.release.model.ModuleIteration;
-import org.springframework.data.release.model.Phase;
-import org.springframework.data.release.model.Project;
-import org.springframework.data.release.model.Projects;
-import org.springframework.data.release.model.ReleaseTrains;
-import org.springframework.data.release.model.Train;
-import org.springframework.data.release.model.TrainIteration;
+import org.springframework.data.release.model.*;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.util.Assert;
@@ -109,6 +102,22 @@ class ReleaseCommands extends TimedCommand {
 
 		build.prepareVersions(iteration, Phase.PREPARE);
 		git.commit(iteration, "Release version %s.");
+	}
+
+	@CliCommand(value = "repository open")
+	public void repositoryOpen(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		if (iteration.getIteration().isPublic()) {
+			build.open();
+		}
+	}
+
+	@CliCommand(value = "repository close")
+	public void repositoryClose(@CliOption(key = "", mandatory = true) TrainIteration iteration) {
+
+		if (iteration.getIteration().isPublic()) {
+			build.close();
+		}
 	}
 
 	@CliCommand(value = "release build")
