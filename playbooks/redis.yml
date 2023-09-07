@@ -7,16 +7,16 @@ antora:
     - 'antora/lib/version-fix.js'
     - '@antora/atlas-extension'
     - require: '@springio/antora-extensions/root-component-extension'
-      root_component_name: 'data-jpa'
+      root_component_name: 'data-redis'
 site:
-  title: Spring Data JPA
-  url: https://docs.spring.io/spring-data/jpa/reference
+  title: Spring Data Redis
+  url: https://docs.spring.io/spring-data/redis/reference
   robots: allow
 git:
   ensure_git_suffix: false
 content:
   sources:
-    - url: https://github.com/spring-projects/spring-data-jpa
+    - url: https://github.com/spring-projects/spring-data-redis
       # Refname matching:
       # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
       branches: [ main, '{3..9}.*({0..9}).x', '!3.0.x', '!3.1.x' ]
@@ -29,7 +29,7 @@ content:
       start_path: src/main/antora
 asciidoc:
   attributes:
-    page-stackoverflow-url: https://stackoverflow.com/tags/spring-data-jpa
+    page-stackoverflow-url: https://stackoverflow.com/tags/spring-data-redis
     page-pagination: ''
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
