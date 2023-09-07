@@ -4,9 +4,10 @@ target/
 .classpath
 .factorypath
 .springBeans
-application-local.properties
-spring-shell.log
 .idea/
-release-tools/logs/
 *.iml
-dependency-upgrade-*.properties
+build/
+node_modules
+node/
+package-lock.json
+package.json
