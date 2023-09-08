@@ -7,16 +7,16 @@ antora:
     - 'antora/lib/version-fix.js'
     - '@antora/atlas-extension'
     - require: '@springio/antora-extensions/root-component-extension'
-      root_component_name: 'data-cassandra'
+      root_component_name: 'data-couchbase'
 site:
-  title: Spring Data for Apache Cassandra
-  url: https://docs.spring.io/spring-data/cassandra/reference
+  title: Spring Data Couchbase
+  url: https://docs.spring.io/spring-data/couchbase/reference
   robots: allow
 git:
   ensure_git_suffix: false
 content:
   sources:
-    - url: https://github.com/spring-projects/spring-data-cassandra
+    - url: https://github.com/spring-projects/spring-data-couchbase
       # Refname matching:
       # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
       branches: [ main, '{5..9}.*({0..9}).x', '!5.0.x', '!5.1.x' ]
@@ -29,7 +29,7 @@ content:
       start_path: src/main/antora
 asciidoc:
   attributes:
-    page-stackoverflow-url: https://stackoverflow.com/tags/spring-data-cassandra
+    page-stackoverflow-url: https://stackoverflow.com/tags/spring-data-couchbase
     page-pagination: ''
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
