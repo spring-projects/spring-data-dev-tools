@@ -59,18 +59,18 @@ jobs:
           name: antora-site-${{ github.event.inputs.module }}
           path: target/antora/site
           retention-days: 5
-#    - name: Publish Docs
-#      uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.11
-#      with:
-#        docs-username: ${{ secrets.DOCS_USERNAME }}
-#        docs-host: ${{ secrets.DOCS_HOST }}
-#        docs-ssh-key: ${{ secrets.DOCS_SSH_KEY }}
-#        docs-ssh-host-key: ${{ secrets.DOCS_SSH_HOST_KEY }}
-#        site-path: target/antora/site
-#        httpdocs-path: /spring-data/${{ github.event.inputs.module }}/reference
-#    - name: Bust Cloudflare Cache
-#      uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.11
-#      with:
-#        context-root: spring-data/${{ github.event.inputs.module }}
-#        cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-#        cloudflare-cache-token: ${{ secrets.CLOUDFLARE_CACHE_TOKEN }}
+    - name: Publish Docs
+      uses: rwinch/spring-doc-actions/rsync-antora-reference@httpdocs-path
+      with:
+        docs-username: ${{ secrets.DOCS_USERNAME }}
+        docs-host: ${{ secrets.DOCS_HOST }}
+        docs-ssh-key: ${{ secrets.DOCS_SSH_KEY }}
+        docs-ssh-host-key: ${{ secrets.DOCS_SSH_HOST_KEY }}
+        site-path: target/antora/site
+        httpdocs-path: /spring-data/${{ github.event.inputs.module }}/reference
+    - name: Bust Cloudflare Cache
+      uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.11
+      with:
+        context-root: spring-data/${{ github.event.inputs.module }}/reference
+        cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        cloudflare-cache-token: ${{ secrets.CLOUDFLARE_CACHE_TOKEN }}
