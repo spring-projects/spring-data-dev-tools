@@ -20,7 +20,7 @@ content:
       # Refname matching:
       # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
       branches: [ main, '{5..9}.*({0..9}).x', '!5.0.x', '!5.1.x' ]
-      tags: [ '({5..9}).+({0..9}).*', '!(5.0.*)', '!(5.1.*)','!5.2.0-M1' ]
+      tags: [ '({5..9}).+({0..9}).*', '!(5.0.*)', '!(5.1.*)','!5.2.0-M1','!5.2.0-M2' ]
       start_path: src/main/antora
     - url: https://github.com/spring-projects/spring-data-commons
       # Refname matching:
