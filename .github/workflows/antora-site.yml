@@ -53,12 +53,12 @@ jobs:
         key: ${{ runner.os }}-maven
     - name: Run Antora
       run: ./mvnw -B antora -Dspring-data.module=${{ github.event.inputs.module }}
-    - name: Archive results
-      uses: actions/upload-artifact@v3
-      with:
-          name: antora-site-${{ github.event.inputs.module }}
-          path: target/antora/site
-          retention-days: 5
+#    - name: Archive results
+#      uses: actions/upload-artifact@v3
+#      with:
+#          name: antora-site-${{ github.event.inputs.module }}
+#          path: target/antora/site
+#          retention-days: 5
     - name: Publish Docs
       uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.12
       with:
