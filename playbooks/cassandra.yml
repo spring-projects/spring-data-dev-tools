@@ -31,7 +31,8 @@ content:
 asciidoc:
   attributes:
     page-stackoverflow-url: https://stackoverflow.com/tags/spring-data-cassandra
-    page-pagination: ''
+    page-related-doc-categories: data
+    page-related-doc-projects: framework,graphql
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
   extensions:
