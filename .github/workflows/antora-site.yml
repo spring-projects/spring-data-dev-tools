@@ -53,6 +53,10 @@ jobs:
         key: ${{ runner.os }}-maven
     - name: Run Antora
       run: ./mvnw -B antora -Dspring-data.module=${{ github.event.inputs.module }}
+      env:
+        GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+        GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
+        GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
 #    - name: Archive results
 #      uses: actions/upload-artifact@v3
 #      with:
