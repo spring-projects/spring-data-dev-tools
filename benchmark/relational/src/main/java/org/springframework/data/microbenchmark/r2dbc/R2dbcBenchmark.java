@@ -15,6 +15,7 @@
  */
 package org.springframework.data.microbenchmark.r2dbc;
 
+import io.r2dbc.spi.Readable;
 import io.r2dbc.spi.Row;
 
 import java.util.function.Function;
@@ -26,7 +27,7 @@ import org.openjdk.jmh.infra.Blackhole;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.microbenchmark.common.AbstractMicrobenchmark;
-import org.springframework.data.r2dbc.core.DatabaseClient;
+import org.springframework.r2dbc.core.DatabaseClient;
 
 /**
  * Benchmark for R2DBC and Spring Data R2DBC
@@ -41,7 +42,7 @@ public class R2dbcBenchmark extends AbstractMicrobenchmark {
 	@Param({ /* "postgres", */ "h2-in-memory" /*, "h2" */ }) String profile;
 
 	private DatabaseClient operations;
-	private Function<Row, Book> mapper;
+	private Function<Readable, Book> mapper;
 
 	private R2dbcBookRepository repository;
 
@@ -62,7 +63,7 @@ public class R2dbcBenchmark extends AbstractMicrobenchmark {
 	@Benchmark
 	public void findByTitle(Blackhole sink) {
 
-		sink.consume(operations.execute(BY_TITLE_SQL) //
+		sink.consume(operations.sql(BY_TITLE_SQL) //
 				.bind("title", "title0") //
 				.map(mapper).one() //
 				.block());
@@ -71,7 +72,7 @@ public class R2dbcBenchmark extends AbstractMicrobenchmark {
 	@Benchmark
 	public void findAll(Blackhole sink) {
 
-		sink.consume(operations.execute(FIND_ALL_SQL) //
+		sink.consume(operations.sql(FIND_ALL_SQL) //
 				.map(mapper) //
 				.all() //
 				.collectList() //

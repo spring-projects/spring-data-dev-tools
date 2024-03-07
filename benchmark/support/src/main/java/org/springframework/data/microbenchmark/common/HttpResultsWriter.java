@@ -16,10 +16,13 @@
 package org.springframework.data.microbenchmark.common;
 
 import jmh.mbr.core.ResultsWriter;
+import jmh.mbr.core.model.BenchmarkResults;
 import lombok.RequiredArgsConstructor;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -27,14 +30,17 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 
+import lombok.SneakyThrows;
 import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.results.format.ResultFormatFactory;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.format.OutputFormat;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.CollectionUtils;
 
 /**
  * {@link ResultsWriterOld} implementation of {@link URLConnection}.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -43,17 +49,18 @@ class HttpResultsWriter implements ResultsWriter {
 
 	private final String url;
 
-	@Override
-	public void write(OutputFormat output, Collection<RunResult> results) {
 
-		if (CollectionUtils.isEmpty(results)) {
+	@Override
+	public void write(OutputFormat output, BenchmarkResults benchmarkResults) {
+
+		if (CollectionUtils.isEmpty(benchmarkResults.getRawResults())) {
 			return;
 		}
 
 		try {
-			doWrite(results);
+			doWrite(benchmarkResults.getRawResults());
 		} catch (IOException e) {
-			output.println("Failed to write results: " + e.toString());
+			output.println("Failed to write results: " + e);
 		}
 	}
 
@@ -79,12 +86,28 @@ class HttpResultsWriter implements ResultsWriter {
 		connection.addRequestProperty("X-Git-Commit-Id", gitCommitId);
 
 		try (OutputStream output = connection.getOutputStream()) {
-			output.write(ResultsWriter.jsonifyResults(results).getBytes(StandardCharsets.UTF_8));
+			output.write(jsonifyResults(results).getBytes(StandardCharsets.UTF_8));
 		}
 
 		if (connection.getResponseCode() >= 400) {
 			throw new IllegalStateException(
 					String.format("Status %d %s", connection.getResponseCode(), connection.getResponseMessage()));
 		}
+	}
+
+	/**
+	 * Convert {@link RunResult}s to JMH Json representation.
+	 *
+	 * @param results
+	 * @return json string representation of results.
+	 * @see org.openjdk.jmh.results.format.JSONResultFormat
+	 */
+	@SneakyThrows
+	static String jsonifyResults(Collection<RunResult> results) {
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ResultFormatFactory.getInstance(ResultFormatType.JSON, new PrintStream(baos, true, "UTF-8")).writeOut(results);
+
+		return new String(baos.toByteArray(), StandardCharsets.UTF_8);
 	}
 }

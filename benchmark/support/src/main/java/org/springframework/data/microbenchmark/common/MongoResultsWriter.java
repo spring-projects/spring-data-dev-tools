@@ -16,6 +16,7 @@
 package org.springframework.data.microbenchmark.common;
 
 import jmh.mbr.core.ResultsWriter;
+import jmh.mbr.core.model.BenchmarkResults;
 import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -52,14 +53,14 @@ class MongoResultsWriter implements ResultsWriter {
 	private final String uri;
 
 	@Override
-	public void write(OutputFormat output, Collection<RunResult> results) {
+	public void write(OutputFormat output, BenchmarkResults benchmarkResults) {
 
-		if (CollectionUtils.isEmpty(results)) {
+		if (CollectionUtils.isEmpty(benchmarkResults.getRawResults())) {
 			return;
 		}
 
 		try {
-			doWrite(results);
+			doWrite(benchmarkResults.getRawResults());
 		} catch (ParseException | RuntimeException e) {
 			output.println("Failed to write results: " + e.toString());
 		}
@@ -81,7 +82,7 @@ class MongoResultsWriter implements ResultsWriter {
 		String dbName = StringUtils.hasText(uri.getDatabase()) ? uri.getDatabase() : "spring-data-mongodb-benchmarks";
 		MongoDatabase db = client.getDatabase(dbName);
 
-		String resultsJson = ResultsWriter.jsonifyResults(results).trim();
+		String resultsJson = HttpResultsWriter.jsonifyResults(results).trim();
 		JSONArray array = (JSONArray) new JSONParser(JSONParser.MODE_PERMISSIVE).parse(resultsJson);
 		for (Object object : array) {
 			JSONObject dbo = (JSONObject) object;
