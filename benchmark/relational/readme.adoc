@@ -28,8 +28,18 @@ There are different flavors of those operations to measure the impact of differe
 The benchmarks are run against the following databases:
 
 - In-memory H2
-- A locally running H2 (port 9092, database name `benchmark`, user `sa`, empty password)
-- A locally running Postgres (port 5432, database name `benchmark`, no user, no password)
+- A locally running H2 (port 9092, database name `benchmark`, user `sa`, empty password).
+    You may start such a server by running
++
+```
+java -cp ~/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar org.h2.tools.Server -ifNotExists
+```
+assuming you have a local maven repo in the default location.
+- A locally running Postgres (port 5455, database name `benchmark`, user: postgres, password: secret). You may start such a server by running
++
+```
+docker run --name myPostgresDb -p 5455:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=benchmark -d postgres
+```
 
 The settings can be adapted by tweaking corresponding `application-$database.properties` file in `src/main/resources`.
  

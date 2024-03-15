@@ -44,7 +44,7 @@ public class JdbcBenchmark extends AbstractMicrobenchmark {
 
 	private static final String BY_TITLE_SQL = "SELECT id, title, pages FROM Book where title = ?";
 
-	@Param({ "postgres", "h2-in-memory", "h2" }) String profile;
+	@Param({ /*"postgres",*/ "h2-in-memory", /*"h2"*/ }) String profile;
 
 	JdbcOperations operations;
 	RowMapper<Book> bookMapper;
@@ -53,7 +53,6 @@ public class JdbcBenchmark extends AbstractMicrobenchmark {
 
 	Set<String> columns;
 	HashMap<String, Object> values;
-
 	@Setup
 	@SuppressWarnings("unchecked")
 	public void setUp() {
