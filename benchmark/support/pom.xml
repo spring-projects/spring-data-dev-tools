@@ -13,6 +13,9 @@
 	<artifactId>spring-data-benchmark-support</artifactId>
 
 	<name>Spring Data Benchmarks - Support</name>
+	<properties>
+		<java-module-name>SpringDataBenchmarkSupport</java-module-name>
+	</properties>
 
 	<dependencies>
 
