@@ -19,17 +19,18 @@ public class PetClinicBenchmark extends AbstractMicrobenchmark {
 
 		ownerRepository = context.getBean(OwnerRepository.class);
 		petRepository = context.getBean(PetRepository.class);
-
 	}
+
 
 	@Benchmark
 	public void findByName() {
+		ownerRepository.findByLastName("");
 
 	}
 
 	@Benchmark
 	public void findByOwnerId() {
-
+		petRepository.findByOwnerId(3);
 	}
 
 }

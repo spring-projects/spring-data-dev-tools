@@ -53,6 +53,6 @@ public interface OwnerRepository extends Repository<Owner, Integer> {
 	 * 
 	 * @param owner the {@link Owner} to save
 	 */
-	void save(Owner owner);
+	Owner save(Owner owner);
 
 }
