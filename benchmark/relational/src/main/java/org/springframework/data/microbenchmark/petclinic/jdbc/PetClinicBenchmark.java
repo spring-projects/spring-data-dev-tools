@@ -14,7 +14,7 @@ public class PetClinicBenchmark extends AbstractMicrobenchmark {
 	@Setup
 	public void setup() {
 
-		PetClinicFixture fixture = new PetClinicFixture("h2");
+		PetClinicFixture fixture = new PetClinicFixture("h2-in-memory");
 		ConfigurableApplicationContext context = fixture.context;
 
 		ownerRepository = context.getBean(OwnerRepository.class);
