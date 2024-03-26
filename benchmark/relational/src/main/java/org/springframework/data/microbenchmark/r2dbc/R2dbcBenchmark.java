@@ -42,7 +42,7 @@ public class R2dbcBenchmark extends AbstractMicrobenchmark {
 	@Param({ /* "postgres", */ "h2-in-memory" /*, "h2" */ }) String profile;
 
 	private DatabaseClient operations;
-	private Function<Readable, Book> mapper;
+	private Function<Row, Book> mapper;
 
 	private R2dbcBookRepository repository;
 

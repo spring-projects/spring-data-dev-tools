@@ -20,7 +20,7 @@ import lombok.Getter;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
