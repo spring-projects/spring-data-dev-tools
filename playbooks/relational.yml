@@ -2,11 +2,11 @@ antora:
   extensions:
     - '@springio/antora-extensions/partial-build-extension'
     - '@springio/antora-extensions/static-page-extension'
-    - require: '@springio/antora-extensions/latest-version-extension'
     - require: '@springio/antora-extensions/inject-collector-cache-config-extension'
     - '@antora/collector-extension'
     - 'antora/lib/version-fix.js'
     - '@antora/atlas-extension'
+    - require: '@springio/antora-extensions/latest-version-extension'
     - require: '@springio/antora-extensions/root-component-extension'
       root_component_name: 'data-relational'
 site:
