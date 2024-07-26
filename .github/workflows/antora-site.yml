@@ -60,7 +60,7 @@ jobs:
 #          path: target/antora/site
 #          retention-days: 5
     - name: Publish Docs
-      uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.17
+      uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.18
       with:
         docs-username: ${{ secrets.DOCS_USERNAME }}
         docs-host: ${{ secrets.DOCS_HOST }}
@@ -69,7 +69,7 @@ jobs:
         site-path: target/antora/site
         httpdocs-path: /spring-data/${{ github.event.inputs.module }}/reference
     - name: Bust Cloudflare Cache
-      uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.17
+      uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.18
       with:
         context-root: spring-data/${{ github.event.inputs.module }}/reference
         cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
