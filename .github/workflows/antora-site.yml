@@ -51,6 +51,11 @@ jobs:
       with:
         path: ~/.m2
         key: ${{ runner.os }}-maven
+    - name: Cache Antora
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache
+        key: ${{ runner.os }}-antora-${{ github.event.inputs.module }}
     - name: Run Antora
       run: ./mvnw -B antora -Dspring-data.module=${{ github.event.inputs.module }}
 #    - name: Archive results
