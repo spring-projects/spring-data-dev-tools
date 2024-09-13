@@ -50,7 +50,8 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-maven
+        key: ${{ runner.os }}-maven-${{ github.event.inputs.module }}
+        restore-keys: ${{ runner.os }}-maven
     - name: Cache Antora
       uses: actions/cache@v3
       with:
