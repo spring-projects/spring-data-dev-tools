@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: 5
     - name: Set up JDK 17
@@ -26,7 +26,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Setup Maven Action
-      uses: s4u/setup-maven-action@v1.14.0
+      uses: s4u/setup-maven-action@v1.16.0
       with:
         java-version: 17
     - name: Set up refname build
@@ -38,7 +38,7 @@ jobs:
         export BUILD_VERSION=$(git cat-file --textconv FETCH_HEAD:pom.xml | python3 -c "import xml.etree.ElementTree as xml; from sys import stdin; print(xml.parse(stdin).getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")
         echo BUILD_VERSION=$BUILD_VERSION >> $GITHUB_ENV
     - name: Cache nodejs
-      uses: actions/cache@v4
+      uses: actions/cache@v4.2.0
       with:
         path: |
           node
@@ -47,7 +47,7 @@ jobs:
           package-lock.json
         key: ${{ runner.os }}-nodejs-${{ hashFiles('pom.xml') }}
     - name: Cache Maven
-      uses: actions/cache@v4
+      uses: actions/cache@v4.2.0
       with:
         path: ~/.m2
         key: ${{ runner.os }}-maven-${{ github.event.inputs.module }}
