@@ -13,7 +13,7 @@
 
 	<properties>
 		<maven.antora-version>1.0.0-alpha.4</maven.antora-version>
-		<antora.playbook>playbooks/${spring-data.module}.yml</antora.playbook>
+		<antora.playbook>playbooks/${variant}/${spring-data.module}.yml</antora.playbook>
 	</properties>
 
 	<build>

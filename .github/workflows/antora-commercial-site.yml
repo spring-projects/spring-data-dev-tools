@@ -1,4 +1,4 @@
-name: Antora Site
+name: Commercial Antora Site
 run-name: ${{ format('{0} for spring-data-{1} ({2})', github.workflow, github.event.inputs.module, github.event.inputs.build-refname || 'all') }}
 on:
   workflow_dispatch:
@@ -11,10 +11,13 @@ on:
         required: false
 permissions:
   contents: write
+env:
+  ARTIFACTORY_USR: ${{ secrets.COMMERCIAL_ARTIFACTORY_RO_USERNAME }}
+  ARTIFACTORY_PSW: ${{ secrets.COMMERCIAL_ARTIFACTORY_RO_PASSWORD }}
 jobs:
   build:
     if: github.repository_owner == 'spring-projects'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu22-2-8
     steps:
     - name: Checkout
       uses: actions/checkout@v4.2.2
@@ -29,6 +32,13 @@ jobs:
       uses: s4u/setup-maven-action@v1.16.0
       with:
         java-version: 17
+    - name: Set up Maven
+      run: |
+        mkdir -p ~/.m2
+        rm -f ~/.m2/settings.xml
+        cp settings.xml ~/.m2/settings.xml
+    - name: Setup Git Credentials for Antora
+      run: echo "https://${{ secrets.GH_ACTIONS_REPO_TOKEN }}:@github.com" >> ~/.git-credentials
     - name: Set up refname build
       if: github.event.inputs.build-refname
       run: |
@@ -59,25 +69,14 @@ jobs:
         key: ${{ runner.os }}-antora-${{ github.event.inputs.module }}-${{ hashFiles('**/*.yml') }}
         restore-keys: ${{ runner.os }}-antora-${{ github.event.inputs.module }}
     - name: Run Antora
-      run: ./mvnw -B antora -Dspring-data.module=${{ github.event.inputs.module }}
-#    - name: Archive results
-#      uses: actions/upload-artifact@v3
-#      with:
-#          name: antora-site-${{ github.event.inputs.module }}
-#          path: target/antora/site
-#          retention-days: 5
-    - name: Publish Docs
-      uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.18
+      run: ./mvnw -B antora -Dvariant=commercial -Dspring-data.module=${{ github.event.inputs.module }}
+    - name: 'Authenticate to docs.spring.vmware.com'
+      uses: 'google-github-actions/auth@v2.1.0'
       with:
-        docs-username: ${{ secrets.DOCS_USERNAME }}
-        docs-host: ${{ secrets.DOCS_HOST }}
-        docs-ssh-key: ${{ secrets.DOCS_SSH_KEY }}
-        docs-ssh-host-key: ${{ secrets.DOCS_SSH_HOST_KEY }}
-        site-path: target/antora/site
-        httpdocs-path: /spring-data/${{ github.event.inputs.module }}/reference
-    - name: Bust Cloudflare Cache
-      uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.18
+        credentials_json: '${{ secrets.COMMERCIAL_DOCS_GCP_BUCKET_JSON }}'
+    - name: 'Publish Docs to docs.spring.vmware.com'
+      uses: 'google-github-actions/upload-cloud-storage@v2.1.0'
       with:
-        context-root: spring-data/${{ github.event.inputs.module }}/reference
-        cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        cloudflare-cache-token: ${{ secrets.CLOUDFLARE_CACHE_TOKEN }}
+        path: 'target/antora/site'
+        destination: 'docs.spring.vmware.com/spring-data/${{ github.event.inputs.module }}/reference'
+        parent: false

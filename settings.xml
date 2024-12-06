@@ -1,0 +1,48 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<servers>
+		<server>
+			<id>spring-enterprise-snapshot</id>
+			<username>${env.ARTIFACTORY_USR}</username>
+			<password>${env.ARTIFACTORY_PSW}</password>
+		</server>
+		<server>
+			<id>spring-enterprise-release</id>
+			<username>${env.ARTIFACTORY_USR}</username>
+			<password>${env.ARTIFACTORY_PSW}</password>
+		</server>
+	</servers>
+
+	<profiles>
+		<profile>
+			<id>spring-enterprise</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<repositories>
+				<repository>
+					<id>spring-enterprise-snapshot</id>
+					<url>
+						https://usw1.packages.broadcom.com/artifactory/spring-enterprise-maven-dev-local
+					</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+				<repository>
+					<id>spring-enterprise-release</id>
+					<url>
+						https://usw1.packages.broadcom.com/artifactory/spring-enterprise-maven-prod-local/
+					</url>
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
+
+</settings>

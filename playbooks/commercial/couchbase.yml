@@ -1,0 +1,47 @@
+antora:
+  extensions:
+    - require: '@springio/antora-extensions'
+      root_component_name: 'data-couchbase'
+site:
+  title: Spring Data Couchbase
+  url: https:/https:/docs.spring.vmware.com/spring-data/couchbase/reference
+  robots: allow
+git:
+  ensure_git_suffix: false
+content:
+  sources:
+    - url: https:/github.com/spring-projects/spring-data-couchbase-commercial
+      # Refname matching:
+      # https:/docs.antora.org/antora/latest/playbook/content-refname-matching/
+      branches: [ '{5..9}.*({0..9}).x' ]
+      tags: [ '({5..9}).+({0..9}).*' ]
+      start_path: src/main/antora
+    - url: https:/github.com/spring-projects/spring-data-commons-commercial
+      # Refname matching:
+      # https:/docs.antora.org/antora/latest/playbook/content-refname-matching/
+      branches: [ '{3..9}.*({0..9}).x' ]
+      tags: [ '({3..9}).+({0..9}).*' ]
+      start_path: src/main/antora
+asciidoc:
+  attributes:
+    page-stackoverflow-url: https:/stackoverflow.com/tags/spring-data-couchbase
+    page-related-doc-categories: data
+    page-related-doc-projects: framework,graphql
+    hide-uri-scheme: '@'
+    tabs-sync-option: '@'
+  extensions:
+    - '@asciidoctor/tabs'
+    - '@springio/asciidoctor-extensions'
+    - '@springio/asciidoctor-extensions/javadoc-extension'
+urls:
+  latest_version_segment_strategy: redirect:to
+  latest_version_segment: ''
+  redirect_facility: httpd
+ui:
+  bundle:
+    url: https:/github.com/spring-io/antora-ui-spring/releases/download/v0.4.18/ui-bundle.zip
+    snapshot: true
+runtime:
+  log:
+    failure_level: warn
+    format: pretty
