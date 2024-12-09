@@ -7,6 +7,3 @@ target/
 .idea/
 *.iml
 build/
-node_modules
-node/
-package-lock.json
